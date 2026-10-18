@@ -15,6 +15,15 @@ Osebni trener za domačo telovadnico, narejen **izključno za opremo, ki jo ima�
 
 **36 vaj, vsaka z animacijo** (2D skeletna animacija s pravilnim zaporedjem gibanja, faznimi napisi "Spuščaj 3 s / Pavza / Potisni", poudarjenimi delovnimi mišicami, navodili in pogostimi napakami).
 
+### Več oseb (profili)
+Ob zagonu izbereš, kdo trenira (kot pri Netflixu). Vsaka oseba ima **svoj program (3×/4×), nivo, teže, progresijo, zgodovino in shranjene treninge**. Neobvezni 4-mestni PIN zaklene profil na skupnem TV-ju (zasebnost, ne varnost – podatki so v brskalniku). Obstoječi podatki se ob nadgradnji samodejno prenesejo v profil "Jaz".
+
+### Trening po izbiri
+- **Sestavi trening**: vrsta (**Moč / Kardio / Moč + kardio**) × fokus (noge, zadnjica, prsa, hrbet, rame, roke, trup – več izbir ali "celo telo") × trajanje (20/30/45/60 min). Generator vzame samo tvojo opremo, najprej večsklepne vaje, pare v supersete in prilagodi število vaj času in tvojemu nivoju. Vsako vajo lahko **zamenjaš** (⇄) ali **odstraniš**, trening pa **shraniš** med priljubljene.
+- **Kardio**: kolo / veslač / oboje × cona 2 / intervali / mešano.
+- **Hitri treningi** na domačem zaslonu (celo telo, noge & zadnjica, zgornji del, trup, kardio intervali, cona 2).
+- **Knjižnica**: filter po fokusu in opremi; pri vsaki vaji gumb **"Treniraj to vajo"**.
+
 ---
 
 ## Kako jo naložiš na TV
@@ -80,8 +89,8 @@ index.html
 css/app.css           design tokens, 10-foot UI, fokus stanja za D-pad
 js/figure.js          animacijski engine: FK + 2-kostna IK + "pin" kontakta s tlemi, SVG renderer, rekviziti, samodejna kamera
 js/exercises.js       knjižnica 36 vaj (keyframe animacije, navodila, napake, mišice, tempo, začetno breme)
-js/program.js         programi, 4-tedenski bloki, dvojna progresija, sploščitev v korake (supersets)
-js/store.js           localStorage + izvoz/uvoz JSON
+js/program.js         programi, 4-tedenski bloki, dvojna progresija, generator treningov po fokusu, sploščitev v korake (supersets)
+js/store.js           profili (localStorage), PIN, migracija v1→v2, izvoz/uvoz JSON
 js/app.js             zasloni, prostorska navigacija za daljinec, vodeni trening, TV predogled
 sw.js                 offline cache
 tools/                razvojna orodja (contact sheet vseh animacij, UI smoke test)
@@ -95,6 +104,7 @@ tools/                razvojna orodja (contact sheet vseh animacij, UI smoke tes
 NODE_PATH=$(npm root -g) node tools/snap.cjs contact.png          # vse animacije v 4 fazah
 NODE_PATH=$(npm root -g) node tools/snap.cjs c.png kb_swing,pullup # izbrane vaje
 NODE_PATH=$(npm root -g) node tools/ui.cjs ./out                   # UI smoke test + posnetki zaslonov
+NODE_PATH=$(npm root -g) node tools/profiles.cjs ./out             # profili, PIN, sestavljalnik, knjižnica
 ```
 
 Nova vaja = en objekt v `js/exercises.js` (+ vnos v `js/program.js`, če naj bo v programu).
@@ -104,6 +114,6 @@ Nova vaja = en objekt v `js/exercises.js` (+ vnos v `js/program.js`, če naj bo 
 ## Omejitve (odkrito)
 
 - Animacije so stilizirana **2D stranska projekcija**, ne video. Rotacijske vaje (sekanje drv) so prikazane v projekciji — besedilna navodila to dopolnjujejo.
-- Podatki so shranjeni **na napravi** (TV ≠ telefon). Za prenos uporabi izvoz/uvoz v Nastavitvah.
+- Profili in podatki so shranjeni **na napravi** (TV ≠ telefon) – ni oblačne prijave. Za prenos uporabi izvoz/uvoz v Nastavitvah (izvoz vsebuje vse profile).
 - Slovenski glas za govor večina TV-jev nima — takrat aplikacija uporabi zvočne signale.
 - Začetne teže so ocena; prvi teden jih prilagodi (aplikacija si jih nato zapomni).

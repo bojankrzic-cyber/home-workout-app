@@ -776,7 +776,9 @@
     function chip(key, val, label) {
       return '<button class="chip focusable' + (d[key] === val ? ' on' : '') + '" data-fid="pe-' + key + '-' + val + '" data-pe="' + key + '" data-val=\'' + JSON.stringify(val) + '\'>' + label + '</button>';
     }
-    root.innerHTML = '<div class="screen"><div class="topbar"><h1>' + (existing ? 'Uredi profil' : 'Nova oseba') + '</h1></div><div class="panel">' +
+    root.innerHTML = '<div class="screen"><div class="topbar"><h1>' + (existing ? 'Uredi profil' : Store.list().length ? 'Nova oseba' : 'Dobrodošli – kdo bo treniral?') + '</h1></div>' +
+      (Store.list().length || existing ? '' : '<div class="hint">Vsak član gospodinjstva ima svoj profil: program, teže, napredek. Več oseb dodaš kasneje v Nastavitvah ali ob zagonu.</div>') +
+      '<div class="panel">' +
       '<div class="opt-row"><div class="k">Ime</div><input class="field focusable" id="pName" data-fid="pe-name" maxlength="20" placeholder="npr. Bojan" value="' + esc(d.name) + '"' + (existing ? '' : ' data-autofocus') + '></div>' +
       '<div class="opt-row"><div class="k">Barva</div>' + Store.COLORS.map(function (c) {
         return '<button class="swatch focusable' + (d.color === c ? ' on' : '') + '" data-fid="pe-color-' + c + '" data-pe="color" data-val=\'"' + c + '"\' style="background:' + c + '"></button>';
