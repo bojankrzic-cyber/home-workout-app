@@ -502,24 +502,30 @@
     abs: 'Abs', obliques: 'Obliques', lowback: 'Lower back', chest: 'Chest', lats: 'Lats',
     traps: 'Traps', delts: 'Delts', biceps: 'Biceps', triceps: 'Triceps', forearms: 'Forearms'
   };
-  function labelSvg(pt, txt, dir) {
-    var w = txt.length * 4.6 + 12;
-    var end = add(pt, dir, 34);
-    var x = end[0] - (Math.sin(dir * RAD) < 0 ? w : 0);
-    return line(pt, end, 1, 'lbl-line') + circ(pt, 2, 'lbl-dot') +
-      '<rect x="' + f1(x) + '" y="' + f1(end[1] - 7) + '" width="' + f1(w) + '" height="14" rx="7" class="lbl-bg"/>' +
-      '<text x="' + f1(x + w / 2) + '" y="' + f1(end[1] + 3.2) + '" class="lbl-txt">' + txt + '</text>';
+  // label bubble at (x, y) with a leader line back to the muscle point
+  function labelSvg(pt, txt, x, y, left) {
+    var w = txt.length * 4.6 + 12, bx = left ? x - w : x;
+    return line(pt, [x, y], 1, 'lbl-line') + circ(pt, 2, 'lbl-dot') +
+      '<rect x="' + f1(bx) + '" y="' + f1(y - 7) + '" width="' + f1(w) + '" height="14" rx="7" class="lbl-bg"/>' +
+      '<text x="' + f1(bx + w / 2) + '" y="' + f1(y + 3.2) + '" class="lbl-txt">' + txt + '</text>';
   }
+  // Up to 3 primary muscles, labelled on the side of the body they sit on; labels on the same
+  // side are stacked with a fixed gap so they never overlap each other, whatever the pose.
   function drawLabels(J, anim) {
-    var mus = musclesOf(anim), sh = muscleShapes(J, 'N'), o = '';
-    var used = [];
-    mus.p.slice(0, 3).forEach(function (id, i) {
+    var mus = musclesOf(anim), sh = muscleShapes(J, 'N'), sides = { l: [], r: [] };
+    mus.p.slice(0, 3).forEach(function (id) {
       var g = sh[id]; if (!g) return;
-      var c = g[0];
-      var out = c[0] >= J.hip[0] ? 70 + i * 22 : -70 - i * 22;
-      if (used.some(function (u) { return Math.abs(u - c[1]) < 14; })) out += out > 0 ? 30 : -30;
-      used.push(c[1]);
-      o += labelSvg(c, MUSCLE_NAME[id] || id, out);
+      var c = g[0], left = c[0] < J.hip[0];
+      sides[left ? 'l' : 'r'].push({ pt: c, txt: MUSCLE_NAME[id] || id, y: c[1] - 6 });
+    });
+    var o = '';
+    ['l', 'r'].forEach(function (k) {
+      var list = sides[k].sort(function (a, b) { return a.y - b.y; });
+      for (var i = 1; i < list.length; i++) if (list[i].y < list[i - 1].y + 18) list[i].y = list[i - 1].y + 18;
+      list.forEach(function (it) {
+        var x = k === 'l' ? Math.min(it.pt[0], J.hip[0]) - 30 : Math.max(it.pt[0], J.hip[0]) + 30;
+        o += labelSvg(it.pt, it.txt, x, it.y, k === 'l');
+      });
     });
     return o;
   }
