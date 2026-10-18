@@ -384,6 +384,28 @@
     return '<svg viewBox="0 0 210 216" class="mmap">' + mapHalf(MAP_FRONT, mus, 0, 'FRONT') + mapHalf(MAP_BACK, mus, 106, 'BACK') + '</svg>';
   }
 
+  // ---------------------------------------------------------------- Nature's Finest product tips (js/products.js)
+  function productCard(it, campaign, compact) {
+    return '<a class="prod-card focusable' + (compact ? ' compact' : '') + '" href="' + esc(Products.link(it, campaign)) + '" target="_blank" rel="noopener">' +
+      '<div class="prod-img"><img src="' + esc(it.img) + '" alt="" loading="lazy"></div><div class="prod-body"><small>Nature’s Finest</small><h4>' + esc(it.name) + '</h4>' +
+      '<p>' + esc(it.claim) + '</p><div class="prod-foot"><b>' + it.price.toFixed(2).replace('.', ',') + ' €</b><span>Shop →</span></div></div></a>';
+  }
+  function productSection(list, title, sub, campaign) {
+    if (!list.length) return '';
+    return '<div class="section-title"><h2>' + title + '</h2><span>' + esc(sub) + '</span></div>' +
+      '<div class="prod-row">' + list.map(function (it) { return productCard(it, campaign); }).join('') + '</div>';
+  }
+  function homeProducts() {
+    var s = state.settings, g = GOAL_BY[s.goal] || GOAL_BY.general, wk = Me.weeksTo(s), out = '', shown = [];
+    if (s.goal === 'hyrox' && wk != null && wk >= 0 && wk <= 8) {
+      shown = Products.pick(state, 'race', 3);
+      out += productSection(shown, '🏁 Race prep · ' + pl(wk, ['week', 'weeks']) + ' to go', 'what to build into your routine before race day', 'race_prep');
+    }
+    var more = Products.pick(state, 'home', 6).filter(function (it) { return shown.indexOf(it) < 0; }).slice(0, 3);
+    out += productSection(more, shown.length ? 'Everyday support' : 'Fuel your goal', g.ico + ' ' + g.name + ' – picked for your profile', 'home_goal');
+    return out && out + '<div class="hint prod-disc">' + esc(Products.CONFIG.disclaimer) + ' · Tips can be switched off in Settings.</div>';
+  }
+
   // goal + countdown + weight-to-target, one line on the home screen
   function goalLine() {
     var s = state.settings, g = GOAL_BY[s.goal] || GOAL_BY.general, wk = Me.weeksTo(s), bits = [];
@@ -452,6 +474,7 @@
       '<div class="stat"><b>' + streak + '</b><span>week streak</span></div></div></div></div>' +
       '<div class="section-title"><h2>Your program</h2><span>' + plan.order.length + ' workouts in rotation · a missed day won’t derail your plan</span></div>' +
       '<div class="row">' + cards + '</div>' +
+      homeProducts() +
       '<div class="section-title"><h2>Quick workouts</h2><span>pick a focus or type – built only from your equipment</span></div>' +
       '<div class="row">' + QUICK.map(function (q, i) {
         var qp = q.photo && photo(q.photo);
@@ -665,6 +688,9 @@
     function opt(key, val, label) {
       return '<button class="chip focusable' + (s[key] === val ? ' on' : '') + '" data-set="' + key + '" data-val=\'' + JSON.stringify(val) + '\'>' + label + '</button>';
     }
+    function tipChip(val, label) {   // the effective state (explicit choice, else the global pilot switch)
+      return '<button class="chip focusable' + (Products.enabled(state) === val ? ' on' : '') + '" data-set="tips" data-val=\'' + val + '\'>' + label + '</button>';
+    }
     var voiceInfo = Voice.v ? 'Voice: ' + Voice.v.name : 'No English voice on this device – using beeps.';
     root.innerHTML = '<div class="screen"><div class="topbar"><h1>Settings</h1><div class="spacer"></div>' +
       '<button class="btn sm ghost focusable who" data-go="profiles">' + avatar(state) + 'Switch person</button></div>' +
@@ -680,6 +706,8 @@
       '<div class="opt-row"><div class="k">Level</div>' + opt('level', 'beg', 'Beginner') + opt('level', 'mid', 'Intermediate') + opt('level', 'adv', 'Advanced') + '</div>' +
       '<div class="opt-row"><div class="k">Voice coaching</div>' + opt('voice', true, 'On') + opt('voice', false, 'Off') + '<span class="hint">' + esc(voiceInfo) + '</span></div>' +
       '<div class="opt-row"><div class="k">Beeps</div>' + opt('beeps', true, 'On') + opt('beeps', false, 'Off') + '</div>' +
+      '<div class="opt-row"><div class="k">Nature’s Finest product tips</div>' + tipChip(true, 'On') + tipChip(false, 'Off') +
+      '<span class="hint">' + (Products.eligible(state) ? 'Goal-based supplement tips on home and after workouts. Matching happens on this device only.' : 'Shown only to adults – add your age in your profile.') + '</span></div>' +
       '<div class="opt-row"><div class="k">Preview – seconds per exercise</div>' + opt('previewSec', 10, '10 s') + opt('previewSec', 15, '15 s') + opt('previewSec', 25, '25 s') + '</div>' +
       '<div class="opt-row"><div class="k">4-week block start</div><span class="chip">' + esc(s.startDate) + '</span><button class="btn sm focusable" id="newBlock">Start new block today</button></div>' +
       '</div><div class="panel"><h3>Data</h3><div class="opt-row">' +
@@ -1066,6 +1094,10 @@
       f.innerHTML = '<div class="fin-card"><div class="kicker">' + (race ? 'HYROX TIME' : 'WORKOUT COMPLETE') + '</div><div class="fin-time">' + fmt(total) + '</div>' +
         '<div class="fin-stats"><div><b>' + logged.length + '</b><span>sets</span></div><div><b>' + reps + '</b><span>reps</span></div><div><b>' + Math.round(vol) + ' kg</b><span>volume</span></div>' + (kcal ? '<div><b>~' + kcal + '</b><span>kcal</span></div>' : '') + '</div>' +
         (race ? '<div class="splits fin-splits">' + splits.filter(function (x) { return x.station; }).map(function (r) { return '<div class="split"><span>' + esc(r.name) + '</span><b>' + fmt(r.sec) + '</b></div>'; }).join('') + '</div>' : '') +
+        (function () {
+          var tip = Products.pick(state, 'finish', 1, { cardio: race || /cardio|hyrox/i.test(sess.name) })[0];
+          return tip ? '<div class="fin-tip"><div class="label">Recover well</div>' + productCard(tip, 'post_workout', true) + '</div>' : '';
+        })() +
         '<button class="btn primary focusable" id="wHome">Home</button></div>';
       $('.side', el).hidden = true;
       el.classList.add('done');
