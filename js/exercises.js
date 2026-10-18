@@ -1,7 +1,7 @@
 /*
  * Exercise library — every exercise uses only the home equipment:
  * exercise bike, water rower, kettlebells, dumbbells, ab & back-extension bench,
- * adjustable weight bench, Technogym Kinesis Personal, wall pull-up / leg-raise station.
+ * adjustable weight bench, Cable station, wall pull-up / leg-raise station.
  *
  * anim.frames: looping keyframes, each { d: seconds to next frame, l: phase label, p: pose }.
  * Pose fields are documented in figure.js.
@@ -15,22 +15,22 @@
 
   // Equipment catalogue. `icon` is drawn by Figure.icon with the same renderer as the animations.
   var EQUIP = {
-    bike: { name: 'Exercise bike', group: 'kardio', desc: 'Warm-up, Zone 2, intervals, HYROX runs', icon: { vb: [-82, -134, 196, 146], scene: [{ type: 'bike', sx: -28, sy: -96, cx: 0, cy: -32, bx: 38, by: -112 }] } },
+    bike: { name: 'Exercise bike', group: 'kardio', desc: 'Warm-up, Zone 2, intervals, race runs', icon: { vb: [-82, -134, 196, 146], scene: [{ type: 'bike', sx: -28, sy: -96, cx: 0, cy: -32, bx: 38, by: -112 }] } },
     rower: { name: 'Rower', group: 'kardio', desc: 'Technique, intervals, 1000 m', icon: { vb: [-118, -86, 268, 98], scene: [{ type: 'rower', fx: 60 }] } },
-    treadmill: { name: 'Treadmill', group: 'kardio', desc: 'Running, HYROX 1 km', icon: { vb: [-76, -160, 196, 172], scene: [{ type: 'treadmill', x0: -64, x1: 70 }] } },
-    skierg: { name: 'SkiErg', group: 'kardio', desc: 'HYROX SkiErg, intervals', icon: { vb: [-56, -232, 116, 244], scene: [{ type: 'skierg', x: 0 }] } },
+    treadmill: { name: 'Treadmill', group: 'kardio', desc: 'Running, race 1 km', icon: { vb: [-76, -160, 196, 172], scene: [{ type: 'treadmill', x0: -64, x1: 70 }] } },
+    skierg: { name: 'Ski machine', group: 'kardio', desc: 'Race ski, intervals', icon: { vb: [-56, -232, 116, 244], scene: [{ type: 'skierg', x: 0 }] } },
     db: { name: 'Dumbbells', group: 'utezi', desc: 'Presses, rows, RDLs, thrusters', icon: { vb: [-64, -96, 128, 108], noFloor: true, props: [{ t: 'db', x: -4, y: -26 }, { t: 'db', x: 10, y: -66, k: 0.75 }] } },
     kb: { name: 'Kettlebells', group: 'utezi', desc: 'Swings, goblet squats, carries', icon: { vb: [-70, -82, 140, 94], props: [{ t: 'kb', x: -26, y: -28 }, { t: 'kb', x: 32, y: -22, k: 0.75 }] } },
     barbell: { name: 'Olympic barbell + rack', group: 'utezi', desc: 'Squats, deadlifts, barbell presses', icon: { vb: [-100, -92, 200, 104], props: [{ t: 'barbell', x: 0, y: -34 }] } },
-    sandbag: { name: 'Sandbag', group: 'utezi', desc: 'HYROX Sandbag Lunges, carries', icon: { vb: [-64, -72, 128, 84], props: [{ t: 'bag', x: 0, y: -20 }] } },
-    wallball: { name: 'Wall ball (med ball)', group: 'utezi', desc: 'HYROX Wall Balls (needs a wall)', icon: { vb: [-50, -72, 100, 84], props: [{ t: 'ball', x: 0, y: -30 }] } },
+    sandbag: { name: 'Sandbag', group: 'utezi', desc: 'Race sandbag lunges, carries', icon: { vb: [-64, -72, 128, 84], props: [{ t: 'bag', x: 0, y: -20 }] } },
+    wallball: { name: 'Wall ball (med ball)', group: 'utezi', desc: 'Race wall balls (needs a wall)', icon: { vb: [-50, -72, 100, 84], props: [{ t: 'ball', x: 0, y: -30 }] } },
     bench: { name: 'Adjustable weight bench', group: 'klopi', desc: 'Flat / incline bench, support', icon: { vb: [-82, -86, 180, 98], scene: [{ type: 'bench', x: -62, len: 118 }] } },
     tria: { name: 'Ab & back-extension bench', group: 'klopi', desc: 'Sit-ups and back extensions', icon: { vb: [-56, -92, 176, 104], scene: [{ type: 'tria_abs', x: -40 }] } },
     wall: { name: 'Wall station: pull-up bar + leg raise', group: 'klopi', desc: 'Pull-ups, leg raises, hangs', icon: { vb: [-92, -252, 160, 264], scene: [{ type: 'wall', x: -48, y: -226, bx: 46 }] } },
     box: { name: 'Plyo box', group: 'klopi', desc: 'Box jumps, step-ups', icon: { vb: [-60, -74, 120, 86], scene: [{ type: 'box', x: -32, w: 64, h: 54 }] } },
-    kinesis: { name: 'Technogym Kinesis Personal', group: 'kabli', desc: 'Cable exercises, resistance 0–20', icon: { vb: [-62, -222, 124, 234], scene: [{ type: 'kinesis', x: 0, pulleys: [[-24, -186], [-24, -112], [-24, -36]] }] } },
+    kinesis: { name: 'Cable station', group: 'kabli', desc: 'Cable exercises, resistance 0–20', icon: { vb: [-62, -222, 124, 234], scene: [{ type: 'kinesis', x: 0, pulleys: [[-24, -186], [-24, -112], [-24, -36]] }] } },
     bands: { name: 'Resistance bands', group: 'kabli', desc: 'Rows, triceps, warm-ups', icon: { vb: [-62, -76, 124, 88], noFloor: true, props: [{ t: 'band', x: 0, y: -34 }] } },
-    sled: { name: 'Sled', group: 'hyrox', desc: 'HYROX Sled Push and Sled Pull', icon: { vb: [-60, -124, 150, 136], scene: [{ type: 'sled', x: -24 }] } },
+    sled: { name: 'Sled', group: 'hyrox', desc: 'Race sled push and pull', icon: { vb: [-60, -124, 150, 136], scene: [{ type: 'sled', x: -24 }] } },
     rope: { name: 'Jump rope', group: 'hyrox', desc: 'Conditioning, warm-ups', icon: { vb: [-62, -110, 124, 122], noFloor: true, props: [{ t: 'rope', x: 0, y: -56 }] } },
     suspension: { name: 'Suspension trainer', group: 'tools', desc: 'Rows, presses, assisted squats, core (needs an anchor)', icon: { vb: [-60, -254, 120, 196], noFloor: true, scene: [{ type: 'susp', x: 0, y: -226, hang: 150 }] } },
     abwheel: { name: 'Ab wheel', group: 'tools', desc: 'Rollouts – anti-extension core', icon: { vb: [-70, -82, 140, 94], props: [{ t: 'wheel', x: 0, y: -38 }] } },
@@ -47,7 +47,7 @@
     { id: 'utezi', name: 'Free weights' },
     { id: 'klopi', name: 'Benches, wall & boxes' },
     { id: 'kabli', name: 'Cables & bands' },
-    { id: 'hyrox', name: 'HYROX & conditioning' },
+    { id: 'hyrox', name: 'Race & conditioning' },
     { id: 'tools', name: 'Bodyweight trainers' },
     { id: 'mob', name: 'Mobility & recovery' }
   ];
@@ -187,7 +187,7 @@
   function quad(aN, aF, lN, lF) { return { r: [0, -51], t: 99, hd: -20, aN: aN, aF: aF, lN: lN, lF: lF }; }
 
 
-  // ------------------------------------------------------------ HYROX substitutes
+  // ------------------------------------------------------------ hybrid race substitutes
   // Standing heavy climb on the bike (sled-push substitute): hips out of the saddle, bob with the stroke
   function bikeStandAnim(period) {
     return {
@@ -688,7 +688,7 @@
 
     // ------------------------------------------------------------ KINESIS
     {
-      id: 'k_chest_press', name: 'Kinesis – standing chest press', equip: ['kinesis'], type: 'strength', unit: 'stopnja', load: 8, inc: 1,
+      id: 'k_chest_press', name: 'Cable – standing chest press', equip: ['kinesis'], type: 'strength', unit: 'stopnja', load: 8, inc: 1,
       muscles: 'Chest, triceps, core', tempo: '1-1-2',
       cues: ['Back to the machine, split stance', 'Handles at chest height, elbows ~45°', 'Press forward and slightly in, torso stays still'],
       mistakes: ['Leaning forward', 'Shoulders shrugging toward the ears'],
@@ -703,7 +703,7 @@
       }
     },
     {
-      id: 'k_row', name: 'Kinesis – standing row', equip: ['kinesis'], type: 'strength', unit: 'stopnja', load: 8, inc: 1,
+      id: 'k_row', name: 'Cable – standing row', equip: ['kinesis'], type: 'strength', unit: 'stopnja', load: 8, inc: 1,
       muscles: 'Back, rear delts, biceps', tempo: '1-1-2',
       cues: ['Facing the machine, soft knees', 'Shoulder blades back first, then elbows', 'Squeeze 1 s at the end, chest proud'],
       mistakes: ['Rocking the torso back', 'Shoulders rolling forward at the end'],
@@ -718,7 +718,7 @@
       }
     },
     {
-      id: 'k_pulldown', name: 'Kinesis – half-kneeling pulldown', equip: ['kinesis'], type: 'strength', unit: 'stopnja', load: 9, inc: 1,
+      id: 'k_pulldown', name: 'Cable – half-kneeling pulldown', equip: ['kinesis'], type: 'strength', unit: 'stopnja', load: 9, inc: 1,
       muscles: 'Lats, biceps', tempo: '1-1-2',
       cues: ['Half-kneeling, glutes squeezed, torso upright', 'Drive the elbows down to your sides', 'Full extension at the top – stretch through the lats'],
       mistakes: ['Leaning back', 'Shoulders stuck by the ears'],
@@ -733,7 +733,7 @@
       }
     },
     {
-      id: 'k_face_pull', name: 'Kinesis – face pull', equip: ['kinesis'], type: 'strength', unit: 'stopnja', load: 5, inc: 1,
+      id: 'k_face_pull', name: 'Cable – face pull', equip: ['kinesis'], type: 'strength', unit: 'stopnja', load: 5, inc: 1,
       muscles: 'Rear delts, rotator cuff, mid-back', tempo: '1-2-2',
       cues: ['Handles at face height', 'Pull toward the forehead, elbows high and wide', 'Rotate the hands out at the end (double-biceps pose)'],
       mistakes: ['Level too heavy – pulling with the biceps', 'Elbows dropping'],
@@ -748,7 +748,7 @@
       }
     },
     {
-      id: 'k_pushdown', name: 'Kinesis – triceps pushdown', equip: ['kinesis'], type: 'strength', unit: 'stopnja', load: 6, inc: 1,
+      id: 'k_pushdown', name: 'Cable – triceps pushdown', equip: ['kinesis'], type: 'strength', unit: 'stopnja', load: 6, inc: 1,
       muscles: 'Triceps', tempo: '1-1-2',
       cues: ['Elbows pinned to your sides', 'Fully extend and squeeze 1 s', 'Up only to 90°'],
       mistakes: ['Elbows drifting forward', 'Helping with the shoulder / torso'],
@@ -763,7 +763,7 @@
       }
     },
     {
-      id: 'k_pullthrough', name: 'Kinesis – cable pull-through', equip: ['kinesis'], type: 'strength', unit: 'stopnja', load: 10, inc: 1,
+      id: 'k_pullthrough', name: 'Cable – cable pull-through', equip: ['kinesis'], type: 'strength', unit: 'stopnja', load: 10, inc: 1,
       muscles: 'Glutes, hamstrings', tempo: '2-0-1',
       cues: ['Back to the machine, cable between the legs', 'Hips back, back flat, arms just hold', 'Extend the hips and squeeze the glutes'],
       mistakes: ['Pulling with the arms', 'Squatting instead of hinging'],
@@ -778,7 +778,7 @@
       }
     },
     {
-      id: 'k_woodchop', name: 'Kinesis – high-to-low woodchop', equip: ['kinesis'], type: 'core', unit: 'stopnja', load: 6, inc: 1, perSide: true,
+      id: 'k_woodchop', name: 'Cable – high-to-low woodchop', equip: ['kinesis'], type: 'core', unit: 'stopnja', load: 6, inc: 1, perSide: true,
       muscles: 'Obliques, core', tempo: '1-0-2',
       cues: ['Side-on to the machine, arms extended', 'Rotate through hips and torso diagonally down', 'Slow return – resist the rotation'],
       mistakes: ['Moving with the arms only', 'Rounded back at the bottom'],
@@ -979,18 +979,18 @@
       }
     },
 
-    // ------------------------------------------------------------ HYROX (substitutes on home equipment)
+    // ------------------------------------------------------------ hybrid race (substitutes on home equipment)
     {
-      id: 'hx_bike_run', name: 'Bike – run substitute (HYROX)', equip: ['bike'], type: 'cardio', unit: 'min',
+      id: 'hx_bike_run', name: 'Bike – run substitute (race)', equip: ['bike'], type: 'cardio', unit: 'min',
       muscles: 'Cardio, legs', tempo: '90–100 RPM · RPE 7',
       cues: ['A pace you can hold for all 8 rounds – not a sprint', 'Medium resistance: at 95 RPM breathing is fast but controlled', 'Ease off for the last 20 s and get ready for the station'],
       mistakes: ['First round too fast', 'Holding your breath at the station right after the bike'],
       anim: bikeAnim(0.62)
     },
     {
-      id: 'k_ski', name: 'Kinesis – SkiErg pull (HYROX)', equip: ['kinesis'], type: 'cardio', unit: 'stopnja', load: 6, inc: 1,
+      id: 'k_ski', name: 'Cable – ski pull (race)', equip: ['kinesis'], type: 'cardio', unit: 'stopnja', load: 6, inc: 1,
       muscles: 'Lats, core, triceps, glutes', tempo: 'Rhythmic, ~40 pulls/min',
-      cues: ['High pulley in front, handles overhead', 'Pull with a hip hinge and abs – hands finish by the hips', 'Soft knees, drive from the hips like on the SkiErg'],
+      cues: ['High pulley in front, handles overhead', 'Pull with a hip hinge and abs – hands finish by the hips', 'Soft knees, drive from the hips like on a ski machine'],
       mistakes: ['Pulling with the arms only', 'Rounded back at the bottom'],
       anim: {
         scene: [K_SKI], cables: cab(K_SKI), hold: { N: 'handle', F: 'handle' }, focus: ['torso', 'upper'],
@@ -1009,7 +1009,7 @@
       anim: bikeStandAnim(1.05)
     },
     {
-      id: 'k_sled_pull', name: 'Kinesis – hand-over-hand sled pull', equip: ['kinesis'], type: 'cardio', unit: 'stopnja', load: 12, inc: 1, repsPerCycle: 2,
+      id: 'k_sled_pull', name: 'Cable – hand-over-hand sled pull', equip: ['kinesis'], type: 'cardio', unit: 'stopnja', load: 12, inc: 1, repsPerCycle: 2,
       muscles: 'Back, biceps, grip, glutes', tempo: 'Alternating, fast',
       cues: ['Low pulley in front, athletic stance, hips back', 'Alternate pulling left and right hand to the hip', 'Lean back, weight in the heels'],
       mistakes: ['Standing upright – pulling with the arms only', 'Rounded back'],
@@ -1022,7 +1022,7 @@
       }
     },
     {
-      id: 'burpee_bj', name: 'Burpee broad jump (HYROX)', equip: ['floor'], type: 'cardio', unit: 'bw', load: 0, inc: 0, secPerRep: 6,
+      id: 'burpee_bj', name: 'Burpee broad jump (race)', equip: ['floor'], type: 'cardio', unit: 'bw', load: 0, inc: 0, secPerRep: 6,
       muscles: 'Full body, heart', tempo: 'Steady',
       cues: ['Chest to the floor, then feet under you', 'Two-foot jump forward – soft landing in a quarter squat', 'At home: walk back to the start, keep a steady rhythm'],
       mistakes: ['Jumping too far and losing rhythm', 'Landing with locked knees'],
@@ -1042,7 +1042,7 @@
       }
     },
     {
-      id: 'kb_farmers', name: 'Kettlebell farmers carry (HYROX)', equip: ['kb'], type: 'cardio', unit: 'kg', load: 16, inc: 4,
+      id: 'kb_farmers', name: 'Kettlebell farmers carry (race)', equip: ['kb'], type: 'cardio', unit: 'kg', load: 16, inc: 4,
       muscles: 'Grip, core, shoulders, legs', tempo: 'Quick short steps',
       cues: ['Two KBs at your sides, shoulders down and back', 'Quick short steps, eyes forward', 'Don\'t stop – if your grip fades, slow down'],
       mistakes: ['Leaning to one side', 'Shoulders up by the ears'],
@@ -1091,7 +1091,7 @@
       anim: treadAnim
     },
     {
-      id: 'skierg', name: 'SkiErg', equip: ['skierg'], type: 'cardio', unit: 'min', secPerM: 0.28,
+      id: 'skierg', name: 'Ski machine', equip: ['skierg'], type: 'cardio', unit: 'min', secPerM: 0.28,
       muscles: 'Back, core, triceps, glutes', tempo: '35–45 pulls/min',
       cues: ['Handles overhead, arms slightly bent', 'Pull with a hip hinge and abs, not just the arms', 'Recovery: arms up first, then hips'],
       mistakes: ['Squatting instead of hinging', 'Pull stops short above the knees'],
@@ -1593,7 +1593,7 @@
     roke: { name: 'Arms', icon: '💪' },
     trup: { name: 'Core', icon: '🎯' },
     kardio: { name: 'Cardio', icon: '❤️' },
-    hyrox: { name: 'HYROX', icon: '🏁' },
+    hyrox: { name: 'Hybrid race', icon: '🏁' },
     mobilnost: { name: 'Mobility', icon: '🧘' }
   };
   var GROUPS = {
@@ -1625,7 +1625,7 @@
     'landmine_row', 'landmine_press', 'dips', 'susp_row', 'susp_pushup', 'susp_squat'];
 
   // Movement patterns, each list in preference order. Used to substitute exercises
-  // when a profile lacks equipment, and to upgrade HYROX substitutes to the real station.
+  // when a profile lacks equipment, and to upgrade hybrid race substitutes to the real station.
   var PATTERNS = {
     squat: ['bb_squat', 'kb_goblet_squat', 'bw_squat', 'susp_squat'],
     hinge: ['bb_deadlift', 'kb_deadlift', 'db_rdl', 'glute_bridge'],

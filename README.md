@@ -12,7 +12,7 @@ Osebni trener za domačo telovadnico, narejen **izključno za opremo, ki jo ima�
 | Dumbbells | potisk (ravna/poševna klop), veslanje, RDL, bolgarski počep, hip thrust, step-up, rame, biceps |
 | Klop za trebušne in hrbet | zaprt = trebušnjaki, pol-odprt = iztegovanje hrbta (45°) |
 | Nastavljiva klop za uteži | ravna / poševna / skoraj pokončna klop za uteži, opora za veslanje, step-up, razteg |
-| Technogym Kinesis Personal | potisk za prsa, veslanje, poteg navzdol, face pull, triceps, pull-through, sekanje drv – breme v **stopnjah 0–20** |
+| Cable station | potisk za prsa, veslanje, poteg navzdol, face pull, triceps, pull-through, sekanje drv – breme v **stopnjah 0–20** |
 | Stena (drog + dvig nog) | zgibi, dvig kolen/nog v visenju, visenje |
 
 **63 vaj, vsaka z animacijo** (2D skeletna animacija s pravilnim zaporedjem gibanja, faznimi napisi "Spuščaj 3 s / Pavza / Potisni", poudarjenimi delovnimi mišicami, navodili in pogostimi napakami).
@@ -25,17 +25,17 @@ Osebni trener za domačo telovadnico, narejen **izključno za opremo, ki jo ima�
 - **Fotografije pravih oseb** (generirane, preverjene glede pravilne izvedbe): kartice v knjižnici (fokus z daljincem preklopi na animacijo), domači zaslon, sličica "Prava izvedba" v predvajalniku, predogledu in podrobnostih (povečava čez cel zaslon). Kjer fotografije še ni, ostane animacija. Prompti za manjkajoče so v `tools/photo_prompts.json`; po dodajanju slik v `img/ex/` zaženi `python3 tools/build_photos.py`.
 
 ### Osebni profil (cilj, telo, srčni utrip, omejitve)
-- **Cilj** (Build muscle / Get stronger / Lose fat / Endurance / HYROX race / Stay fit) dejansko spremeni program: *Get stronger* zniža ponovitve glavnih vaj (npr. 8–10 → 5–7) in podaljša počitek; *Lose fat / Endurance / HYROX* skrajšajo počitek in dodajo intervale; *Endurance* poveča ponovitve pomožnih vaj in dolžino kardia. Ciljna teža, ciljni datum (npr. dan tekme) in "My why" se prikažejo na domačem zaslonu.
+- **Cilj** (Build muscle / Get stronger / Lose fat / Endurance / hybrid race race / Stay fit) dejansko spremeni program: *Get stronger* zniža ponovitve glavnih vaj (npr. 8–10 → 5–7) in podaljša počitek; *Lose fat / Endurance / hybrid race* skrajšajo počitek in dodajo intervale; *Endurance* poveča ponovitve pomožnih vaj in dolžino kardia. Ciljna teža, ciljni datum (npr. dan tekme) in "My why" se prikažejo na domačem zaslonu.
 - **Telo:** spol, starost, višina, teža → BMI, ocena kcal po treningu (MET × kg × čas), dnevnik teže s trendom v *Progress*.
 - **Srčni utrip:** max HR (Tanaka 208 − 0,7 × starost ali izmerjen), mirovni HR → cone Z1–Z5 (Karvonen); med kardiom app pokaže ciljni utrip (Zone 2 / intervali).
 - **Trening:** nivo, 3×/4× tedensko, preferenčni dnevi (pike v tedenskem traku), dolžina treninga (30–75 min – app skrajša pomožne serije, nikoli ogrevanja).
 - **Omejitve** (kolena, spodnji hrbet, ramena, zapestja): vaje, ki obremenjujejo sklep, zamenja z nežnejšo iz istega gibalnega vzorca; če alternative ni, jo označi z opozorilom.
 
 ### Oprema po profilu
-Vsaka oseba v profilu izbere svojo opremo (zaslon *Moja oprema*: ilustracije, število odklenjenih vaj, hitre izbire *Domača telovadnica / Samo lastna teža / Polno opremljen fitnes*). Na voljo je 25 naprav – tvojih 8 in dodatne: **tekalna steza, SkiErg, olimpijska palica + stojalo, sandbag, wall ball, plyo škatla, elastike, sani, kolebnica**.
+Vsaka oseba v profilu izbere svojo opremo (zaslon *Moja oprema*: ilustracije, število odklenjenih vaj, hitre izbire *Domača telovadnica / Samo lastna teža / Polno opremljen fitnes*). Na voljo je 25 naprav – tvojih 8 in dodatne: **tekalna steza, Ski machine, olimpijska palica + stojalo, sandbag, wall ball, plyo škatla, elastike, sani, kolebnica**.
 
 - **Programi se prilagodijo samodejno**: vsaka vaja ima vzorec gibanja (počep, zgib v kolkih, horizontalni potisk …). Če oseba nima opreme, se vaja zamenja z najboljšo razpoložljivo iz istega vzorca (npr. potisk na klopi → sklece, kolo → tek na mestu); v pregledu treninga piše "⇄ namesto …". Kar nima enakovrednika (npr. vlečenje brez opreme), se izpusti in to je jasno izpisano.
-- **HYROX z realno opremo**: če ima oseba tekalno stezo, SkiErg, sani, wall ball in sandbag, simulacija uporabi prave postaje z uradnimi razdaljami (8 × 1 km tek, 1000 m SkiErg, 50 m sani, 100 wall balls …).
+- **hybrid race z realno opremo**: če ima oseba tekalno stezo, Ski machine, sani, wall ball in sandbag, simulacija uporabi prave postaje z uradnimi razdaljami (8 × 1 km tek, 1000 m Ski machine, 50 m sani, 100 wall balls …).
 - **Generator** pri polni opremi da prednost osnovnim vajam s palico; dveh težkih vaj s palico nikoli ne združi v superset.
 - **Knjižnica** privzeto kaže *Mojo opremo*; *Vse vaje* prikaže tudi zaklenjene z napisom, kaj manjka.
 
@@ -55,15 +55,15 @@ Vsaka oseba v profilu izbere svojo opremo (zaslon *Moja oprema*: ilustracije, š
 - **Landmine potisk** je ramenom prijazna različica potiska nad glavo: pri omejitvi *rama* program zdaj najde varno zamenjavo zanj (dipi in fallout pa so na seznamu za ramo).
 - Graditelj kardio treninga ponuja **zračno kolo**, **bojne vrvi** in **slam žogo** (zadnji dve samo kot intervale – ogrevanje in ohlajanje sta na napravi za enakomerno vožnjo).
 
-### HYROX (na tvoji opremi)
+### hybrid race (na tvoji opremi)
 Tri formati: **celotna simulacija** (8 × tek + postaja), **polovica** (4 postaje) in **trening postaj** (3 krogi). Način *na čas*: race ura, vmesni časi po postajah, povzetek na koncu. Količine: napreden = uradne (1000 m veslanja, 100 m izpadnih korakov ≈ 50, 50 thrusterjev ...), srednji 80 %, začetnik 60 %.
 
-| HYROX postaja | Nadomestek doma |
+| hybrid race postaja | Nadomestek doma |
 |---|---|
 | Tek 1 km | Kolo, ~4 min RPE 7 |
-| SkiErg 1000 m | Kinesis – SkiErg poteg (visoka škripca, zgib v kolkih) |
+| Ski machine 1000 m | Cable – Ski machine poteg (visoka škripca, zgib v kolkih) |
 | Sled push 50 m | Kolo stoje, težak upor (55–65 obr./min) |
-| Sled pull 50 m | Kinesis – vlečenje roka-čez-roko |
+| Sled pull 50 m | Cable – vlečenje roka-čez-roko |
 | Burpee broad jumps 80 m | Burpee s skokom v daljino |
 | Veslanje 1000 m | Veslač 1000 m (OK, ko monitor pokaže razdaljo) |
 | Farmers carry 200 m | Kmečka hoja s KB |
@@ -120,7 +120,7 @@ Struktura vsakega treninga (~50–60 min): ogrevanje na kolesu/veslaču → glav
 | 3 | RIR 1 | vrh |
 | 4 | RIR 4, −40 % serij | razbremenitev (deload) |
 
-**Avtomatska progresija (dvojna progresija):** aplikacija si zapomni teže in ponovitve vsake vaje. Ko na vseh serijah dosežeš zgornjo mejo razpona → naslednjič predlaga +2 kg (DB), +4 kg (KB) ali +1 stopnjo (Kinesis). Če dvakrat zapored ne dosežeš spodnje meje → zmanjša breme.
+**Avtomatska progresija (dvojna progresija):** aplikacija si zapomni teže in ponovitve vsake vaje. Ko na vseh serijah dosežeš zgornjo mejo razpona → naslednjič predlaga +2 kg (DB), +4 kg (KB) ali +1 stopnjo (cable station). Če dvakrat zapored ne dosežeš spodnje meje → zmanjša breme.
 
 **Rotacija namesto koledarja:** naslednji trening je vedno naslednji v zaporedju — izpuščen dan ne podre plana.
 
@@ -133,10 +133,10 @@ Struktura vsakega treninga (~50–60 min): ogrevanje na kolesu/veslaču → glav
 | Predlog teže na podlagi zgodovine | Fitbod, Caliber | dvojna progresija + spomin po vaji |
 | Generiranje treninga iz razpoložljive opreme | Fitbod | celotna knjižnica = samo tvoja oprema |
 | Bloki z deloadom in RIR | Future, Juggernaut, RP | 4-tedenski blok, RIR 3→2→1→deload |
-| TV-first layout: velika animacija levo, metrika desno, "Naslednje" spodaj | Apple Fitness+, Peloton | predvajalnik 16:9 z robnim napredkom |
-| Odštevanje 3-2-1, zvočni signali, glasovni napovednik | Peloton, Apple Fitness+ | WebAudio piski + sintetizator govora (angleški glas en-GB/en-US) |
+| TV-first layout: velika animacija levo, metrika desno, "Naslednje" spodaj | Apple Fitness+, premium apps | predvajalnik 16:9 z robnim napredkom |
+| Odštevanje 3-2-1, zvočni signali, glasovni napovednik | premium apps, Apple Fitness+ | WebAudio piski + sintetizator govora (angleški glas en-GB/en-US) |
 | Kartica vaje: navodila + pogoste napake | Nike Training Club | `cues` + `mistakes` pri vsaki vaji |
-| Kinesis upor v stopnjah | Technogym Mywellness | breme Kinesis v stopnjah 0–20, ne kg |
+| cable station upor v stopnjah | cable Mywellness | breme cable station v stopnjah 0–20, ne kg |
 | Predogled vaj pred treningom | Apple Fitness+ "preview" | 📺 način: vse vaje treninga v zanki, nastavljiva dolžina |
 | Supersets za časovno učinkovitost | Future, Ladder | A1/A2/A3 bloki, kratek prehod 15 s |
 | Rotacija sej namesto fiksnih dni | Fitbod, Juggernaut | `nextSessionKey()` |
@@ -168,8 +168,8 @@ NODE_PATH=$(npm root -g) node tools/snap.cjs contact.png          # vse animacij
 NODE_PATH=$(npm root -g) node tools/snap.cjs c.png kb_swing,pullup # izbrane vaje
 NODE_PATH=$(npm root -g) node tools/ui.cjs ./out                   # UI smoke test + posnetki zaslonov
 NODE_PATH=$(npm root -g) node tools/profiles.cjs ./out             # profili, PIN, sestavljalnik, knjižnica
-NODE_PATH=$(npm root -g) node tools/hyrox.cjs ./out                # HYROX, race ura, vmesni časi, HUD predvajalnika
-NODE_PATH=$(npm root -g) node tools/equipment.cjs ./out            # oprema po profilu, zamenjave, HYROX z realno opremo
+NODE_PATH=$(npm root -g) node tools/hyrox.cjs ./out                # hybrid race, race ura, vmesni časi, HUD predvajalnika
+NODE_PATH=$(npm root -g) node tools/equipment.cjs ./out            # oprema po profilu, zamenjave, hybrid race z realno opremo
 NODE_PATH=$(npm root -g) node tools/visual.cjs ./out               # posnetki glavnih zaslonov za vizualni pregled
 NODE_PATH=$(npm root -g) node tools/snap.cjs c.png kb_swing "&h=520&labels=1"   # animacija z oznakami mišic in koti
 ```

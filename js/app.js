@@ -480,7 +480,7 @@
         var qp = q.photo && photo(q.photo);
         return '<div class="session-card focusable quick' + (qp ? ' photo-card' : '') + '" tabindex="0" data-quick="' + i + '"' + cardBg(qp) + '><div class="tag" style="color:' + q.color + '">' + q.tag + '</div><h3>' + esc(q.name) + '</h3><p>' + esc(q.sub) + '</p></div>';
       }).join('') + '<div class="session-card focusable quick" tabindex="0" data-go="builder"><div class="tag">CUSTOM</div><h3>＋ Build your own</h3><p>strength / cardio / mixed · focus · duration</p></div></div>' +
-      '<div class="section-title"><h2>🏁 HYROX</h2><span>race simulation on your equipment – for time, with splits</span></div>' +
+      '<div class="section-title"><h2>🏁 Hybrid race</h2><span>race simulation on your equipment – for time, with splits</span></div>' +
       '<div class="row">' + Program.HX_KEYS.map(function (k) {
         var hs = Program.SESSIONS[k];
         return '<div class="session-card hx focusable photo-card" tabindex="0" data-go="overview" data-p=\'{"key":"' + k + '"}\'' + cardBg(photo(['kb_swing', 'row_hiit', 'kb_deadlift'][Program.HX_KEYS.indexOf(k)])) + '><div class="tag">' + (hs.race ? 'FOR TIME' : 'WORKOUT') + '</div><h3>' + esc(hs.name) + '</h3><p>' + esc(hs.short) + '</p></div>';
@@ -1091,11 +1091,11 @@
       var kcal = kg ? Math.round(met * kg * total / 3600) : 0;
       var f = $('#wFinish');
       f.hidden = false;
-      f.innerHTML = '<div class="fin-card"><div class="kicker">' + (race ? 'HYROX TIME' : 'WORKOUT COMPLETE') + '</div><div class="fin-time">' + fmt(total) + '</div>' +
+      f.innerHTML = '<div class="fin-card"><div class="kicker">' + (race ? 'RACE TIME' : 'WORKOUT COMPLETE') + '</div><div class="fin-time">' + fmt(total) + '</div>' +
         '<div class="fin-stats"><div><b>' + logged.length + '</b><span>sets</span></div><div><b>' + reps + '</b><span>reps</span></div><div><b>' + Math.round(vol) + ' kg</b><span>volume</span></div>' + (kcal ? '<div><b>~' + kcal + '</b><span>kcal</span></div>' : '') + '</div>' +
         (race ? '<div class="splits fin-splits">' + splits.filter(function (x) { return x.station; }).map(function (r) { return '<div class="split"><span>' + esc(r.name) + '</span><b>' + fmt(r.sec) + '</b></div>'; }).join('') + '</div>' : '') +
         (function () {
-          var tip = Products.pick(state, 'finish', 1, { cardio: race || /cardio|hyrox/i.test(sess.name) })[0];
+          var tip = Products.pick(state, 'finish', 1, { cardio: race || /cardio|race/i.test(sess.name) })[0];
           return tip ? '<div class="fin-tip"><div class="label">Recover well</div>' + productCard(tip, 'post_workout', true) + '</div>' : '';
         })() +
         '<button class="btn primary focusable" id="wHome">Home</button></div>';
@@ -1200,7 +1200,7 @@
     { k: 'strength', ico: '🏋️', name: 'Get stronger', sub: 'Heavier main lifts · 3–6 reps, longer rest' },
     { k: 'fatloss', ico: '🔥', name: 'Lose fat', sub: 'Shorter rest · extra intervals' },
     { k: 'endurance', ico: '🚴', name: 'Endurance', sub: 'Higher reps · longer cardio' },
-    { k: 'hyrox', ico: '🏁', name: 'HYROX race', sub: 'Race-pace conditioning · stations' },
+    { k: 'hyrox', ico: '🏁', name: 'Hybrid race', sub: 'Race-pace conditioning · stations' },
     { k: 'general', ico: '🌿', name: 'Stay fit & healthy', sub: 'Balanced strength + cardio' }
   ];
   var GOAL_BY = {}; GOALS.forEach(function (g) { GOAL_BY[g.k] = g; });
@@ -1278,7 +1278,7 @@
     var goalPanel = '<div class="panel"><h3>Your goal</h3><div class="hint">Shapes your program: reps, rest, sets and cardio.</div>' + goalTiles +
       (d.more ? '<div class="pgrid">' + num('targetWeight', 'Target weight', 'kg', 0.5) +
         '<div class="pfield"><div class="k">Target date' + (d.goal === 'hyrox' ? ' (race day)' : '') + '</div><input class="field focusable" type="date" id="pDate" data-fid="pe-date" value="' + esc(d.targetDate || '') + '"></div></div>' +
-        '<div class="opt-row"><div class="k">My why</div><input class="field focusable wide" id="pWhy" data-fid="pe-why" maxlength="80" placeholder="e.g. Finish my first HYROX under 1:30" value="' + esc(d.why) + '"></div>' : '') + '</div>';
+        '<div class="opt-row"><div class="k">My why</div><input class="field focusable wide" id="pWhy" data-fid="pe-why" maxlength="80" placeholder="e.g. Finish my first hybrid race under 1:30" value="' + esc(d.why) + '"></div>' : '') + '</div>';
 
     var more = !d.more ? '<div class="opt-row"><button class="btn ghost focusable" id="pMore" data-fid="pe-more">More: body, training, heart rate, limitations, PIN ▾</button></div>' :
       '<div class="pe-cols"><div class="panel"><h3>About you</h3><div class="hint">Used for calories, heart-rate zones and BMI. Stays on this device.</div>' +
@@ -1412,7 +1412,7 @@
     var total = Exercises.LIST.length, un = unlocked(list);
     var who = p.draft ? (pdraft.name || 'New person') : state.name;
     var html = '<div class="screen eq-screen"><div class="eq-head"><div><div class="kicker">' + (p.onboard ? 'Step 2 of 2 · ' : '') + 'Profile · ' + esc(who) + '</div>' +
-      '<h1>My equipment</h1><p>Select everything you have access to – at home or at your gym. Your program, HYROX and the workout builder only use what you select, and swap missing exercises for equivalent ones.</p></div>' +
+      '<h1>My equipment</h1><p>Select everything you have access to – at home or at your gym. Your program, race simulations and the workout builder only use what you select, and swap missing exercises for equivalent ones.</p></div>' +
       '<div class="eq-score"><div class="eq-num"><b>' + list.length + '</b><span>' + pl(list.length, NAP).replace(/^\d+ /, '') + '</span></div><div class="eq-num"><b>' + un + '<small>/' + total + '</small></b><span>exercises unlocked</span></div>' +
       '<div class="eq-bar"><i style="width:' + Math.round(un / total * 100) + '%"></i></div></div></div>' +
       '<div class="filters"><span class="flabel">Quick select</span>' + EQ_PRESETS.map(function (pr) {
@@ -1478,11 +1478,11 @@
       '<button class="btn focusable" id="bPrev" data-fid="b-prev">📺 Preview</button>' +
       '<button class="btn primary focusable" id="bGo" data-fid="b-go">▶ Start</button></div>' +
       '<div class="panel builder">' +
-      '<div class="opt-row"><div class="k">Type</div>' + chip('type', 'moc', 'Strength', o.type === 'moc') + chip('type', 'kardio', 'Cardio', o.type === 'kardio') + chip('type', 'mix', 'Strength + cardio', o.type === 'mix') + chip('type', 'hyrox', 'HYROX', o.type === 'hyrox') + '</div>';
+      '<div class="opt-row"><div class="k">Type</div>' + chip('type', 'moc', 'Strength', o.type === 'moc') + chip('type', 'kardio', 'Cardio', o.type === 'kardio') + chip('type', 'mix', 'Strength + cardio', o.type === 'mix') + chip('type', 'hyrox', 'Hybrid race', o.type === 'hyrox') + '</div>';
     if (o.type === 'hyrox') {
       html += '<div class="opt-row"><div class="k">Format</div>' + chip('format', 'full', 'Full simulation (8 stations)', o.format === 'full') +
         chip('format', 'half', 'Half (4 stations)', (o.format || 'half') === 'half') + chip('format', 'stations', 'Station training', o.format === 'stations') + '</div>' +
-        '<div class="hint">Substitutions: run → bike · SkiErg → Kinesis pull · sled push → standing bike (heavy resistance) · sled pull → Kinesis hand-over-hand · wall balls → DB thruster · sandbag → KB lunges. Volume scales to your level.</div>';
+        '<div class="hint">Substitutions: run → bike · ski machine → cable pull · sled push → standing bike (heavy resistance) · sled pull → cable hand-over-hand · wall balls → DB thruster · sandbag → KB lunges. Volume scales to your level.</div>';
     } else if (o.type !== 'kardio') {
       var all = ALL_FOCUS.every(function (f) { return o.focus.indexOf(f) >= 0; });
       html += '<div class="opt-row"><div class="k">Focus <span class="hint">(multi-select)</span></div>' + chip('focus', 'all', 'Full body', all) +
