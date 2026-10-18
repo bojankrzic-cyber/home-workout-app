@@ -165,8 +165,10 @@
     keepAwake(false);
   }
 
+  function scrollY() { var sc = $('.screen', root); return sc ? sc.scrollTop : 0; }
+  function setScrollY(y) { var sc = $('.screen', root); if (sc && y) sc.scrollTop = y; }
   function go(screen, params, replace, fid) {
-    if (!replace && stack.length) stack[stack.length - 1].focusIdx = focusables().indexOf(document.activeElement);
+    if (!replace && stack.length) { stack[stack.length - 1].focusIdx = focusables().indexOf(document.activeElement); stack[stack.length - 1].y = scrollY(); }
     if (replace) stack.pop();
     stack.push({ screen: screen, params: params || {} });
     if (!replace && stack.length > 1) { try { history.pushState({ fs: stack.length }, ''); } catch (e) {} }
@@ -176,8 +178,9 @@
   function refresh(params) {
     var a = document.activeElement;
     var fid = a && a.getAttribute && a.getAttribute('data-fid');
-    var top = stack[stack.length - 1];
+    var top = stack[stack.length - 1], y = scrollY();
     go(top.screen, params || top.params, true, fid);
+    setScrollY(y);
   }
   function resetTo(screen, params) { stack = []; go(screen, params); }
   // In-app back, browser back and the iOS edge swipe all end up here; history stays in step with the stack
@@ -206,6 +209,7 @@
     if (stack.length <= 1) return;
     stack.pop();
     render(true);
+    setScrollY(stack[stack.length - 1].y);
   }
 
   function render(restoring, fid) {
@@ -218,7 +222,7 @@
     var idx = restoring && top.focusIdx >= 0 ? top.focusIdx : 0;
     var auto = (fid && $('[data-fid="' + fid + '"]', scope)) || $('[data-autofocus]', scope);
     var el = restoring ? list[idx] : (auto || list[0]);
-    if (el) el.focus({ preventScroll: !!fid });
+    if (el) el.focus({ preventScroll: !!fid || restoring });
   }
 
   // Every screen except home and the workout player gets the same "← Back" in the same place
@@ -409,11 +413,11 @@
     root.innerHTML =
       '<div class="screen">' +
       '<div class="topbar">' + brandMark() + '<span class="chip on">' + esc(sess.weekInfo.label) + '</span><div class="spacer"></div>' +
-      '<button class="btn sm focusable" data-go="builder">＋ Build workout</button>' +
-      '<button class="btn sm ghost focusable" data-go="library">Library</button>' +
-      '<button class="btn sm ghost focusable" data-go="history">Progress</button>' +
-      '<button class="btn sm ghost focusable" data-go="settings">Settings</button>' +
-      '<button class="btn sm ghost focusable who" data-go="profiles" title="Switch person" aria-label="Switch person">' + avatar(state) + esc(state.name) + '</button></div>' +
+      '<nav class="main-nav"><button class="btn sm focusable" data-go="builder"><i><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></i><span>Build</span></button>' +
+      '<button class="btn sm ghost focusable" data-go="library"><i><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg></i><span>Library</span></button>' +
+      '<button class="btn sm ghost focusable" data-go="history"><i><svg viewBox="0 0 24 24"><path d="M4 19h16M6 15l4-4 3 3 5-6"/></svg></i><span>Progress</span></button>' +
+      '<button class="btn sm ghost focusable" data-go="settings"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg></i><span>Settings</span></button></nav>' +
+      '<button class="btn sm ghost focusable who" data-go="profiles" title="Switch person" aria-label="Switch person">' + avatar(state) + '<span class="who-name">' + esc(state.name) + '</span></button></div>' +
       '<div class="hero"><div class="hero-card' + (heroPhoto ? ' has-photo' : '') + '"' + photoBg(heroPhoto) + '><div class="eyebrow">Today’s workout · ' + esc(sess.weekInfo.label) + '</div>' +
       '<h1>' + esc(sess.name) + '</h1>' +
       '<div class="meta"><div><b>~' + mins + ' min</b>duration</div><div><b>' + exCount + '</b>' + (exCount === 1 ? 'exercise' : 'exercises') + '</div><div><b>RIR ' + sess.weekInfo.rir + '</b>effort</div></div>' +
@@ -614,7 +618,7 @@
     }
     var first = bl.length ? bl[0].kg : null, change = first != null && bs.weight != null ? Math.round((bs.weight - first) * 10) / 10 : null;
     var weightPanel = '<div class="panel weight-panel"><h3>Body weight</h3>' +
-      '<div class="wl-row"><div class="stepper"><button class="focusable" data-fid="wl-m" data-wl="-0.1">−</button><div class="val"><span id="wlv">' + (bs.weight || '—') + '</span><small>kg today</small></div>' +
+      '<div class="wl-row"><div class="stepper"><button class="focusable" data-fid="wl-m" data-wl="-0.1">−</button><div class="val"><input class="num-in focusable" id="wlv" data-fid="wl-in" type="text" inputmode="decimal" autocomplete="off" step="0.1" placeholder="—" value="' + (bs.weight || '') + '"><small>kg today</small></div>' +
       '<button class="focusable" data-fid="wl-p" data-wl="0.1">+</button></div><button class="btn primary sm focusable" id="wlSave" data-fid="wl-save">Log weight</button>' +
       '<div class="hint">' + (change != null && bl.length > 1 ? (change > 0 ? '+' : '') + change + ' kg since ' + bl[0].date + ' · ' : '') + (bs.targetWeight ? 'target ' + bs.targetWeight + ' kg (dashed line)' : 'set a target weight in your profile') + '</div></div>' +
       (spark || '<div class="hint">Log your weight a few times to see the trend.</div>') + '</div>';
@@ -628,9 +632,11 @@
       '<div class="panel"><h3>Current working weights (double progression)</h3><div class="hist">' + (prs || '<div class="hint">After your first workout, weights and reps for each exercise show up here.</div>') + '</div></div></div>';
     var wv = bs.weight || 75;
     $$('[data-wl]').forEach(function (b) {
-      b.onclick = function () { wv = Math.round((wv + parseFloat(b.getAttribute('data-wl'))) * 10) / 10; $('#wlv').textContent = wv; };
+      b.onclick = function () { readW(); wv = Math.round((wv + parseFloat(b.getAttribute('data-wl'))) * 10) / 10; $('#wlv').value = wv; };
     });
-    $('#wlSave').onclick = function () { logWeight(state, wv); Store.save(); toast('Logged ' + wv + ' kg'); refresh(); };
+    function readW() { var v = parseFloat(String($('#wlv').value).replace(',', '.')); if (v >= 30 && v <= 250) wv = v; }
+    $('#wlSave').onclick = function () {
+      readW(); logWeight(state, wv); Store.save(); toast('Logged ' + wv + ' kg'); refresh(); };
   };
 
   SCREENS.settings = function () {
@@ -1190,7 +1196,7 @@
     function num(key, label, unit, step) {
       var v = key === 'age' ? Me.age(d) : key === 'maxHr' ? Me.maxHr(d) : d[key];
       return '<div class="pfield"><div class="k">' + label + '</div><div class="stepper sm"><button class="focusable" data-fid="pe-' + key + '-m" data-ps="' + key + '" data-d="-' + step + '">−</button>' +
-        '<div class="val"><span>' + (v == null ? '—' : v) + '</span><small>' + unit + '</small></div>' +
+        '<div class="val"><input class="num-in focusable" type="text" inputmode="decimal" autocomplete="off" data-fid="pe-' + key + '-in" data-pi="' + key + '" step="' + step + '" placeholder="—" value="' + (v == null ? '' : v) + '"><small>' + unit + '</small></div>' +
         '<button class="focusable" data-fid="pe-' + key + '-p" data-ps="' + key + '" data-d="' + step + '">+</button></div></div>';
     }
     var age = Me.age(d), bmi = Me.bmi(d), z2 = Me.zone(d, .6, .7), mx = Me.maxHr(d), wk = Me.weeksTo(d), g = GOAL_BY[d.goal];
@@ -1259,7 +1265,15 @@
       if ($('#pPin')) d.pin = $('#pPin').value.trim() || null;
       if ($('#pWhy')) d.why = $('#pWhy').value.trim();
       if ($('#pDate')) d.targetDate = $('#pDate').value || null;
+      $$('[data-pi]').forEach(function (inp) {
+        var k = inp.getAttribute('data-pi'), v = inp.value === '' ? null : parseFloat(String(inp.value).replace(',', '.'));
+        if (v != null && (isNaN(v) || v < LIM[k][0] || v > LIM[k][1])) return;
+        if (k === 'age') d.birthYear = v == null ? null : new Date().getFullYear() - Math.round(v);
+        else if (k === 'maxHr') d.maxHr = v === Me.maxHr({ birthYear: d.birthYear }) ? d.maxHr : v;
+        else d[k] = v;
+      });
     }
+    $$('[data-pi]').forEach(function (inp) { inp.onchange = function () { readInputs(); refresh(); }; });
     if ($('#pMore')) $('#pMore').onclick = function () { readInputs(); d.more = true; refresh(); };
     $$('[data-pe]').forEach(function (b) {
       b.onclick = function () { readInputs(); d[b.getAttribute('data-pe')] = JSON.parse(b.getAttribute('data-val')); refresh(); };
@@ -1494,6 +1508,7 @@
   if ('serviceWorker' in navigator && location.protocol === 'https:') {
     navigator.serviceWorker.register('sw.js').catch(function () {});
   }
+  window.__go = function (screen, params) { go(screen, params); };   // test hook (tools/*.cjs)
   (function boot() {
     // Fast login: this device remembers who trained last – straight in (or straight to their PIN)
     var list = Store.list(), last = Store.active();
