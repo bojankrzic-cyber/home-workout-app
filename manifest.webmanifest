@@ -1,0 +1,14 @@
+{
+  "name": "HomeGym Coach",
+  "short_name": "HomeGym",
+  "description": "Osebni domači trening z animiranimi vajami za TV.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#07090d",
+  "theme_color": "#07090d",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
