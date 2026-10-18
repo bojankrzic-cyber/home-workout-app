@@ -821,6 +821,7 @@
       ((window.VOICE_CLIPS || []).length ? '<div class="opt-row"><div class="k">Coach</div>' + opt('coachVoice', 'recorded', '★ Premium recorded coach') + opt('coachVoice', 'device', 'Device voice') +
         '<span class="hint">Recorded studio voice for exercise names, sets, rest and countdowns; works the same on every device.</span></div>' : '') +
       (s.coachVoice === 'device' ? voiceRow() : '') +
+      '<div class="opt-row"><div class="k">Hands-free sets</div>' + opt('autoNext', true, 'On') + opt('autoNext', false, 'Off') + '<span class="hint">When the rep pacer reaches the target, the set completes itself after 6 s – no remote needed. You can still press OK earlier.</span></div>' +
       '<div class="opt-row"><div class="k">Beeps</div>' + opt('beeps', true, 'On') + opt('beeps', false, 'Off') + '</div>' +
       '<div class="opt-row"><div class="k">Nature’s Finest product tips</div>' + tipChip(true, 'On') + tipChip(false, 'Off') +
       '<span class="hint">' + (Products.eligible(state) ? 'Goal-based supplement tips on home and after workouts. Matching happens on this device only.' : 'Shown only to adults – add your age in your profile.') + '</span></div>' +
@@ -948,6 +949,10 @@
     var logged = [], splits = [];
     var cur = { reps: 0, load: 0 };
     var pacerBase = 0, pacerHit = false;
+    // hands-free sets: once the rep pacer reaches the target, the set completes itself after a short
+    // grace period (time to rack the weights) – no need to press "Set done" on the TV remote
+    var AUTO_GRACE = 6, autoAt = 0;
+    function autoNext() { return state.settings.autoNext !== false && !race; }
     var itemsById = {};
     sess.blocks.forEach(function (b) { b.items.forEach(function (it) { itemsById[it.id] = it; }); });
     // block index per step for the segmented progress bar
@@ -1046,7 +1051,7 @@
       i = n;
       if (i >= st.length) return finish();
       var s = st[i], e = ex(s.id), it = s.item;
-      phase = 'work'; elapsed = 0; pacerHit = false;
+      phase = 'work'; elapsed = 0; pacerHit = false; autoAt = 0;
       el.classList.remove('resting');
       if (Date.now() >= manualUntil) setView('form');
       showAnim(s.id, s.easy ? 0.7 : 1);
@@ -1170,7 +1175,16 @@
         var tgt = s.item.reps[1], pr = Math.min(pacerReps(), tgt);
         top.textContent = 'REP PACER'; val.textContent = pr; sub.textContent = '/ ' + tgt + ' · ' + fmt(elapsed);
         setRing('wRing', pr / tgt);
-        if (pr >= tgt && !pacerHit) { pacerHit = true; Audio.beep(1320, 0.2); $('#wPhase').textContent = 'Target hit – press OK to finish'; }
+        if (pr >= tgt && !pacerHit) {
+          pacerHit = true; Audio.beep(1320, 0.2);
+          if (autoNext()) autoAt = elapsed + AUTO_GRACE;
+          $('#wPhase').textContent = autoAt ? 'Target hit – rack it, moving on' : 'Target hit – press OK to finish';
+        }
+        if (autoAt) {
+          var left = Math.max(0, Math.ceil(autoAt - elapsed));
+          sub.textContent = 'next in ' + left + ' s';
+          $('#wDone').textContent = '✓ Set done · auto ' + left + ' s';
+        }
       } else if (s.kind === 'dist') {
         var est = s.dist * (ex(s.id).secPerM || 0.27);
         top.textContent = s.dist + ' m'; val.textContent = fmt(elapsed); sub.textContent = 'target ~' + fmt(est);
@@ -1195,6 +1209,7 @@
       } else {
         elapsed += 0.25;
         var s = st[i];
+        if (s.kind === 'reps' && autoAt && elapsed >= autoAt) { Audio.beep(1320, 0.3); completeWork(); return; }
         if (s.kind === 'time') {
           remain -= 0.25;
           if (remain <= 3.01 && remain > 0 && Math.abs(remain - Math.round(remain)) < 0.01) Audio.beep(880, 0.12);
