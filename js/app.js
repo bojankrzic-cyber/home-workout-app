@@ -230,7 +230,8 @@
     var stage = $('.player .stage');
     if (stage) { b.classList.add('floating'); stage.appendChild(b); return; }
     var scr = $('.screen', root); if (!scr) return;
-    scr.insertBefore(b, scr.firstChild);
+    var bar = document.createElement('div'); bar.className = 'back-bar'; bar.appendChild(b);
+    scr.insertBefore(bar, scr.firstChild);
   }
   document.addEventListener('click', function (e) { if (e.target.closest('[data-back]')) back(); });
 
@@ -359,6 +360,15 @@
     return '<svg viewBox="0 0 210 216" class="mmap">' + mapHalf(MAP_FRONT, mus, 0, 'FRONT') + mapHalf(MAP_BACK, mus, 106, 'BACK') + '</svg>';
   }
 
+  // goal + countdown + weight-to-target, one line on the home screen
+  function goalLine() {
+    var s = state.settings, g = GOAL_BY[s.goal] || GOAL_BY.general, wk = Me.weeksTo(s), bits = [];
+    if (wk != null && wk >= 0) bits.push(pl(wk, ['week', 'weeks']) + ' to target date');
+    if (s.weight && s.targetWeight) { var dlt = Math.round((s.targetWeight - s.weight) * 10) / 10; bits.push(dlt === 0 ? 'target weight reached 🎉' : (dlt > 0 ? '+' : '') + dlt + ' kg to target'); }
+    return '<button class="goal-line focusable" data-go="profileEdit" data-p=\'{"id":"' + state.id + '"}\'><span>' + g.ico + ' ' + esc(g.name) + '</span>' +
+      (bits.length ? '<small>' + esc(bits.join(' · ')) + '</small>' : '<small>Set your goal, body and heart-rate details →</small>') + '</button>';
+  }
+
   // ---------------------------------------------------------------- screens
   var SCREENS = {};
 
@@ -380,7 +390,8 @@
       var ds = d.toISOString().slice(0, 10);
       var done = state.log.some(function (l) { return l.date.slice(0, 10) === ds; });
       if (done) weekDone++;
-      var planned = plan.days.indexOf((i + 1) % 7) >= 0;
+      var pref = state.settings.prefDays || [];
+      var planned = pref.length ? pref.indexOf(d.getDay()) >= 0 : plan.days.indexOf((i + 1) % 7) >= 0;
       daysHtml += '<div class="day' + (done ? ' done' : '') + (d.toDateString() === now.toDateString() ? ' today' : '') + '">' +
         DAYN[d.getDay()] + '<b>' + d.getDate() + '</b>' + (done ? '✓' : planned ? '•' : '&nbsp;') + '</div>';
     }
@@ -411,7 +422,7 @@
       '<button class="btn focusable" data-go="preview" data-p=\'{"key":"' + nextKey + '"}\'>📺 Preview</button>' +
       '<button class="btn ghost focusable" data-go="overview" data-p=\'{"key":"' + nextKey + '"}\'>Details</button></div>' +
       (heroPhoto ? '' : '<div class="hero-fig" id="heroFig"></div>') + '</div>' +
-      '<div class="week"><h3>This week · ' + weekDone + ' / ' + plan.order.length + ' workouts</h3><div class="days">' + daysHtml + '</div>' +
+      '<div class="week"><h3>This week · ' + weekDone + ' / ' + plan.order.length + ' workouts</h3>' + goalLine() + '<div class="days">' + daysHtml + '</div>' +
       '<div class="stats"><div class="stat"><b>' + state.log.length + '</b><span>total workouts</span></div>' +
       '<div class="stat"><b>' + Math.round(totalMin / 60) + ' h</b><span>total time</span></div>' +
       '<div class="stat"><b>' + streak + '</b><span>week streak</span></div></div></div></div>' +
@@ -467,7 +478,9 @@
     var sess = Program.build(state, p.key);
     var mins = Program.estimateMin(sess);
     var html = '<div class="screen"><div class="ov-head"><div><div class="chip on" style="display:inline-block;margin-bottom:.6rem">' + esc(sess.weekInfo.label) + '</div>' +
-      '<h1>' + esc(sess.name) + '</h1><p>~' + mins + ' min · ' + esc(sess.weekInfo.note) + '</p></div><div class="spacer"></div>' +
+      '<h1>' + esc(sess.name) + '</h1><p>~' + mins + ' min · ' + esc(sess.weekInfo.note) + '</p>' +
+      '<p class="hint">Tuned for: ' + esc((GOAL_BY[sess.goal] || GOAL_BY.general).name) + (sess.trimmed ? ' · trimmed to fit ' + sess.trimmed + ' min' : '') +
+      ((state.settings.limits || []).length ? ' · joint-friendly swaps on' : '') + '</p></div><div class="spacer"></div>' +
       (sess.custom ? '<button class="btn ghost focusable" id="saveTgl">' + (state.saved.indexOf(p.key) >= 0 ? '★ Saved' : '☆ Save') + '</button>' : '') +
       '<button class="btn focusable" data-go="preview" data-p=\'{"key":"' + p.key + '"}\'>📺 Preview</button>' +
       '<button class="btn primary focusable" data-autofocus data-go="player" data-p=\'{"key":"' + p.key + '"}\'>▶ Start</button></div><div class="blocks">';
@@ -479,7 +492,7 @@
         var load = it.sug ? '<small>' + esc(loadTxt(e, it.sug.load)) + '</small>' : '<small>' + (it.cardio ? 'cardio' : 'hold') + '</small>';
         html += '<div class="ex-row focusable" tabindex="0" data-go="exercise" data-p=\'{"id":"' + it.id + '"}\'>' +
           '<div class="ex-thumb" data-thumb="' + it.id + '"></div><div><h4>' + tag + esc(e.name) + '</h4><div class="sub">' +
-          (it.swappedFrom ? '<span class="swap-note">⇄ swapped for: ' + esc(ex(it.swappedFrom).name) + '</span> · ' : '') + esc(e.muscles) +
+          (it.swappedFrom ? '<span class="swap-note">⇄ ' + (it.joint ? 'joint-friendly swap for' : 'swapped for') + ': ' + esc(ex(it.swappedFrom).name) + '</span> · ' : '') + (it.caution ? '<span class="caution-note">⚠ loads a joint you flagged – go light or skip</span> · ' : '') + esc(e.muscles) +
           (it.sug && it.sug.why ? ' · <span style="color:var(--accent)">' + esc(it.sug.why) + '</span>' : '') + '</div></div>' +
           '<div class="rx">' + rx(it) + load + '</div></div>';
       });
@@ -589,13 +602,35 @@
       if (!e) return '';
       return '<div class="hist-item"><div class="d">' + esc(h.date ? h.date.slice(0, 10) : '') + '</div><div style="flex:1"><b>' + esc(e.name) + '</b></div><div>' + esc(loadTxt(e, h.load)) + ' × ' + h.reps.join(' / ') + '</div></div>';
     }).join('');
+    var bs = state.settings, bl = (bs.bodyLog || []).slice(-20);
+    var spark = '';
+    if (bl.length > 1) {
+      var vals = bl.map(function (x) { return x.kg; }).concat(bs.targetWeight ? [bs.targetWeight] : []);
+      var lo = Math.min.apply(null, vals) - 0.5, hi = Math.max.apply(null, vals) + 0.5;
+      var y = function (v) { return (100 - (v - lo) / (hi - lo) * 100).toFixed(1); };
+      spark = '<svg class="spark" viewBox="0 0 100 100" preserveAspectRatio="none">' +
+        (bs.targetWeight ? '<line x1="0" x2="100" y1="' + y(bs.targetWeight) + '" y2="' + y(bs.targetWeight) + '"/>' : '') +
+        '<polyline points="' + bl.map(function (x, k) { return (k / (bl.length - 1) * 100).toFixed(1) + ',' + y(x.kg); }).join(' ') + '"/></svg>';
+    }
+    var first = bl.length ? bl[0].kg : null, change = first != null && bs.weight != null ? Math.round((bs.weight - first) * 10) / 10 : null;
+    var weightPanel = '<div class="panel weight-panel"><h3>Body weight</h3>' +
+      '<div class="wl-row"><div class="stepper"><button class="focusable" data-fid="wl-m" data-wl="-0.1">−</button><div class="val"><span id="wlv">' + (bs.weight || '—') + '</span><small>kg today</small></div>' +
+      '<button class="focusable" data-fid="wl-p" data-wl="0.1">+</button></div><button class="btn primary sm focusable" id="wlSave" data-fid="wl-save">Log weight</button>' +
+      '<div class="hint">' + (change != null && bl.length > 1 ? (change > 0 ? '+' : '') + change + ' kg since ' + bl[0].date + ' · ' : '') + (bs.targetWeight ? 'target ' + bs.targetWeight + ' kg (dashed line)' : 'set a target weight in your profile') + '</div></div>' +
+      (spark || '<div class="hint">Log your weight a few times to see the trend.</div>') + '</div>';
     root.innerHTML = '<div class="screen"><div class="topbar"><h1>Progress</h1><div class="spacer"></div><button class="btn sm ghost focusable" data-autofocus data-go="settings">Backup</button></div>' +
       '<div class="hero"><div class="panel"><h3>Workouts per week (12 weeks)</h3><div class="bars">' + bars + '</div><div class="hint">Goal: ' + state.settings.days + ' per week</div></div>' +
       '<div class="panel"><h3>Recent workouts</h3><div class="hist">' + (log.slice(0, 6).map(function (l) {
         var s = Program.get(state, l.session);
         return '<div class="hist-item"><div class="d">' + new Date(l.date).toLocaleDateString('en-GB') + '</div><div style="flex:1">' + esc(l.name || (s ? s.name : 'Workout')) + '</div><div>' + l.min + ' min · ' + l.sets.length + (l.sets.length === 1 ? ' set' : ' sets') + '</div></div>';
       }).join('') || '<div class="hint">No workouts logged yet.</div>') + '</div></div></div>' +
+      weightPanel +
       '<div class="panel"><h3>Current working weights (double progression)</h3><div class="hist">' + (prs || '<div class="hint">After your first workout, weights and reps for each exercise show up here.</div>') + '</div></div></div>';
+    var wv = bs.weight || 75;
+    $$('[data-wl]').forEach(function (b) {
+      b.onclick = function () { wv = Math.round((wv + parseFloat(b.getAttribute('data-wl'))) * 10) / 10; $('#wlv').textContent = wv; };
+    });
+    $('#wlSave').onclick = function () { logWeight(state, wv); Store.save(); toast('Logged ' + wv + ' kg'); refresh(); };
   };
 
   SCREENS.settings = function () {
@@ -607,6 +642,9 @@
     root.innerHTML = '<div class="screen"><div class="topbar"><h1>Settings</h1><div class="spacer"></div>' +
       '<button class="btn sm ghost focusable who" data-go="profiles">' + avatar(state) + 'Switch person</button></div>' +
       '<div class="panel"><h3>Profile</h3><div class="opt-row">' + avatar(state, true) + '<div style="flex:1"><b style="font-size:1.3rem">' + esc(state.name) + '</b><div class="hint">' +
+      (GOAL_BY[s.goal] || GOAL_BY.general).ico + ' ' + esc((GOAL_BY[s.goal] || GOAL_BY.general).name) +
+      (Me.age(s) ? ' · ' + Me.age(s) + ' y' : '') + (s.height ? ' · ' + s.height + ' cm' : '') + (s.weight ? ' · ' + s.weight + ' kg' : '') +
+      (Me.zone(s, .6, .7) ? ' · Zone 2 ' + Me.zone(s, .6, .7).join('–') + ' bpm' : '') + '<br>' +
       (state.pin ? 'PIN locked' : 'No PIN') + ' · ' + pl(state.log.length, TRN) + '</div></div>' +
       '<button class="btn focusable" data-go="profileEdit" data-p=\'{"id":"' + state.id + '"}\'>Edit profile</button></div></div>' +
       '<div class="panel"><h3>My equipment</h3><div class="opt-row"><div class="eq-strip">' + (state.settings.equipment || []).map(function (k) { return '<span class="eq-mini" title="' + esc(Exercises.EQUIP[k].name) + '">' + equipIcon(k) + '</span>'; }).join('') +
@@ -866,6 +904,10 @@
         if (s.sets > 1) rx.push([s.set + '/' + s.sets, s.hard || s.easy ? 'interval' : 'set']);
         if (e.unit === 'stopnja' || e.unit === 'kg') rx.push([loadTxt(e, it.sug ? it.sug.load : (state.ex[s.id] || {}).load || e.load), 'load']);
         rx.push([e.tempo || '—', 'tempo']);
+        if (e.type === 'cardio' && !race) {
+          var hz = s.hard ? Me.zone(state.settings, .85, .95) : s.easy ? Me.zone(state.settings, .5, .6) : Me.zone(state.settings, .6, .7);
+          if (hz) rx.push([hz[0] + '–' + hz[1] + ' bpm', s.hard ? 'Zone 4–5' : s.easy ? 'Zone 1' : 'Zone 2']);
+        }
         $('#wRx').innerHTML = chips(rx);
         $('#wLog').innerHTML = ''; $('#wLog').hidden = true;
         $('#wDone').textContent = race ? '✓ Station done' : '⏭ Next';
@@ -990,10 +1032,12 @@
       pl.stop(); nextPl.stop();
       var vol = logged.reduce(function (a, l) { return a + (ex(l.id).unit === 'kg' ? l.reps * l.load : 0); }, 0);
       var reps = logged.reduce(function (a, l) { return a + l.reps; }, 0);
+      var kg = state.settings.weight, met = race || sess.goal === 'hyrox' ? 8 : /cardio/i.test(sess.name) ? 7 : 5;
+      var kcal = kg ? Math.round(met * kg * total / 3600) : 0;
       var f = $('#wFinish');
       f.hidden = false;
       f.innerHTML = '<div class="fin-card"><div class="kicker">' + (race ? 'HYROX TIME' : 'WORKOUT COMPLETE') + '</div><div class="fin-time">' + fmt(total) + '</div>' +
-        '<div class="fin-stats"><div><b>' + logged.length + '</b><span>sets</span></div><div><b>' + reps + '</b><span>reps</span></div><div><b>' + Math.round(vol) + ' kg</b><span>volume</span></div></div>' +
+        '<div class="fin-stats"><div><b>' + logged.length + '</b><span>sets</span></div><div><b>' + reps + '</b><span>reps</span></div><div><b>' + Math.round(vol) + ' kg</b><span>volume</span></div>' + (kcal ? '<div><b>~' + kcal + '</b><span>kcal</span></div>' : '') + '</div>' +
         (race ? '<div class="splits fin-splits">' + splits.filter(function (x) { return x.station; }).map(function (r) { return '<div class="split"><span>' + esc(r.name) + '</span><b>' + fmt(r.sec) + '</b></div>'; }).join('') + '</div>' : '') +
         '<button class="btn primary focusable" id="wHome">Home</button></div>';
       $('.side', el).hidden = true;
@@ -1091,46 +1135,157 @@
     draw();
   };
 
+  // ---------------------------------------------------------------- personal profile: goals, body, heart rate
+  var GOALS = [
+    { k: 'muscle', ico: '💪', name: 'Build muscle', sub: 'Hypertrophy · 8–12 reps, steady progression' },
+    { k: 'strength', ico: '🏋️', name: 'Get stronger', sub: 'Heavier main lifts · 3–6 reps, longer rest' },
+    { k: 'fatloss', ico: '🔥', name: 'Lose fat', sub: 'Shorter rest · extra intervals' },
+    { k: 'endurance', ico: '🚴', name: 'Endurance', sub: 'Higher reps · longer cardio' },
+    { k: 'hyrox', ico: '🏁', name: 'HYROX race', sub: 'Race-pace conditioning · stations' },
+    { k: 'general', ico: '🌿', name: 'Stay fit & healthy', sub: 'Balanced strength + cardio' }
+  ];
+  var GOAL_BY = {}; GOALS.forEach(function (g) { GOAL_BY[g.k] = g; });
+  var LIMITS = [['knee', 'Knees'], ['back', 'Lower back'], ['shoulder', 'Shoulders'], ['wrist', 'Wrists']];
+  var Me = {
+    age: function (s) { return s.birthYear ? new Date().getFullYear() - s.birthYear : null; },
+    bmi: function (s) { return s.height && s.weight ? s.weight / Math.pow(s.height / 100, 2) : null; },
+    // Tanaka formula unless the person entered a measured max
+    maxHr: function (s) { var a = Me.age(s); return s.maxHr || (a ? Math.round(208 - 0.7 * a) : null); },
+    // Karvonen (heart-rate reserve) when resting HR is known, else % of max
+    zone: function (s, lo, hi) {
+      var mx = Me.maxHr(s); if (!mx) return null;
+      var rest = s.restHr || 0, base = rest ? mx - rest : mx;
+      return [Math.round(rest + base * lo), Math.round(rest + base * hi)];
+    },
+    weeksTo: function (s) { return s.targetDate ? Math.ceil((new Date(s.targetDate) - new Date()) / 6048e5) : null; }
+  };
+  var ZONES = [['Z1', 'Recovery', .5, .6], ['Z2', 'Endurance', .6, .7], ['Z3', 'Tempo', .7, .8], ['Z4', 'Threshold', .8, .9], ['Z5', 'Max', .9, 1]];
+
   var pdraft = null;
   SCREENS.profileEdit = function (p) {
     var existing = p.id ? Store.list().filter(function (x) { return x.id === p.id; })[0] : null;
     if (!pdraft || pdraft.for !== (p.id || 'new')) {
+      var es = existing ? existing.settings : {};
       pdraft = {
         for: p.id || 'new',
         name: existing ? existing.name : '',
         color: existing ? existing.color : Store.COLORS[Store.list().length % Store.COLORS.length],
-        level: existing ? existing.settings.level : 'mid',
-        days: existing ? existing.settings.days : 3,
+        level: es.level || 'mid', days: es.days || 3,
+        goal: es.goal || 'general', why: es.why || '', targetWeight: es.targetWeight || null, targetDate: es.targetDate || null,
+        sex: es.sex || null, birthYear: es.birthYear || null, height: es.height || null, weight: es.weight || null,
+        maxHr: es.maxHr || null, restHr: es.restHr || null,
+        limits: (es.limits || []).slice(), prefDays: (es.prefDays || []).slice(), sessionMin: es.sessionMin || null,
         pin: null, clearPin: false, more: !!existing,
-        equipment: (existing ? existing.settings.equipment : (state ? state.settings.equipment : null) || Exercises.HOME_GYM).slice()
+        equipment: (existing ? es.equipment : (state ? state.settings.equipment : null) || Exercises.HOME_GYM).slice()
       };
     }
     var d = pdraft;
     function chip(key, val, label) {
       return '<button class="chip focusable' + (d[key] === val ? ' on' : '') + '" data-fid="pe-' + key + '-' + val + '" data-pe="' + key + '" data-val=\'' + JSON.stringify(val) + '\'>' + label + '</button>';
     }
-    root.innerHTML = '<div class="screen"><div class="topbar"><h1>' + (existing ? 'Edit profile' : Store.list().length ? 'New person' : 'Welcome – who’s training?') + '</h1></div>' +
-      (Store.list().length || existing ? '' : '<div class="hint">Everyone in your household gets their own profile: program, weights, progress. You can add more people later in Settings or at startup.</div>') +
-      '<div class="panel">' +
+    function multi(key, val, label) {
+      return '<button class="chip focusable' + (d[key].indexOf(val) >= 0 ? ' on' : '') + '" data-fid="pe-' + key + '-' + val + '" data-pm="' + key + '" data-val=\'' + JSON.stringify(val) + '\'>' + label + '</button>';
+    }
+    // TV-friendly number entry: − value +; the first press on an empty value jumps to a sensible default
+    function num(key, label, unit, step) {
+      var v = key === 'age' ? Me.age(d) : key === 'maxHr' ? Me.maxHr(d) : d[key];
+      return '<div class="pfield"><div class="k">' + label + '</div><div class="stepper sm"><button class="focusable" data-fid="pe-' + key + '-m" data-ps="' + key + '" data-d="-' + step + '">−</button>' +
+        '<div class="val"><span>' + (v == null ? '—' : v) + '</span><small>' + unit + '</small></div>' +
+        '<button class="focusable" data-fid="pe-' + key + '-p" data-ps="' + key + '" data-d="' + step + '">+</button></div></div>';
+    }
+    var age = Me.age(d), bmi = Me.bmi(d), z2 = Me.zone(d, .6, .7), mx = Me.maxHr(d), wk = Me.weeksTo(d), g = GOAL_BY[d.goal];
+    var toGo = d.weight && d.targetWeight ? Math.round((d.targetWeight - d.weight) * 10) / 10 : null;
+    var summary = '<div class="me-card"><div class="me-id"><span class="avatar big" style="background:' + d.color + '">' + esc((d.name || '?').charAt(0).toUpperCase()) + '</span>' +
+      '<div><h2>' + esc(d.name || 'New person') + '</h2><div class="me-goal">' + g.ico + ' ' + esc(g.name) + (wk != null && wk >= 0 ? ' · <b>' + pl(wk, ['week', 'weeks']) + ' to go</b>' : '') + '</div>' +
+      (d.why ? '<div class="me-why">“' + esc(d.why) + '”</div>' : '') + '</div></div>' +
+      '<div class="me-stats">' +
+      '<div><b>' + (age || '—') + '</b><span>age</span></div>' +
+      '<div><b>' + (d.weight ? d.weight + '<small> kg</small>' : '—') + '</b><span>weight</span></div>' +
+      '<div><b>' + (bmi ? bmi.toFixed(1) : '—') + '</b><span>BMI</span></div>' +
+      '<div><b>' + (toGo != null ? (toGo > 0 ? '+' : '') + toGo + '<small> kg</small>' : '—') + '</b><span>to target</span></div>' +
+      '<div><b>' + (z2 ? z2[0] + '–' + z2[1] : '—') + '</b><span>Zone 2 bpm</span></div></div></div>';
+
+    var goalTiles = '<div class="goal-grid">' + GOALS.map(function (x) {
+      return '<button class="goal-tile focusable' + (d.goal === x.k ? ' on' : '') + '" data-fid="pe-goal-' + x.k + '" data-pe="goal" data-val=\'"' + x.k + '"\'><span class="gi">' + x.ico + '</span><b>' + x.name + '</b><small>' + x.sub + '</small></button>';
+    }).join('') + '</div>';
+
+    var basics = '<div class="panel"><h3>Who’s training</h3>' +
       '<div class="opt-row"><div class="k">Name</div><input class="field focusable" id="pName" data-fid="pe-name" maxlength="20" placeholder="e.g. Alex" value="' + esc(d.name) + '"' + (existing ? '' : ' data-autofocus') + '></div>' +
       '<div class="opt-row"><div class="k">Color</div>' + Store.COLORS.map(function (c) {
         return '<button class="swatch focusable' + (d.color === c ? ' on' : '') + '" data-fid="pe-color-' + c + '" data-pe="color" data-val=\'"' + c + '"\' style="background:' + c + '"></button>';
       }).join('') + '</div>' +
-      '<div class="opt-row"><div class="k">Level</div>' + chip('level', 'beg', 'Beginner') + chip('level', 'mid', 'Intermediate') + chip('level', 'adv', 'Advanced') + '</div>' +
-      (d.more ? '' : '<div class="opt-row"><button class="btn sm ghost focusable" id="pMore" data-fid="pe-more">More options (workouts/week, equipment, PIN) ▾</button></div>') +
-      (d.more ? '<div class="opt-row"><div class="k">Workouts per week</div>' + chip('days', 3, '3× – full body') + chip('days', 4, '4× – upper / lower') + '</div>' +
+      '<div class="opt-row"><div class="k">Training level</div>' + chip('level', 'beg', 'Beginner') + chip('level', 'mid', 'Intermediate') + chip('level', 'adv', 'Advanced') + '</div></div>';
+
+    var goalPanel = '<div class="panel"><h3>Your goal</h3><div class="hint">Shapes your program: reps, rest, sets and cardio.</div>' + goalTiles +
+      (d.more ? '<div class="pgrid">' + num('targetWeight', 'Target weight', 'kg', 0.5) +
+        '<div class="pfield"><div class="k">Target date' + (d.goal === 'hyrox' ? ' (race day)' : '') + '</div><input class="field focusable" type="date" id="pDate" data-fid="pe-date" value="' + esc(d.targetDate || '') + '"></div></div>' +
+        '<div class="opt-row"><div class="k">My why</div><input class="field focusable wide" id="pWhy" data-fid="pe-why" maxlength="80" placeholder="e.g. Finish my first HYROX under 1:30" value="' + esc(d.why) + '"></div>' : '') + '</div>';
+
+    var more = !d.more ? '<div class="opt-row"><button class="btn ghost focusable" id="pMore" data-fid="pe-more">More: body, training, heart rate, limitations, PIN ▾</button></div>' :
+      '<div class="pe-cols"><div class="panel"><h3>About you</h3><div class="hint">Used for calories, heart-rate zones and BMI. Stays on this device.</div>' +
+      '<div class="opt-row"><div class="k">Sex</div>' + chip('sex', 'm', 'Male') + chip('sex', 'f', 'Female') + chip('sex', null, 'Prefer not to say') + '</div>' +
+      '<div class="pgrid">' + num('age', 'Age', 'years', 1) + num('height', 'Height', 'cm', 1) + num('weight', 'Body weight', 'kg', 0.5) + '</div></div>' +
+
+      '<div class="panel"><h3>Training</h3>' +
+      '<div class="opt-row"><div class="k">Workouts per week</div>' + chip('days', 3, '3× – full body') + chip('days', 4, '4× – upper / lower') + '</div>' +
+      '<div class="opt-row"><div class="k">Preferred days</div>' + [1, 2, 3, 4, 5, 6, 0].map(function (n) { return multi('prefDays', n, DAYN[n]); }).join('') + '</div>' +
+      '<div class="opt-row"><div class="k">Session length</div>' + chip('sessionMin', 30, '30 min') + chip('sessionMin', 45, '45 min') + chip('sessionMin', 60, '60 min') + chip('sessionMin', 75, '75 min') + chip('sessionMin', null, 'No limit') + '</div>' +
       '<div class="opt-row"><div class="k">Equipment</div><div class="eq-strip">' + d.equipment.slice(0, 9).map(function (k) { return '<span class="eq-mini" title="' + esc(Exercises.EQUIP[k].name) + '">' + equipIcon(k) + '</span>'; }).join('') +
-      '</div><button class="btn sm focusable" id="pEquip" data-fid="pe-equip">' + pl(d.equipment.length, NAP) + ' · edit →</button></div>' +
-      '<div class="opt-row"><div class="k">PIN (optional)</div><input class="field focusable" id="pPin" data-fid="pe-pin" type="password" inputmode="numeric" maxlength="4" placeholder="4 digits" value="' + esc(d.pin || '') + '">' +
+      '</div><button class="btn sm focusable" id="pEquip" data-fid="pe-equip">' + pl(d.equipment.length, NAP) + ' · edit →</button></div></div>' +
+
+      '<div class="panel"><h3>Heart rate</h3><div class="hint">Max HR is estimated from age (208 − 0.7 × age) unless you enter a measured value.</div>' +
+      '<div class="pgrid">' + num('maxHr', 'Max HR' + (d.maxHr ? '' : ' (est.)'), 'bpm', 1) + num('restHr', 'Resting HR', 'bpm', 1) + '</div>' +
+      (mx ? '<div class="zones">' + ZONES.map(function (z) {
+        var r = Me.zone(d, z[2], z[3]);
+        return '<div class="zone z' + z[0].charAt(1) + '"><b>' + z[0] + '</b><span>' + z[1] + '</span><em>' + r[0] + '–' + r[1] + '</em></div>';
+      }).join('') + '</div>' : '<div class="hint">Add your age to see your training zones.</div>') + '</div>' +
+
+      '<div class="panel"><h3>Limitations</h3><div class="hint">Exercises that load these joints are swapped for gentler options from the same movement pattern.</div>' +
+      '<div class="opt-row">' + LIMITS.map(function (l) { return multi('limits', l[0], l[1]); }).join('') + '</div></div>' +
+
+      '<div class="panel"><h3>Privacy</h3><div class="opt-row"><div class="k">PIN (optional)</div><input class="field focusable" id="pPin" data-fid="pe-pin" type="password" inputmode="numeric" maxlength="4" placeholder="4 digits" value="' + esc(d.pin || '') + '">' +
       (existing && existing.pin ? '<button class="chip focusable' + (d.clearPin ? ' on' : '') + '" data-fid="pe-clear" id="pClear">Remove PIN</button>' : '') +
-      '<span class="hint">Locks the profile on a shared TV (privacy, not security).</span></div>' : '') +
-      '</div><div class="nav-row"><button class="btn primary focusable" id="pSave">' + (existing ? 'Save' : 'Create profile') + '</button>' +
+      '<span class="hint">Locks the profile on a shared TV (privacy, not security).</span></div></div></div>';
+
+    root.innerHTML = '<div class="screen pe"><div class="topbar"><h1>' + (existing ? 'Profile' : Store.list().length ? 'New person' : 'Welcome – who’s training?') + '</h1></div>' +
+      (Store.list().length || existing ? '' : '<div class="hint">Everyone in your household gets their own profile: program, weights, progress.</div>') +
+      summary + basics + goalPanel + more +
+      '<div class="nav-row sticky-save"><button class="btn primary focusable" id="pSave">' + (existing ? 'Save profile' : 'Create profile') + '</button>' +
       (Store.list().length ? '<button class="btn ghost focusable" id="pCancel">Cancel</button>' : '') +
       (existing && Store.list().length > 1 ? '<button class="btn ghost focusable danger" id="pDel">Delete person</button>' : '') + '</div></div>';
-    function readInputs() { d.name = $('#pName').value.trim(); if ($('#pPin')) d.pin = $('#pPin').value.trim() || null; }
-    if ($('#pMore')) $('#pMore').onclick = function () { readInputs(); d.more = true; refresh(); var f = $('[data-fid="pe-days-3"]'); if (f) f.focus(); };
+
+    function readInputs() {
+      d.name = $('#pName').value.trim();
+      if ($('#pPin')) d.pin = $('#pPin').value.trim() || null;
+      if ($('#pWhy')) d.why = $('#pWhy').value.trim();
+      if ($('#pDate')) d.targetDate = $('#pDate').value || null;
+    }
+    if ($('#pMore')) $('#pMore').onclick = function () { readInputs(); d.more = true; refresh(); };
     $$('[data-pe]').forEach(function (b) {
       b.onclick = function () { readInputs(); d[b.getAttribute('data-pe')] = JSON.parse(b.getAttribute('data-val')); refresh(); };
+    });
+    $$('[data-pm]').forEach(function (b) {
+      b.onclick = function () {
+        readInputs();
+        var list = d[b.getAttribute('data-pm')], v = JSON.parse(b.getAttribute('data-val')), at = list.indexOf(v);
+        if (at >= 0) list.splice(at, 1); else list.push(v);
+        refresh();
+      };
+    });
+    var DEF = { age: 35, height: 175, weight: 75, restHr: 60 };
+    var LIM = { age: [12, 95], height: [120, 220], weight: [30, 250], targetWeight: [30, 250], maxHr: [120, 220], restHr: [35, 110] };
+    $$('[data-ps]').forEach(function (b) {
+      b.onclick = function () {
+        readInputs();
+        var k = b.getAttribute('data-ps'), dv = parseFloat(b.getAttribute('data-d'));
+        var cur = k === 'age' ? Me.age(d) : k === 'maxHr' ? Me.maxHr(d) : d[k];
+        if (cur == null && (k === 'targetWeight' || k === 'maxHr')) cur = k === 'maxHr' ? 185 : (d.weight || 75);
+        if (cur == null) cur = DEF[k];
+        else cur = Math.round((cur + dv) * 10) / 10;
+        cur = Math.min(LIM[k][1], Math.max(LIM[k][0], cur));
+        if (k === 'age') d.birthYear = new Date().getFullYear() - cur; else d[k] = cur;
+        refresh();
+      };
     });
     if ($('#pClear')) $('#pClear').onclick = function () { readInputs(); d.clearPin = !d.clearPin; refresh(); };
     if ($('#pEquip')) $('#pEquip').onclick = function () { readInputs(); eqDraft = null; go('equipment', { draft: true }); };
@@ -1139,12 +1294,15 @@
       if (!d.name) { toast('Enter a name'); $('#pName').focus(); return; }
       if (d.pin && !/^\d{4}$/.test(d.pin)) { toast('PIN must be 4 digits'); $('#pPin').focus(); return; }
       var pr = existing || Store.addProfile(Store.newProfile());
-      pr.name = d.name; pr.color = d.color; pr.settings.level = d.level; pr.settings.days = d.days;
-      pr.settings.equipment = d.equipment.slice();
+      var ps = pr.settings;
+      pr.name = d.name; pr.color = d.color;
+      ['level', 'days', 'goal', 'why', 'targetWeight', 'targetDate', 'sex', 'birthYear', 'height', 'maxHr', 'restHr', 'sessionMin'].forEach(function (k) { ps[k] = d[k]; });
+      ps.limits = d.limits.slice(); ps.prefDays = d.prefDays.slice(); ps.equipment = d.equipment.slice();
+      if (d.weight !== ps.weight) logWeight(pr, d.weight);
       if (d.pin) Store.setPin(pr, d.pin); else if (d.clearPin) Store.setPin(pr, null);
       Store.save();
       pdraft = null;
-      if (existing && state && existing.id === state.id) { toast('Saved'); back(); }
+      if (existing && state && existing.id === state.id) { toast('Profile saved'); back(); }
       else if (!existing) { eqDraft = null; activate(pr); }
       else activate(pr);
     };
@@ -1157,6 +1315,15 @@
       });
     };
   };
+  // one body-weight entry per day; the latest entry is the current weight
+  function logWeight(pr, kg) {
+    var s = pr.settings; s.weight = kg;
+    if (kg == null) return;
+    var today = new Date().toISOString().slice(0, 10);
+    s.bodyLog = (s.bodyLog || []).filter(function (x) { return x.date !== today; });
+    s.bodyLog.push({ date: today, kg: kg });
+    s.bodyLog.sort(function (a, b) { return a.date < b.date ? -1 : 1; });
+  }
 
   // ---------------------------------------------------------------- equipment ("Moja oprema")
   function equipIcon(k) { return Figure.icon(Exercises.EQUIP[k].icon); }

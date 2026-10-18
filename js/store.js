@@ -17,6 +17,10 @@
   function defaultSettings() {
     return {
       days: 4, level: 'mid', voice: true, beeps: true, previewSec: 15, startDate: new Date().toISOString().slice(0, 10),
+      // personal profile: goal, body, heart rate, preferences (all optional – the app adapts when set)
+      goal: 'general', why: '', targetWeight: null, targetDate: null,
+      sex: null, birthYear: null, height: null, weight: null, bodyLog: [],   // bodyLog: [{ date, kg }]
+      maxHr: null, restHr: null, limits: [], prefDays: [], sessionMin: null,
       equipment: (global.Exercises ? Exercises.HOME_GYM : ['bike', 'rower', 'kb', 'db', 'tria', 'bench', 'kinesis', 'wall']).slice()
     };
   }

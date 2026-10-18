@@ -24,6 +24,13 @@ Osebni trener za domačo telovadnico, narejen **izključno za opremo, ki jo ima�
 - **Faze giba** (npr. 1 Spuščaj 3 s → 2 Pavza spodaj → 3 Potisni gor) se med animacijo osvetljujejo v živo; pod njimi ključne točke in pogoste napake.
 - **Fotografije pravih oseb** (generirane, preverjene glede pravilne izvedbe): kartice v knjižnici (fokus z daljincem preklopi na animacijo), domači zaslon, sličica "Prava izvedba" v predvajalniku, predogledu in podrobnostih (povečava čez cel zaslon). Kjer fotografije še ni, ostane animacija. Prompti za manjkajoče so v `tools/photo_prompts.json`; po dodajanju slik v `img/ex/` zaženi `python3 tools/build_photos.py`.
 
+### Osebni profil (cilj, telo, srčni utrip, omejitve)
+- **Cilj** (Build muscle / Get stronger / Lose fat / Endurance / HYROX race / Stay fit) dejansko spremeni program: *Get stronger* zniža ponovitve glavnih vaj (npr. 8–10 → 5–7) in podaljša počitek; *Lose fat / Endurance / HYROX* skrajšajo počitek in dodajo intervale; *Endurance* poveča ponovitve pomožnih vaj in dolžino kardia. Ciljna teža, ciljni datum (npr. dan tekme) in "My why" se prikažejo na domačem zaslonu.
+- **Telo:** spol, starost, višina, teža → BMI, ocena kcal po treningu (MET × kg × čas), dnevnik teže s trendom v *Progress*.
+- **Srčni utrip:** max HR (Tanaka 208 − 0,7 × starost ali izmerjen), mirovni HR → cone Z1–Z5 (Karvonen); med kardiom app pokaže ciljni utrip (Zone 2 / intervali).
+- **Trening:** nivo, 3×/4× tedensko, preferenčni dnevi (pike v tedenskem traku), dolžina treninga (30–75 min – app skrajša pomožne serije, nikoli ogrevanja).
+- **Omejitve** (kolena, spodnji hrbet, ramena, zapestja): vaje, ki obremenjujejo sklep, zamenja z nežnejšo iz istega gibalnega vzorca; če alternative ni, jo označi z opozorilom.
+
 ### Oprema po profilu
 Vsaka oseba v profilu izbere svojo opremo (zaslon *Moja oprema*: ilustracije, število odklenjenih vaj, hitre izbire *Domača telovadnica / Samo lastna teža / Polno opremljen fitnes*). Na voljo je 17 naprav – tvojih 8 in dodatne: **tekalna steza, SkiErg, olimpijska palica + stojalo, sandbag, wall ball, plyo škatla, elastike, sani, kolebnica**.
 
