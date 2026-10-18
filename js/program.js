@@ -205,12 +205,55 @@
   // Build the concrete session for the current block week + level
   function get(state, key) { return SESSIONS[key] || (state.customs || {})[key] || null; }
 
+  function owned(state) { return (state.settings && state.settings.equipment) || Exercises.HOME_GYM; }
+
+  // Real HYROX stations replace home substitutes when the profile owns the equipment
+  var STATION = { treadmill_run: { dist: 1000 }, skierg: { dist: 1000 }, sled_push: { dist: 50 }, sled_pull: { dist: 50 }, wall_ball: { reps: [100, 100] } };
+
+  // Swap every exercise the profile cannot do for the best owned alternative (same movement pattern).
+  function adapt(src, own, upgrade) {
+    var used = {}, missing = [];
+    var blocks = src.blocks.map(function (b) {
+      var items = [];
+      b.items.forEach(function (it) {
+        var id = it.id, pick;
+        if (upgrade) {
+          var list = Exercises.PATTERNS[Exercises.PATTERN_OF[id]] || [id];
+          // race stations repeat (8 runs), so reuse is allowed here
+          pick = list.filter(function (x) { return Exercises.available(x, own); })[0] || null;
+          if (!pick && Exercises.available(id, own)) pick = id;
+        } else {
+          pick = Exercises.substitute(id, own, Object.keys(used).filter(function (x) { return x !== id; }));
+        }
+        if (!pick) { missing.push(id); return; }
+        var o = JSON.parse(JSON.stringify(it));
+        if (pick !== id) {
+          o.id = pick; o.swappedFrom = id;
+          var conv = upgrade && src.race && STATION[pick];
+          if (conv) { delete o.time; delete o.cardio; o.sets = 1; o.rest = it.rest || 0; if (conv.dist) { delete o.reps; o.dist = conv.dist; } else o.reps = conv.reps.slice(); }
+          else if (!o.cardio && !o.time && !o.dist && Exercises.BY_ID[pick].type === 'cardio' && Exercises.BY_ID[pick].unit !== 'kg' && Exercises.BY_ID[pick].unit !== 'bw') {
+            // a rep-based slot became a timed cardio movement
+            o.time = 45; delete o.reps;
+          } else if (o.cardio && o.cardio.rounds && /^bike_hiit|^row_hiit/.test(pick)) {
+            o.cardio.work = pick === 'bike_hiit' ? 20 : 30; o.cardio.easy = pick === 'bike_hiit' ? 40 : 30;
+          }
+          if (o.reps && !o.dist && Exercises.BY_ID[pick].unit === 's') { o.time = 40; delete o.reps; }
+        }
+        used[pick] = 1;
+        items.push(o);
+      });
+      return { title: b.title, items: items };
+    }).filter(function (b) { return b.items.length; });
+    return { blocks: blocks, missing: missing };
+  }
+
   function build(state, key) {
     var src = get(state, key);
     if (!src) { key = nextSessionKey(state); src = SESSIONS[key]; }
     var week = blockWeek(state);
     var lvl = state.settings.level;
-    var blocks = src.blocks.map(function (b) {
+    var ad = adapt(src, owned(state), src.race || /^HX/.test(key) || (src.opts && src.opts.type === 'hyrox'));
+    var blocks = ad.blocks.map(function (b) {
       return {
         title: b.title,
         items: b.items.map(function (it) {
@@ -229,14 +272,14 @@
             if (o.reps) { var n = Math.max(5, Math.round(o.reps[0] * k / 5) * 5); o.reps = [n, n]; }
             if (o.time) o.time = Math.round(o.time * k / 10) * 10;
             if (o.cardio && o.cardio.min && /^Tek/.test(b.title)) o.cardio.min = Math.max(2, Math.round(o.cardio.min * k));
-            if (o.dist) o.dist = Math.round(o.dist * k / 100) * 100;
+            if (o.dist) { var stp = o.dist >= 500 ? 100 : 10; o.dist = Math.max(stp, Math.round(o.dist * k / stp) * stp); }
           }
           if (o.reps) o.sug = suggest(state, o);
           return o;
         })
       };
     });
-    return { key: key, name: src.name, short: src.short, color: src.color, custom: !!src.custom, race: !!src.race, week: week, weekInfo: WEEK_INFO[week], blocks: blocks };
+    return { key: key, name: src.name, short: src.short, color: src.color, custom: !!src.custom, race: !!src.race, missing: ad.missing, week: week, weekInfo: WEEK_INFO[week], blocks: blocks };
   }
 
   // Flatten to an ordered list of steps (supersets interleaved by round)
@@ -288,7 +331,7 @@
     var sec = 0;
     steps(session).forEach(function (st) {
       if (st.kind === 'time') sec += st.sec + st.rest + (st.easy || st.hard ? 0 : 8);
-      else if (st.kind === 'dist') sec += st.dist * 0.27 + st.rest + 10;
+      else if (st.kind === 'dist') sec += st.dist * (Exercises.BY_ID[st.id].secPerM || 0.27) + st.rest + 10;
       else sec += (st.item.reps[1] * (Exercises.BY_ID[st.id].secPerRep || 4) * (st.perSide ? 2 : 1)) + st.rest + 10;
     });
     return Math.round(sec / 60);
@@ -334,7 +377,7 @@
     tail.push({ title: 'Ohlajanje', items: lower ? [T('hip_flexor', 1, 40, 10), T('hamstring_bench', 1, 40, 10)] : [T('dead_hang', 1, 30, 10)] });
 
     // add exercises in priority order while the estimated session still fits the chosen duration
-    var order = strengthOrder(focus, opts.exclude || []);
+    var order = strengthOrder(focus, opts.exclude || [], opts.owned || Exercises.HOME_GYM);
     var sets = min <= 30 ? 2 : 3;
     // beginners get one set less in build(), so budget with the sets they will actually do
     var realSets = opts.level === 'beg' ? Math.max(2, sets - 1) : opts.level === 'adv' ? sets + 1 : sets;
@@ -353,13 +396,17 @@
   }
 
   // Round-robin over the chosen focus groups: exercises whose primary group matches first, compound before isolation.
-  function strengthOrder(focus, exclude) {
+  function strengthOrder(focus, exclude, own) {
     var pool = Exercises.LIST.filter(function (e) {
-      return (e.type === 'strength' || e.type === 'core') && e.groups[0] !== 'kardio' && exclude.indexOf(e.id) < 0;
+      return (e.type === 'strength' || e.type === 'core') && e.groups[0] !== 'kardio' && exclude.indexOf(e.id) < 0 && Exercises.available(e.id, own);
     });
     function rank(e, f) {
       var pos = e.groups.indexOf(f);
-      return (pos === 0 ? 0 : 10 + pos) + (e.compound ? 0 : 3) + (e.type === 'core' && f !== 'trup' ? 20 : 0);
+      var pl = Exercises.PATTERNS[Exercises.PATTERN_OF[e.id]] || [];
+      // tie-breaks: main lifts first (COMPOUND is ordered barbell → KB/DB → bodyweight), then pattern preference
+      var ci = Exercises.COMPOUND.indexOf(e.id);
+      var pref = (pl.indexOf(e.id) < 0 ? 0.5 : pl.indexOf(e.id) * 0.1) + (ci < 0 ? 0.3 : ci * 0.01);
+      return (pos === 0 ? 0 : 10 + pos) + (e.compound ? 0 : 3) + (e.type === 'core' && f !== 'trup' ? 20 : 0) + pref;
     }
     var order = [], used = {};
     for (var round = 0; round < 12; round++) {
@@ -387,7 +434,8 @@
     while (i < items.length) {
       var a = items[i], b = items[i + 1];
       var ea = Exercises.BY_ID[a.id], eb = b && Exercises.BY_ID[b.id];
-      if (b && ea.groups[0] !== eb.groups[0]) {
+      var heavyPair = b && ea.equip.indexOf('barbell') >= 0 && eb.equip.indexOf('barbell') >= 0; // two barbell lifts never share a superset
+      if (b && ea.groups[0] !== eb.groups[0] && !heavyPair) {
         var name = 'Superset ' + String.fromCharCode(65 + letter++);
         a.rest = 0; b.rest = ea.compound || eb.compound ? 90 : 60;
         out.push({ title: name, items: [a, b] }); i += 2;
@@ -399,41 +447,57 @@
     return out;
   }
 
+  var MACHINES = {
+    bike: { z2: 'bike_z2', hiit: 'bike_hiit', work: 20, easy: 40, name: 'kolo' },
+    rower: { z2: 'row_steady', hiit: 'row_hiit', work: 30, easy: 30, name: 'veslač' },
+    treadmill: { z2: 'treadmill_run', hiit: 'treadmill_run', work: 30, easy: 60, name: 'tekalna steza' },
+    skierg: { z2: 'skierg', hiit: 'skierg', work: 30, easy: 30, name: 'SkiErg' },
+    rope: { z2: 'jump_rope', hiit: 'jump_rope', work: 40, easy: 20, name: 'kolebnica' },
+    floor: { z2: 'high_knees', hiit: 'high_knees', work: 30, easy: 30, name: 'lastna teža' }
+  };
+  function cardioMachines(own) {
+    var m = ['bike', 'rower', 'treadmill', 'skierg', 'rope'].filter(function (k) { return own.indexOf(k) >= 0; });
+    return m.length ? m : ['floor'];
+  }
+
   function cardioSession(opts, min) {
-    var m = opts.machine || 'both', inten = opts.intensity || 'mix';
-    var machines = m === 'both' ? ['bike', 'rower'] : [m];
-    var blocks = [{ title: 'Ogrevanje', items: [C(machines[0] === 'bike' ? 'bike_z2' : 'row_steady', 5)] }];
+    var own = opts.owned || Exercises.HOME_GYM;
+    var avail = cardioMachines(own);
+    var machines = opts.machine && opts.machine !== 'all' && avail.indexOf(opts.machine) >= 0 ? [opts.machine] : avail.slice(0, 2);
+    var inten = opts.intensity || 'mix';
+    var blocks = [{ title: 'Ogrevanje', items: [C(MACHINES[machines[0]].z2, 5)] }];
     var main = Math.max(6, min - 9);
     var per = Math.round(main / machines.length);
-    machines.forEach(function (mc, idx) {
-      var z2 = mc === 'bike' ? 'bike_z2' : 'row_steady';
-      var hiit = mc === 'bike' ? I('bike_hiit', per, 20, 40) : I('row_hiit', per, 30, 30);
-      var label = machines.length > 1 ? (mc === 'bike' ? ' – kolo' : ' – veslač') : '';
-      if (inten === 'z2') blocks.push({ title: 'Cona 2' + label, items: [C(z2, per)] });
-      else if (inten === 'hiit') blocks.push({ title: 'Intervali' + label, items: [hiit] });
+    machines.forEach(function (mc) {
+      var M = MACHINES[mc];
+      var label = machines.length > 1 ? ' – ' + M.name : '';
+      var rounds = Math.max(3, Math.round(per * 60 / (M.work + M.easy)));
+      if (inten === 'z2') blocks.push({ title: 'Cona 2' + label, items: [C(M.z2, per)] });
+      else if (inten === 'hiit') blocks.push({ title: 'Intervali' + label, items: [I(M.hiit, rounds, M.work, M.easy)] });
       else {
         var half = Math.max(3, Math.round(per / 2));
-        blocks.push({ title: 'Cona 2' + label, items: [C(z2, half)] });
-        hiit.cardio.rounds = Math.max(3, per - half);
-        blocks.push({ title: 'Intervali' + label, items: [hiit] });
+        blocks.push({ title: 'Cona 2' + label, items: [C(M.z2, half)] });
+        blocks.push({ title: 'Intervali' + label, items: [I(M.hiit, Math.max(3, Math.round((per - half) * 60 / (M.work + M.easy))), M.work, M.easy)] });
       }
     });
-    blocks.push({ title: 'Ohlajanje', items: [C(machines[machines.length - 1] === 'bike' ? 'bike_z2' : 'row_steady', 3)] });
+    blocks.push({ title: 'Ohlajanje', items: [C(MACHINES[machines[machines.length - 1]].z2, 3)] });
     blocks.push({ title: 'Raztezanje', items: [T('hamstring_bench', 1, 40, 10)] });
-    var mName = { bike: 'kolo', rower: 'veslač', both: 'kolo + veslač' }[m];
     var iName = { z2: 'cona 2', hiit: 'intervali', mix: 'cona 2 + intervali' }[inten];
-    return { name: 'Kardio: ' + mName + ' – ' + iName, short: min + ' min · po meri', color: '#5ad1b8', custom: true, opts: opts, blocks: blocks };
+    return { name: 'Kardio: ' + machines.map(function (k) { return MACHINES[k].name; }).join(' + ') + ' – ' + iName, short: min + ' min · po meri', color: '#5ad1b8', custom: true, opts: opts, blocks: blocks };
   }
 
   // Exercises that can replace `id` (share its primary group, same kind), excluding ones already in the session
   var CARDIO_TWIN = { bike_z2: 'row_steady', row_steady: 'bike_z2', bike_hiit: 'row_hiit', row_hiit: 'bike_hiit' };
-  function alternatives(src, id) {
+  function alternatives(src, id, own) {
+    own = own || Exercises.HOME_GYM;
     var e = Exercises.BY_ID[id];
-    if (CARDIO_TWIN[id]) return [CARDIO_TWIN[id]];
+    if (Exercises.BY_ID[id].type === 'cardio' && Exercises.PATTERN_OF[id]) {
+      return (Exercises.PATTERNS[Exercises.PATTERN_OF[id]] || []).filter(function (x) { return x !== id && Exercises.available(x, own); });
+    }
     var inUse = {};
     src.blocks.forEach(function (b) { b.items.forEach(function (it) { inUse[it.id] = 1; }); });
     return Exercises.LIST.filter(function (x) {
-      return !inUse[x.id] && x.groups[0] === e.groups[0] && (x.type === 'cardio') === (e.type === 'cardio') && x.type !== 'mobility';
+      return !inUse[x.id] && x.groups[0] === e.groups[0] && (x.type === 'cardio') === (e.type === 'cardio') && x.type !== 'mobility' && Exercises.available(x.id, own);
     }).map(function (x) { return x.id; });
   }
 
@@ -472,6 +536,7 @@
   global.Program = {
     SESSIONS: SESSIONS, PLANS: PLANS, WEEK_INFO: WEEK_INFO,
     HX_KEYS: ['HX1', 'HX2', 'HX3'],
+    MACHINES: MACHINES, cardioMachines: cardioMachines, owned: owned,
     get: get, build: build, steps: steps, generate: generate, alternatives: alternatives,
     replaceItem: replaceItem, removeItem: removeItem, single: single, nextSessionKey: nextSessionKey, blockWeek: blockWeek,
     suggest: suggest, estimateMin: estimateMin, unitLabel: unitLabel, groupLetter: groupLetter

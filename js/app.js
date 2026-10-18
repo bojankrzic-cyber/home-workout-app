@@ -23,6 +23,9 @@
     document.body.appendChild(t); setTimeout(function () { t.remove(); }, 2600);
   }
   var DAYN = ['Ne', 'Po', 'To', 'Sr', 'Če', 'Pe', 'So'];
+  // Slovenian plural forms: [1, 2, 3–4, 5+]
+  function pl(n, f) { var k = Math.abs(n) % 100; return n + ' ' + (k === 1 ? f[0] : k === 2 ? f[1] : k === 3 || k === 4 ? f[2] : f[3]); }
+  var VAJ = ['vaja', 'vaji', 'vaje', 'vaj'], TRN = ['trening', 'treninga', 'treningi', 'treningov'], NAP = ['naprava', 'napravi', 'naprave', 'naprav'];
 
   // ---------------------------------------------------------------- audio / voice
   var Audio = {
@@ -183,10 +186,11 @@
     go(screen || 'overview', { key: key });
   }
 
-  var LEAF = '<svg class="leaf" viewBox="0 0 32 32" aria-hidden="true"><path d="M6 26C6 13 15 5 28 4c-1 13-9 22-22 22z" fill="var(--accent)"/>' +
-    '<path d="M7 25C12 18 17 13 24 8" stroke="var(--bg)" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg>';
+  // Nature's Finest leaf (brand mark geometry) + lockup mirroring "nature's / FINEST / BY NUTRISSLIM"
+  var LEAF_PATH = 'M80.65,1.73c-.03,14.79-2.85,54.9-19.5,79.29-7.24,10.61-18.05,12.9-27.2,12.47-2.07-.1-4.1-.38-6.07-.85-1.39,5.65-2.93,11.65-2.94,17.34,0,.21-.18.39-.4.36-1.89-.21-4.42-2.01-6.88-1.81-.19.02-.35-.16-.31-.35,5.65-29.4,23.39-64.3,42.22-86.85C26.03,51.28,15.9,86.9,15.9,86.9c-5.66-3.86-11.11-7.72-13.88-16.11-2.5-7.57-.2-15.82,6.53-25.67C25.68,20.01,60.12,2.65,80.65,1.73Z';
+  var LEAF = '<svg class="leaf" viewBox="0 0 82 112" aria-hidden="true"><path d="' + LEAF_PATH + '" fill="var(--leaf)"/></svg>';
   function brandMark(cls) {
-    return '<div class="brand ' + (cls || '') + '">' + LEAF + '<span class="bf">Finest</span><span class="bm">Form</span><small>by Nature\'s Finest</small></div>';
+    return '<div class="brand ' + (cls || '') + '">' + LEAF + '<div class="wm"><span class="wm-top">finest</span><span class="wm-mid"><i>F</i><i>O</i><i>R</i><i>M</i></span><span class="wm-by">by nature\'s finest</span></div></div>';
   }
 
   function avatar(p, big) {
@@ -305,7 +309,7 @@
     mountFigure($('#heroFig'), heroEx, { aspect: 1 });
     $$('[data-quick]').forEach(function (el) {
       el.onclick = function () {
-        var o = Object.assign({ level: state.settings.level }, QUICK[+el.getAttribute('data-quick')].opts);
+        var o = Object.assign({ level: state.settings.level, owned: Program.owned(state) }, QUICK[+el.getAttribute('data-quick')].opts);
         startCustom(Program.generate(o));
       };
     });
@@ -348,12 +352,15 @@
         var gl = Program.groupLetter(b.title, bi), tag = b.items.length > 1 && gl ? '<span class="lbl">' + gl + (ii + 1) + '</span>' : '';
         var load = it.sug ? '<small>' + esc(loadTxt(e, it.sug.load)) + '</small>' : '<small>' + (it.cardio ? 'kardio' : 'drži') + '</small>';
         html += '<div class="ex-row focusable" tabindex="0" data-go="exercise" data-p=\'{"id":"' + it.id + '"}\'>' +
-          '<div class="ex-thumb" data-thumb="' + it.id + '"></div><div><h4>' + tag + esc(e.name) + '</h4><div class="sub">' + esc(e.muscles) +
+          '<div class="ex-thumb" data-thumb="' + it.id + '"></div><div><h4>' + tag + esc(e.name) + '</h4><div class="sub">' +
+          (it.swappedFrom ? '<span class="swap-note">⇄ namesto: ' + esc(ex(it.swappedFrom).name) + '</span> · ' : '') + esc(e.muscles) +
           (it.sug && it.sug.why ? ' · <span style="color:var(--accent)">' + esc(it.sug.why) + '</span>' : '') + '</div></div>' +
           '<div class="rx">' + rx(it) + load + '</div></div>';
       });
       html += '</div>';
     });
+    if (sess.missing.length) html += '<div class="missing-note">Izpuščeno, ker ni ustrezne opreme: ' + sess.missing.map(function (id) { return esc(ex(id).name); }).join(', ') +
+      ' · <button class="btn sm ghost focusable" data-go="equipment">Uredi opremo</button></div>';
     root.innerHTML = html + '</div></div>';
     mountThumbs();
     if ($('#saveTgl')) $('#saveTgl').onclick = function () {
@@ -366,23 +373,28 @@
   };
 
   SCREENS.library = function (p) {
-    var f = p.f || 'all', g = p.g || 'all';
+    var f = p.f || 'mine', g = p.g || 'all';
+    var own = Program.owned(state);
     function chip(kind, val, label, on) {
       return '<button class="chip focusable' + (on ? ' on' : '') + '" data-fid="lib-' + kind + '-' + val + '" data-lib="' + kind + '" data-val="' + val + '">' + label + '</button>';
     }
     var focusChips = chip('g', 'all', 'Vse skupine', g === 'all') +
-      Object.keys(Exercises.FOCUS).map(function (k) { return chip('g', k, Exercises.FOCUS[k].icon + ' ' + Exercises.FOCUS[k].name, g === k); }).join('');
-    var equipChips = chip('f', 'all', 'Vsa oprema', f === 'all') +
-      Object.keys(Exercises.EQUIP).map(function (k) { return chip('f', k, Exercises.EQUIP[k].icon + ' ' + esc(Exercises.EQUIP[k].name), f === k); }).join('');
+      Object.keys(Exercises.FOCUS).map(function (k) { return chip('g', k, Exercises.FOCUS[k].name, g === k); }).join('');
+    var equipKeys = Object.keys(Exercises.EQUIP).filter(function (k) { return k === 'floor' || own.indexOf(k) >= 0; });
+    var equipChips = chip('f', 'mine', 'Moja oprema', f === 'mine') + chip('f', 'all', 'Vse vaje', f === 'all') +
+      equipKeys.map(function (k) { return chip('f', k, '<span class="chip-ico">' + equipIcon(k) + '</span>' + esc(Exercises.EQUIP[k].name), f === k); }).join('');
     var list = Exercises.LIST.filter(function (e) {
-      return (f === 'all' || e.equip.indexOf(f) >= 0) && (g === 'all' || e.groups.indexOf(g) >= 0);
+      return (f === 'all' || (f === 'mine' ? Exercises.available(e.id, own) : e.equip.indexOf(f) >= 0)) && (g === 'all' || e.groups.indexOf(g) >= 0);
     });
-    root.innerHTML = '<div class="screen"><div class="topbar"><h1>Knjižnica vaj</h1><span class="chip">' + list.length + ' vaj</span></div>' +
+    root.innerHTML = '<div class="screen"><div class="topbar"><h1>Knjižnica vaj</h1><span class="chip">' + pl(list.length, VAJ) + '</span><div class="spacer"></div>' +
+      '<button class="btn sm ghost focusable" data-go="equipment">Moja oprema →</button></div>' +
       '<div class="filters"><span class="flabel">Fokus</span>' + focusChips + '</div>' +
       '<div class="filters"><span class="flabel">Oprema</span>' + equipChips + '</div><div class="grid">' +
       (list.map(function (e) {
-        return '<div class="lib-card focusable" tabindex="0" data-go="exercise" data-p=\'{"id":"' + e.id + '"}\'><div class="thumb" data-thumb="' + e.id + '"></div>' +
-          '<div class="info"><h4>' + esc(e.name) + '</h4><div class="sub">' + esc(e.muscles) + '</div></div></div>';
+        var ok = Exercises.available(e.id, own);
+        var need = e.equip.filter(function (k) { return k !== 'floor' && own.indexOf(k) < 0; }).map(function (k) { return Exercises.EQUIP[k].name; }).join(', ');
+        return '<div class="lib-card focusable' + (ok ? '' : ' locked') + '" tabindex="0" data-go="exercise" data-p=\'{"id":"' + e.id + '"}\'><div class="thumb" data-thumb="' + e.id + '"></div>' +
+          '<div class="info"><h4>' + esc(e.name) + '</h4><div class="sub">' + (ok ? esc(e.muscles) : '🔒 Potrebuješ: ' + esc(need)) + '</div></div></div>';
       }).join('') || '<div class="hint">Za to kombinacijo ni vaj.</div>') + '</div></div>';
     mountThumbs();
     $$('[data-lib]').forEach(function (b) {
@@ -399,7 +411,7 @@
     var el = document.createElement('div');
     el.className = 'player';
     el.innerHTML = '<div class="stage"><div class="fig" id="exFig"></div><div class="phase" id="exPhase"></div>' +
-      '<div class="badge-top">' + e.equip.map(function (k) { return '<span class="chip">' + Exercises.EQUIP[k].icon + ' ' + esc(Exercises.EQUIP[k].name) + '</span>'; }).join('') + '</div></div>' +
+      '<div class="badge-top">' + e.equip.map(function (k) { return '<span class="chip"><span class="chip-ico">' + equipIcon(k) + '</span>' + esc(Exercises.EQUIP[k].name) + '</span>'; }).join('') + '</div></div>' +
       '<div class="side"><div class="kicker">' + esc(e.muscles) + '</div><h2>' + esc(e.name) + '</h2>' +
       '<div class="muscles">Tempo: <b>' + esc(e.tempo || '') + '</b>' + (h ? ' · Zadnjič: <b>' + esc(loadTxt(e, h.load)) + '</b> × ' + h.reps.join(', ') : '') + '</div>' +
       '<div class="label">Izvedba</div><ul class="cues">' + e.cues.map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('') + '</ul>' +
@@ -448,8 +460,10 @@
     root.innerHTML = '<div class="screen"><div class="topbar"><h1>Nastavitve</h1><div class="spacer"></div>' +
       '<button class="btn sm ghost focusable who" data-go="profiles">' + avatar(state) + 'Zamenjaj osebo</button></div>' +
       '<div class="panel"><h3>Profil</h3><div class="opt-row">' + avatar(state, true) + '<div style="flex:1"><b style="font-size:1.3rem">' + esc(state.name) + '</b><div class="hint">' +
-      (state.pin ? 'Zaklenjen s PIN-om' : 'Brez PIN-a') + ' · ' + state.log.length + ' treningov</div></div>' +
-      '<button class="btn focusable" data-go="profileEdit" data-p=\'{"id":"' + state.id + '"}\'>Uredi profil</button></div></div><div class="panel">' +
+      (state.pin ? 'Zaklenjen s PIN-om' : 'Brez PIN-a') + ' · ' + pl(state.log.length, TRN) + '</div></div>' +
+      '<button class="btn focusable" data-go="profileEdit" data-p=\'{"id":"' + state.id + '"}\'>Uredi profil</button></div></div>' +
+      '<div class="panel"><h3>Moja oprema</h3><div class="opt-row"><div class="eq-strip">' + (state.settings.equipment || []).map(function (k) { return '<span class="eq-mini" title="' + esc(Exercises.EQUIP[k].name) + '">' + equipIcon(k) + '</span>'; }).join('') +
+      '</div><div class="spacer"></div><button class="btn focusable" data-go="equipment">' + pl((state.settings.equipment || []).length, NAP) + ' · ' + pl(unlocked(state.settings.equipment || []), VAJ) + ' · uredi →</button></div></div><div class="panel">' +
       '<div class="opt-row"><div class="k">Treningov na teden</div>' + opt('days', 3, '3× – celo telo') + opt('days', 4, '4× – upper / lower') + '</div>' +
       '<div class="opt-row"><div class="k">Nivo</div>' + opt('level', 'beg', 'Začetnik') + opt('level', 'mid', 'Srednji') + opt('level', 'adv', 'Napreden') + '</div>' +
       '<div class="opt-row"><div class="k">Glasovna navodila</div>' + opt('voice', true, 'Vklopljeno') + opt('voice', false, 'Izklopljeno') + '<span class="hint">' + esc(voiceInfo) + '</span></div>' +
@@ -662,8 +676,8 @@
         $('#wDone').textContent = race ? '✓ Postaja končana' : '✓ Serija opravljena';
         Voice.say(e.name + '. ' + (s.set === 1 ? e.cues[0] : 'Serija ' + s.set));
       } else if (s.kind === 'dist') {
-        $('#wWhy').textContent = 'Veslaj ' + s.dist + ' m – ko monitor pokaže razdaljo, pritisni OK';
-        $('#wRx').innerHTML = chips([[s.dist + ' m', 'razdalja'], ['~' + fmt(s.dist * 0.27), 'ciljni čas'], [e.tempo || '—', 'tempo']]);
+        $('#wWhy').textContent = 'Cilj ' + s.dist + ' m – ko monitor pokaže razdaljo, pritisni OK';
+        $('#wRx').innerHTML = chips([[s.dist + ' m', 'razdalja'], ['~' + fmt(s.dist * (e.secPerM || 0.27)), 'ciljni čas'], [e.tempo || '—', 'tempo']]);
         $('#wLog').innerHTML = ''; $('#wLog').hidden = true;
         $('#wDone').textContent = '✓ ' + s.dist + ' m končano';
         Voice.say(e.name + '. ' + s.dist + ' metrov.');
@@ -746,7 +760,7 @@
         setRing('wRing', pr / tgt);
         if (pr >= tgt && !pacerHit) { pacerHit = true; Audio.beep(1320, 0.2); $('#wPhase').textContent = 'Cilj dosežen – OK za konec'; }
       } else if (s.kind === 'dist') {
-        var est = s.dist * 0.27;
+        var est = s.dist * (ex(s.id).secPerM || 0.27);
         top.textContent = s.dist + ' m'; val.textContent = fmt(elapsed); sub.textContent = 'cilj ~' + fmt(est);
         setRing('wRing', elapsed / est);
       } else {
@@ -835,7 +849,7 @@
     root.innerHTML = '<div class="screen center">' + brandMark('big-brand') + '<h1 class="who-title">Kdo trenira?</h1><div class="profiles">' +
       list.map(function (pr, i) {
         return '<button class="profile focusable" data-pid="' + pr.id + '"' + (pr.id === lastId || (!lastId && i === 0) ? ' data-autofocus' : '') + '>' + avatar(pr, true) +
-          '<b>' + esc(pr.name) + '</b><span>' + (pr.pin ? '🔒 ' : '') + pr.log.length + ' treningov</span></button>';
+          '<b>' + esc(pr.name) + '</b><span>' + (pr.pin ? '🔒 ' : '') + pl(pr.log.length, TRN) + '</span></button>';
       }).join('') +
       '<button class="profile add focusable" data-go="profileEdit"><span class="avatar big">＋</span><b>Dodaj osebo</b><span>nov profil</span></button></div>' +
       '<div class="hint">Vsaka oseba ima svoj program, teže, napredek in nastavitve.</div></div>';
@@ -899,7 +913,8 @@
         color: existing ? existing.color : Store.COLORS[Store.list().length % Store.COLORS.length],
         level: existing ? existing.settings.level : 'mid',
         days: existing ? existing.settings.days : 3,
-        pin: null, clearPin: false
+        pin: null, clearPin: false,
+        equipment: (existing ? existing.settings.equipment : (state ? state.settings.equipment : null) || Exercises.HOME_GYM).slice()
       };
     }
     var d = pdraft;
@@ -915,6 +930,8 @@
       }).join('') + '</div>' +
       '<div class="opt-row"><div class="k">Nivo</div>' + chip('level', 'beg', 'Začetnik') + chip('level', 'mid', 'Srednji') + chip('level', 'adv', 'Napreden') + '</div>' +
       '<div class="opt-row"><div class="k">Treningov na teden</div>' + chip('days', 3, '3× – celo telo') + chip('days', 4, '4× – upper / lower') + '</div>' +
+      '<div class="opt-row"><div class="k">Oprema</div><div class="eq-strip">' + d.equipment.slice(0, 9).map(function (k) { return '<span class="eq-mini" title="' + esc(Exercises.EQUIP[k].name) + '">' + equipIcon(k) + '</span>'; }).join('') +
+      '</div><button class="btn sm focusable" id="pEquip" data-fid="pe-equip">' + pl(d.equipment.length, NAP) + ' · uredi →</button></div>' +
       '<div class="opt-row"><div class="k">PIN (neobvezno)</div><input class="field focusable" id="pPin" data-fid="pe-pin" type="password" inputmode="numeric" maxlength="4" placeholder="4 števke" value="' + esc(d.pin || '') + '">' +
       (existing && existing.pin ? '<button class="chip focusable' + (d.clearPin ? ' on' : '') + '" data-fid="pe-clear" id="pClear">Odstrani PIN</button>' : '') +
       '<span class="hint">Zaklene profil na skupnem TV-ju (zasebnost, ne varnost).</span></div>' +
@@ -926,16 +943,19 @@
       b.onclick = function () { readInputs(); d[b.getAttribute('data-pe')] = JSON.parse(b.getAttribute('data-val')); refresh(); };
     });
     if ($('#pClear')) $('#pClear').onclick = function () { readInputs(); d.clearPin = !d.clearPin; refresh(); };
+    $('#pEquip').onclick = function () { readInputs(); eqDraft = null; go('equipment', { draft: true }); };
     $('#pSave').onclick = function () {
       readInputs();
       if (!d.name) { toast('Vpiši ime'); $('#pName').focus(); return; }
       if (d.pin && !/^\d{4}$/.test(d.pin)) { toast('PIN mora imeti 4 števke'); $('#pPin').focus(); return; }
       var pr = existing || Store.addProfile(Store.newProfile());
       pr.name = d.name; pr.color = d.color; pr.settings.level = d.level; pr.settings.days = d.days;
+      pr.settings.equipment = d.equipment.slice();
       if (d.pin) Store.setPin(pr, d.pin); else if (d.clearPin) Store.setPin(pr, null);
       Store.save();
       pdraft = null;
       if (existing && state && existing.id === state.id) { toast('Shranjeno'); back(); }
+      else if (!existing) { state = Store.setActive(pr.id); eqDraft = null; resetTo('equipment', { onboard: true }); }
       else activate(pr);
     };
     if ($('#pCancel')) $('#pCancel').onclick = function () { pdraft = null; back(); };
@@ -947,13 +967,77 @@
     };
   };
 
+  // ---------------------------------------------------------------- equipment ("Moja oprema")
+  function equipIcon(k) { return Figure.icon(Exercises.EQUIP[k].icon); }
+  function exCountFor(k) { return Exercises.LIST.filter(function (e) { return e.equip.indexOf(k) >= 0; }).length; }
+  function unlocked(list) { return Exercises.LIST.filter(function (e) { return Exercises.available(e.id, list); }).length; }
+  var EQ_PRESETS = [
+    { id: 'home', name: 'Domača telovadnica', list: function () { return Exercises.HOME_GYM.slice(); } },
+    { id: 'bw', name: 'Samo lastna teža', list: function () { return []; } },
+    { id: 'all', name: 'Polno opremljen fitnes', list: function () { return Object.keys(Exercises.EQUIP).filter(function (k) { return !Exercises.EQUIP[k].always; }); } }
+  ];
+
+  var eqDraft = null;
+  SCREENS.equipment = function (p) {
+    var target = p.draft && pdraft ? pdraft : state.settings;
+    if (!eqDraft || eqDraft.key !== (p.draft ? 'draft' : state.id)) {
+      eqDraft = { key: p.draft ? 'draft' : state.id, list: (target.equipment || Exercises.HOME_GYM).slice() };
+    }
+    var list = eqDraft.list;
+    var total = Exercises.LIST.length, un = unlocked(list);
+    var who = p.draft ? (pdraft.name || 'Nova oseba') : state.name;
+    var html = '<div class="screen eq-screen"><div class="eq-head"><div><div class="kicker">' + (p.onboard ? 'Korak 2 / 2 · ' : '') + 'Profil · ' + esc(who) + '</div>' +
+      '<h1>Moja oprema</h1><p>Izberi vse, kar imaš na voljo – doma ali v svoji telovadnici. Program, HYROX in sestavljalnik vzamejo samo to, kar izbereš, in manjkajoče vaje zamenjajo z enakovrednimi.</p></div>' +
+      '<div class="eq-score"><div class="eq-num"><b>' + list.length + '</b><span>' + pl(list.length, NAP).replace(/^\d+ /, '') + '</span></div><div class="eq-num"><b>' + un + '<small>/' + total + '</small></b><span>vaj odklenjenih</span></div>' +
+      '<div class="eq-bar"><i style="width:' + Math.round(un / total * 100) + '%"></i></div></div></div>' +
+      '<div class="filters"><span class="flabel">Hitra izbira</span>' + EQ_PRESETS.map(function (pr) {
+        return '<button class="chip focusable" data-fid="eqp-' + pr.id + '" data-preset="' + pr.id + '">' + esc(pr.name) + '</button>';
+      }).join('') + '</div>';
+    Exercises.EQUIP_GROUPS.forEach(function (g) {
+      var keys = Object.keys(Exercises.EQUIP).filter(function (k) { return Exercises.EQUIP[k].group === g.id; });
+      var n = keys.filter(function (k) { return list.indexOf(k) >= 0; }).length;
+      html += '<div class="eq-group"><h3>' + esc(g.name) + ' <span>' + n + '/' + keys.length + '</span></h3><div class="eq-grid">' + keys.map(function (k) {
+        var E = Exercises.EQUIP[k], on = list.indexOf(k) >= 0;
+        return '<button class="eq-tile focusable' + (on ? ' on' : '') + '" data-fid="eq-' + k + '" data-eq="' + k + '" aria-pressed="' + on + '">' +
+          '<span class="eq-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>' +
+          '<div class="eq-art">' + equipIcon(k) + '</div><div class="eq-info"><b>' + esc(E.name) + '</b><span>' + esc(E.desc) + '</span></div>' +
+          '<div class="eq-meta">' + pl(exCountFor(k), VAJ) + '</div></button>';
+      }).join('') + '</div></div>';
+    });
+    html += '<div class="eq-foot"><div class="hint">Lastna teža je vedno vključena (' + pl(exCountFor('floor'), VAJ) + ').</div><div class="spacer"></div>' +
+      (p.onboard ? '' : '<button class="btn ghost focusable" id="eqCancel">Prekliči</button>') +
+      '<button class="btn primary focusable" id="eqSave" data-fid="eq-save">' + (p.onboard ? 'Začni trenirati →' : 'Shrani opremo') + '</button></div></div>';
+    root.innerHTML = html;
+    $$('[data-eq]').forEach(function (b) {
+      b.onclick = function () {
+        var k = b.getAttribute('data-eq'), i = list.indexOf(k);
+        if (i >= 0) list.splice(i, 1); else list.push(k);
+        refresh();
+      };
+    });
+    $$('[data-preset]').forEach(function (b) {
+      b.onclick = function () {
+        var pr = EQ_PRESETS.filter(function (x) { return x.id === b.getAttribute('data-preset'); })[0];
+        eqDraft.list = pr.list();
+        refresh();
+      };
+    });
+    if ($('#eqCancel')) $('#eqCancel').onclick = function () { eqDraft = null; back(); };
+    $('#eqSave').onclick = function () {
+      target.equipment = list.slice();
+      eqDraft = null;
+      if (!p.draft) { Store.save(); toast('Oprema shranjena · ' + pl(unlocked(list), VAJ) + ' na voljo'); }
+      if (p.onboard) resetTo('home'); else back();
+    };
+  };
+
   // ---------------------------------------------------------------- session builder
   var bdraft = null;
   var ALL_FOCUS = ['noge', 'zadnjica', 'prsa', 'hrbet', 'rame', 'roke', 'trup'];
   SCREENS.builder = function () {
     if (!bdraft) bdraft = { opts: { type: 'moc', focus: ['noge', 'zadnjica'], min: 45, machine: 'both', intensity: 'mix' }, src: null, swap: {} };
     var o = bdraft.opts;
-    o.level = state.settings.level;
+    o.level = state.settings.level; o.owned = Program.owned(state);
     if (!bdraft.src) bdraft.src = Program.generate(o);
     var src = bdraft.src;
     var built = Program.build(state, (function () { state.customs.__draft = src; return '__draft'; })());
@@ -969,7 +1053,7 @@
       '<button class="btn focusable" id="bPrev" data-fid="b-prev">📺 Predogled</button>' +
       '<button class="btn primary focusable" id="bGo" data-fid="b-go">▶ Začni</button></div>' +
       '<div class="panel builder">' +
-      '<div class="opt-row"><div class="k">Vrsta</div>' + chip('type', 'moc', '🏋️ Moč', o.type === 'moc') + chip('type', 'kardio', '❤️ Kardio', o.type === 'kardio') + chip('type', 'mix', '⚡ Moč + kardio', o.type === 'mix') + chip('type', 'hyrox', '🏁 HYROX', o.type === 'hyrox') + '</div>';
+      '<div class="opt-row"><div class="k">Vrsta</div>' + chip('type', 'moc', 'Moč', o.type === 'moc') + chip('type', 'kardio', 'Kardio', o.type === 'kardio') + chip('type', 'mix', 'Moč + kardio', o.type === 'mix') + chip('type', 'hyrox', 'HYROX', o.type === 'hyrox') + '</div>';
     if (o.type === 'hyrox') {
       html += '<div class="opt-row"><div class="k">Format</div>' + chip('format', 'full', 'Celotna simulacija (8 postaj)', o.format === 'full') +
         chip('format', 'half', 'Polovica (4 postaje)', (o.format || 'half') === 'half') + chip('format', 'stations', 'Trening postaj', o.format === 'stations') + '</div>' +
@@ -977,9 +1061,11 @@
     } else if (o.type !== 'kardio') {
       var all = ALL_FOCUS.every(function (f) { return o.focus.indexOf(f) >= 0; });
       html += '<div class="opt-row"><div class="k">Fokus <span class="hint">(več izbir)</span></div>' + chip('focus', 'all', 'Celo telo', all) +
-        ALL_FOCUS.map(function (f) { return chip('focus', f, Exercises.FOCUS[f].icon + ' ' + Exercises.FOCUS[f].name, !all && o.focus.indexOf(f) >= 0); }).join('') + '</div>';
+        ALL_FOCUS.map(function (f) { return chip('focus', f, Exercises.FOCUS[f].name, !all && o.focus.indexOf(f) >= 0); }).join('') + '</div>';
     } else {
-      html += '<div class="opt-row"><div class="k">Naprava</div>' + chip('machine', 'bike', '🚴 Kolo', o.machine === 'bike') + chip('machine', 'rower', '🚣 Veslač', o.machine === 'rower') + chip('machine', 'both', 'Oboje', o.machine === 'both') + '</div>' +
+      var mach = Program.cardioMachines(o.owned);
+      html += '<div class="opt-row"><div class="k">Naprava</div>' + (mach.length > 1 ? chip('machine', 'all', 'Kombinirano', !o.machine || o.machine === 'all' || o.machine === 'both') : '') +
+        mach.map(function (k) { return chip('machine', k, '<span class="chip-ico">' + (k === 'floor' ? equipIcon('floor') : equipIcon(k)) + '</span>' + Program.MACHINES[k].name, o.machine === k); }).join('') + '</div>' +
         '<div class="opt-row"><div class="k">Intenzivnost</div>' + chip('intensity', 'z2', 'Lahkotno – cona 2', o.intensity === 'z2') + chip('intensity', 'hiit', 'Intervali', o.intensity === 'hiit') + chip('intensity', 'mix', 'Mešano', o.intensity === 'mix') + '</div>';
     }
     if (o.type !== 'hyrox') html += '<div class="opt-row"><div class="k">Trajanje</div>' + [20, 30, 45, 60].map(function (m) { return chip('min', m, m + ' min', o.min === m); }).join('') + '</div>';
@@ -990,11 +1076,12 @@
       b.items.forEach(function (it, ii) {
         var e = ex(it.id), r = row++;
         var gl = Program.groupLetter(b.title, bi), tag = b.items.length > 1 && gl ? '<span class="lbl">' + gl + (ii + 1) + '</span>' : '';
-        var canSwap = e.type !== 'mobility' && Program.alternatives(src, it.id).length;
+        var sid = it.swappedFrom || it.id;
+        var canSwap = e.type !== 'mobility' && Program.alternatives(src, sid, o.owned).length;
         html += '<div class="ex-row b-row"><div class="ex-thumb" data-thumb="' + it.id + '"></div><div><h4>' + tag + esc(e.name) + '</h4><div class="sub">' + esc(e.muscles) + '</div></div>' +
           '<div class="rx">' + rx(it) + (it.sug ? '<small>' + esc(loadTxt(e, it.sug.load)) + '</small>' : '') + '</div>' +
-          '<div class="row-actions">' + (canSwap ? '<button class="btn sm focusable" data-fid="sw-' + r + '" data-swap="' + it.id + '">⇄ Zamenjaj</button>' : '') +
-          '<button class="btn sm ghost focusable" data-fid="rm-' + r + '" data-rm="' + it.id + '">✕</button></div></div>';
+          '<div class="row-actions">' + (canSwap ? '<button class="btn sm focusable" data-fid="sw-' + r + '" data-swap="' + sid + '">⇄ Zamenjaj</button>' : '') +
+          '<button class="btn sm ghost focusable" data-fid="rm-' + r + '" data-rm="' + sid + '">✕</button></div></div>';
       });
       html += '</div>';
     });
@@ -1019,7 +1106,7 @@
     });
     $$('[data-swap]').forEach(function (b) {
       b.onclick = function () {
-        var id = b.getAttribute('data-swap'), alts = Program.alternatives(src, id);
+        var id = b.getAttribute('data-swap'), alts = Program.alternatives(src, id, o.owned);
         if (!alts.length) return;
         var fid = b.getAttribute('data-fid');
         var n = bdraft.swap[fid] = (bdraft.swap[fid] || 0) + 1;

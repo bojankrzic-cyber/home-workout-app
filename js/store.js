@@ -15,7 +15,10 @@
   var db = null;
 
   function defaultSettings() {
-    return { days: 4, level: 'mid', voice: true, beeps: true, previewSec: 15, startDate: new Date().toISOString().slice(0, 10) };
+    return {
+      days: 4, level: 'mid', voice: true, beeps: true, previewSec: 15, startDate: new Date().toISOString().slice(0, 10),
+      equipment: (global.Exercises ? Exercises.HOME_GYM : ['bike', 'rower', 'kb', 'db', 'tria', 'bench', 'kinesis', 'wall']).slice()
+    };
   }
 
   function newProfile(name, color) {

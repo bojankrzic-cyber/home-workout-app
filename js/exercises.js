@@ -13,17 +13,35 @@
   var FOOT = ['fN', 0, -6];
   function stand(x) { return m({ t: 180, lN: [0, 0], aN: [0, 0], pin: FOOT }, x || {}); }
 
+  // Equipment catalogue. `icon` is drawn by Figure.icon with the same renderer as the animations.
   var EQUIP = {
-    bike: { name: 'Sobno kolo', icon: '🚴' },
-    rower: { name: 'Veslač', icon: '🚣' },
-    kb: { name: 'Kettlebell', icon: '🔔' },
-    db: { name: 'Uteži (dumbbells)', icon: '🏋️' },
-    tria: { name: 'NOHrD TriaTrainer (trebušne/hrbet)', icon: '🪵' },
-    bench: { name: 'NOHrD klop', icon: '🛋️' },
-    kinesis: { name: 'Technogym Kinesis Personal', icon: '🎛️' },
-    wall: { name: 'Stena (drog / dvig nog)', icon: '🧗' },
-    floor: { name: 'Lastna teža', icon: '🧘' }
+    bike: { name: 'Sobno kolo', group: 'kardio', desc: 'Ogrevanje, cona 2, intervali, HYROX tek', icon: { vb: [-82, -134, 196, 146], scene: [{ type: 'bike', sx: -28, sy: -96, cx: 0, cy: -32, bx: 38, by: -112 }] } },
+    rower: { name: 'Veslač', group: 'kardio', desc: 'Tehnika, intervali, 1000 m', icon: { vb: [-118, -86, 268, 98], scene: [{ type: 'rower', fx: 60 }] } },
+    treadmill: { name: 'Tekalna steza', group: 'kardio', desc: 'Tek, HYROX 1 km', icon: { vb: [-76, -160, 196, 172], scene: [{ type: 'treadmill', x0: -64, x1: 70 }] } },
+    skierg: { name: 'SkiErg', group: 'kardio', desc: 'HYROX SkiErg, intervali', icon: { vb: [-56, -232, 116, 244], scene: [{ type: 'skierg', x: 0 }] } },
+    db: { name: 'Uteži (dumbbells)', group: 'utezi', desc: 'Potiski, veslanje, RDL, thrusterji', icon: { vb: [-64, -96, 128, 108], noFloor: true, props: [{ t: 'db', x: -4, y: -26 }, { t: 'db', x: 10, y: -66, k: 0.75 }] } },
+    kb: { name: 'Kettlebelli', group: 'utezi', desc: 'Swing, goblet počep, nošenje', icon: { vb: [-70, -82, 140, 94], props: [{ t: 'kb', x: -26, y: -28 }, { t: 'kb', x: 32, y: -22, k: 0.75 }] } },
+    barbell: { name: 'Olimpijska palica + stojalo', group: 'utezi', desc: 'Počep, mrtvi dvig, potisk s palico', icon: { vb: [-100, -92, 200, 104], props: [{ t: 'barbell', x: 0, y: -34 }] } },
+    sandbag: { name: 'Sandbag', group: 'utezi', desc: 'HYROX izpadni koraki, nošenje', icon: { vb: [-64, -72, 128, 84], props: [{ t: 'bag', x: 0, y: -20 }] } },
+    wallball: { name: 'Wall ball (medicinka)', group: 'utezi', desc: 'HYROX wall balls (potrebuje steno)', icon: { vb: [-50, -72, 100, 84], props: [{ t: 'ball', x: 0, y: -30 }] } },
+    bench: { name: 'NOHrD klop', group: 'klopi', desc: 'Ravna / poševna klop, opora', icon: { vb: [-82, -86, 180, 98], scene: [{ type: 'bench', x: -62, len: 118 }] } },
+    tria: { name: 'NOHrD TriaTrainer', group: 'klopi', desc: 'Trebušnjaki in iztegovanje hrbta', icon: { vb: [-56, -92, 176, 104], scene: [{ type: 'tria_abs', x: -40 }] } },
+    wall: { name: 'Stena: drog + dvig nog', group: 'klopi', desc: 'Zgibi, dvig nog, visenje', icon: { vb: [-92, -252, 160, 264], scene: [{ type: 'wall', x: -48, y: -226, bx: 46 }] } },
+    box: { name: 'Plyo škatla', group: 'klopi', desc: 'Skoki na škatlo, stopanje', icon: { vb: [-60, -74, 120, 86], scene: [{ type: 'box', x: -32, w: 64, h: 54 }] } },
+    kinesis: { name: 'Technogym Kinesis Personal', group: 'kabli', desc: 'Kabelske vaje, upor 0–20', icon: { vb: [-62, -222, 124, 234], scene: [{ type: 'kinesis', x: 0, pulleys: [[-24, -186], [-24, -112], [-24, -36]] }] } },
+    bands: { name: 'Elastike', group: 'kabli', desc: 'Veslanje, triceps, ogrevanje', icon: { vb: [-62, -76, 124, 88], noFloor: true, props: [{ t: 'band', x: 0, y: -34 }] } },
+    sled: { name: 'Sani (sled)', group: 'hyrox', desc: 'HYROX sled push in sled pull', icon: { vb: [-60, -124, 150, 136], scene: [{ type: 'sled', x: -24 }] } },
+    rope: { name: 'Kolebnica', group: 'hyrox', desc: 'Kondicija, ogrevanje', icon: { vb: [-62, -110, 124, 122], noFloor: true, props: [{ t: 'rope', x: 0, y: -56 }] } },
+    floor: { name: 'Lastna teža', group: 'telo', desc: 'Vedno na voljo', always: true, icon: { vb: [-60, -196, 120, 208], pose: { t: 180, lN: [0, 0], aN: [0, 0], pin: ['fN', 0, -6] }, focus: ['torso'] } }
   };
+  var EQUIP_GROUPS = [
+    { id: 'kardio', name: 'Kardio naprave' },
+    { id: 'utezi', name: 'Proste uteži' },
+    { id: 'klopi', name: 'Klopi, stene, škatle' },
+    { id: 'kabli', name: 'Kabli in elastike' },
+    { id: 'hyrox', name: 'HYROX in kondicija' }
+  ];
+  var HOME_GYM = ['bike', 'rower', 'kb', 'db', 'tria', 'bench', 'kinesis', 'wall'];
 
   // ---------------------------------------------------------------- cardio
   var BIKE = { type: 'bike', sx: -28, sy: -96, cx: 0, cy: -32, bx: 38, by: -112 };
@@ -209,6 +227,52 @@
   var K_SKI = { type: 'kinesis', x: 110, pulleys: [[92, -205]] };
   var K_SLED = { type: 'kinesis', x: 120, pulleys: [[102, -70]] };
   function sled(aN, aF) { return { t: 196, hd: -14, lN: [34, -12, 74], lF: [10, -26, 50], aN: aN, aF: aF, pin: ['fN', 26, -6] }; }
+
+
+  // ------------------------------------------------------------ extra equipment (profiles can own more than the home gym)
+  var TREAD = { type: 'treadmill', x0: -64, x1: 70 };
+  function runFoot(ph, stride, base, lift) {
+    ph = ((ph % 1) + 1) % 1;
+    if (ph < 0.42) { var k = ph / 0.42; return [stride - 2 * stride * k, base]; }
+    var q = (ph - 0.42) / 0.58; return [-stride + 2 * stride * q, base - lift * Math.sin(q * Math.PI)];
+  }
+  var treadAnim = {
+    scene: [TREAD], focus: ['thigh', 'shin'], period: 0.72, label: 'Kratki hitri koraki, pristanek pod boki',
+    fn: function (u) {
+      var sw = Math.sin(u * Math.PI * 2);
+      return {
+        r: [0, -107 + 3 * Math.cos(u * Math.PI * 4)], t: 173, hd: -6,
+        aN: [-34 * sw, -34 * sw + 95], aF: [34 * sw, 34 * sw + 95],
+        lN: [0, 0, 78], lF: [0, 0, 78],
+        ik: { fN: runFoot(u, 26, -24, 30), fF: runFoot(u + 0.5, 26, -24, 30) },
+        x: { belt: u * 144, bx0: TREAD.x0 }
+      };
+    }
+  };
+
+  var SKI = { type: 'skierg', x: 96 };
+  var SLED_P = { type: 'sled', x: 30 };
+  var sledPushAnim = {
+    scene: [SLED_P], focus: ['thigh', 'glute'], period: 1.3, label: 'Nizko, poganjaj s celimi stopali',
+    fn: function (u) {
+      return {
+        r: [-48, -80 + 2 * Math.cos(u * Math.PI * 4)], t: 124, hd: 30,
+        lN: [0, 0, 60], lF: [0, 0, 60],
+        ik: { fN: runFoot(u, 32, -6, 16).map(function (v, i) { return i ? v : v - 36; }), fF: runFoot(u + 0.5, 32, -6, 16).map(function (v, i) { return i ? v : v - 36; }), hN: [16, -110], hF: [14, -110] },
+        x: { mv: u * 80 }
+      };
+    }
+  };
+  var SLED_R = { type: 'sled', x: 120, rope: true };
+
+  var TARGET = { type: 'target', x: 74, y: -232 };
+  function wb(p, ball) { var o = stand(p); if (ball) o.x = { ball: ball }; return o; }
+
+  var RACK = { type: 'rack', x: -46, y: -150 };
+  var BOX = { type: 'box', x: 36, w: 56, h: 52 };
+  var ANCHOR_MID = { type: 'anchor', x: 104, y: -112 };
+  var ANCHOR_HIGH = { type: 'anchor', x: 64, y: -200 };
+  function band(a) { return [{ from: [a.x, a.y], to: ['hN', 'hF'], cls: 'p-band', w: 4 }]; }
 
   // ======================================================================
   var LIST = [
@@ -835,6 +899,274 @@
           { d: 0.5, l: 'Nazaj na ramena', p: thrTop }
         ]
       }
+    },
+
+    // ------------------------------------------------------------ EXTRA EQUIPMENT
+    {
+      id: 'treadmill_run', name: 'Tekalna steza – tek', equip: ['treadmill'], type: 'cardio', unit: 'min', secPerM: 0.33,
+      muscles: 'Srce, noge', tempo: 'Kadenca 170–180 korakov/min',
+      cues: ['Pokončna drža, rahel nagib iz gležnjev', 'Kratki hitri koraki – stopalo pristane pod boki', 'Roke nihajo naprej-nazaj, ne čez telo'],
+      mistakes: ['Dolgi koraki s pristankom na peti', 'Držanje za ograjo'],
+      anim: treadAnim
+    },
+    {
+      id: 'skierg', name: 'SkiErg', equip: ['skierg'], type: 'cardio', unit: 'min', secPerM: 0.28,
+      muscles: 'Hrbet, trup, triceps, zadnjica', tempo: '35–45 potegov/min',
+      cues: ['Ročaja nad glavo, roke rahlo pokrčene', 'Poteg z zgibom v kolkih in trebušnimi, ne samo z rokami', 'Vrnitev: najprej roke gor, nato boki'],
+      mistakes: ['Počep namesto zgiba v kolkih', 'Prekratek poteg nad koleni'],
+      anim: {
+        scene: [SKI], cables: [{ from: [SKI.x - 8, -208], to: ['hN', 'hF'] }], hold: { N: 'handle', F: 'handle' }, focus: ['torso', 'upper'],
+        frames: [
+          { d: 0.5, l: 'POTEG', p: stand({ t: 184, aN: [158, 158], hd: -6 }) },
+          { d: 0.15, l: 'Roke ob bokih', p: stand({ t: 126, lN: [32, -16], aN: [-24, -24], hd: 22 }) },
+          { d: 0.8, l: 'Gor – roke, nato boki', p: stand({ t: 126, lN: [32, -16], aN: [-24, -24], hd: 22 }) }
+        ]
+      }
+    },
+    {
+      id: 'sled_push', name: 'Potiskanje sani', equip: ['sled'], type: 'cardio', unit: 'kg', load: 50, inc: 10, secPerM: 2.4,
+      muscles: 'Kvadricepsi, zadnjica, meča, trup', tempo: 'Kratki močni koraki',
+      cues: ['Roke iztegnjene na visokih ročajih, telo pod ~45°', 'Poganjaj s sprednjim delom stopal, kolena naprej', 'Ne ustavljaj se – ponovni zagon stane največ'],
+      mistakes: ['Pokončna drža', 'Predolgi koraki'],
+      anim: sledPushAnim
+    },
+    {
+      id: 'sled_pull', name: 'Vlečenje sani z vrvjo', equip: ['sled'], type: 'cardio', unit: 'kg', load: 50, inc: 10, secPerM: 2.4, repsPerCycle: 2,
+      muscles: 'Hrbet, biceps, prijem, zadnjica', tempo: 'Roka čez roko',
+      cues: ['Atletska stoja, boki nazaj, teža na petah', 'Vleci roka čez roko k boku', 'Vrv odlagaj v polju za seboj'],
+      mistakes: ['Vlečenje z iztegnjenimi koleni', 'Okrogel hrbet'],
+      anim: {
+        scene: [SLED_R], hold: { N: 'handle', F: 'handle' }, focus: ['upper', 'torso'],
+        frames: [
+          { d: 0.42, l: 'Desna k boku', p: sled([84, 88], [-60, 70]) },
+          { d: 0.42, l: 'Leva k boku', p: sled([-60, 70], [84, 88]) }
+        ]
+      }
+    },
+    {
+      id: 'wall_ball', name: 'Wall ball', equip: ['wallball', 'wall'], type: 'cardio', unit: 'kg', load: 6, inc: 3, secPerRep: 2.6,
+      muscles: 'Noge, ramena, srce', tempo: 'Tekoče, ujemi in takoj v počep',
+      cues: ['Žoga pred brado, komolci pod žogo', 'Počep pod vzporednico, iz dna eksplodiraj in vrzi v tarčo', 'Ujemi in z istim gibom v naslednji počep'],
+      mistakes: ['Met samo z rokami', 'Ujemanje z iztegnjenimi rokami nad glavo'],
+      anim: {
+        scene: [TARGET], hold: { N: 'ball' }, focus: ['thigh', 'upper'],
+        frames: [
+          { d: 0.7, l: 'Počep', p: wb({ aN: [22, 166] }) },
+          { d: 0.1, l: 'Dno', p: wb({ t: 152, lN: [102, -36], aN: [26, 170], hd: 8 }) },
+          { d: 0.45, l: 'EKSPLODIRAJ', p: wb({ t: 152, lN: [102, -36], aN: [26, 170], hd: 8 }) },
+          { d: 0.35, l: 'Met v tarčo', p: wb({ t: 182, aN: [160, 168], hd: -16 }, [24, -206]) },
+          { d: 0.35, l: '', p: wb({ t: 182, aN: [140, 160], hd: -20 }, [60, -232]) },
+          { d: 0.12, l: 'Ujemi', p: wb({ t: 180, aN: [60, 140], hd: -8 }, [28, -132]) }
+        ]
+      }
+    },
+    {
+      id: 'sandbag_lunge', name: 'Izpadni koraki s sandbagom', equip: ['sandbag'], type: 'strength', unit: 'kg', load: 10, inc: 5, repsPerCycle: 2, secPerRep: 2.5,
+      muscles: 'Kvadricepsi, zadnjica, trup', tempo: 'Enakomerno',
+      cues: ['Sandbag čez ramena za vratom', 'Zadnje koleno se dotakne tal', 'Trup pokonci, izmenjuj nogi brez postankov'],
+      mistakes: ['Vreča zdrsne na vrat', 'Trup pade naprej'],
+      anim: {
+        hold: { N: 'bag' }, focus: ['thigh', 'glute'],
+        frames: [
+          { d: 0.7, l: 'Korak naprej', p: m(lungeP([0, -92], [6, -6], [-6, -6]), { aN: [-36, 150], aF: [-30, 155] }) },
+          { d: 0.25, l: 'Koleno do tal', p: m(lungeP([-6, -50], [36, -6], [-44, -10]), { aN: [-36, 150], aF: [-30, 155] }) },
+          { d: 0.7, l: 'Potisni nazaj gor', p: m(lungeP([-6, -50], [36, -6], [-44, -10]), { aN: [-36, 150], aF: [-30, 155] }) },
+          { d: 0.7, l: 'Druga noga', p: m(lungeP([0, -92], [-6, -6], [6, -6]), { aN: [-36, 150], aF: [-30, 155] }) },
+          { d: 0.25, l: 'Koleno do tal', p: m(lungeP([-6, -50], [-44, -10], [36, -6]), { aN: [-36, 150], aF: [-30, 155] }) },
+          { d: 0.7, l: 'Potisni nazaj gor', p: m(lungeP([-6, -50], [-44, -10], [36, -6]), { aN: [-36, 150], aF: [-30, 155] }) }
+        ]
+      }
+    },
+    {
+      id: 'bb_squat', name: 'Počep z olimpijsko palico', equip: ['barbell'], type: 'strength', unit: 'kg', load: 40, inc: 5,
+      muscles: 'Kvadricepsi, zadnjica, trup', tempo: '3-1-1',
+      cues: ['Palica na zgornjem delu trapeza, komolci pod palico', 'Vdih v trebuh, kolena za prsti', 'Pod vzporednico, potisni skozi celo stopalo'],
+      mistakes: ['Pete se dvigujejo', 'Boki gor pred prsmi'],
+      anim: {
+        scene: [RACK], hold: { N: 'bar' }, focus: ['thigh', 'glute'],
+        frames: [
+          { d: 2.2, l: 'Spuščaj 3 s', p: stand({ aN: [-46, 168], hd: 0 }) },
+          { d: 0.4, l: 'Dno', p: stand({ t: 140, lN: [100, -34], aN: [-26, 186], hd: 18 }) },
+          { d: 1.1, l: 'Potisni gor', p: stand({ t: 140, lN: [100, -34], aN: [-26, 186], hd: 18 }) },
+          { d: 0.6, l: 'Vrh', p: stand({ aN: [-46, 168] }) }
+        ]
+      }
+    },
+    {
+      id: 'bb_deadlift', name: 'Mrtvi dvig z olimpijsko palico', equip: ['barbell'], type: 'strength', unit: 'kg', load: 60, inc: 5,
+      muscles: 'Zadnjica, zadnje stegenske, hrbet', tempo: '1-0-2',
+      cues: ['Palica nad sredino stopala, golen se je dotika', 'Napni hrbet in "odlomi" palico od tal', 'Palica drsi ob nogah, na vrhu stisni zadnjico'],
+      mistakes: ['Okrogel hrbet', 'Palica daleč od telesa'],
+      anim: {
+        hold: { N: 'plate' }, focus: ['glute', 'thigh', 'torso'],
+        frames: [
+          { d: 0.4, l: 'Napni hrbet', p: stand({ t: 122, lN: [74, -24], aN: [-6, -6], hd: 22 }) },
+          { d: 1.1, l: 'Potisni tla stran', p: stand({ t: 122, lN: [74, -24], aN: [-6, -6], hd: 22 }) },
+          { d: 0.5, l: 'Vrh – stisni', p: stand({ aN: [0, 0] }) },
+          { d: 1.6, l: 'Kontrolirano dol', p: stand({ aN: [0, 0] }) }
+        ]
+      }
+    },
+    {
+      id: 'bb_bench', name: 'Potisk s palico na klopi', equip: ['barbell', 'bench'], type: 'strength', unit: 'kg', load: 40, inc: 5,
+      muscles: 'Prsa, triceps, sprednja rama', tempo: '3-1-1',
+      cues: ['Lopatice skupaj, stopala v tla', 'Palica se spusti na spodnji del prsi', 'Potisni gor in rahlo nazaj nad rame'],
+      mistakes: ['Odbijanje od prsi', 'Komolci na 90°'],
+      anim: {
+        scene: [BENCH_FLAT, { type: 'rack', x: -46, y: -116 }], hold: { N: 'plate' }, focus: ['torso', 'upper'],
+        frames: [
+          { d: 2.2, l: 'Spuščaj 3 s', p: benchPose([174, 174]) },
+          { d: 0.4, l: 'Pavza', p: benchPose([58, 178]) },
+          { d: 0.9, l: 'Potisni', p: benchPose([58, 178]) },
+          { d: 0.5, l: 'Vrh', p: benchPose([174, 174]) }
+        ]
+      }
+    },
+    {
+      id: 'box_jump', name: 'Skok na škatlo', equip: ['box'], type: 'strength', unit: 'bw', load: 0, inc: 0, secPerRep: 4,
+      muscles: 'Noge, zadnjica, eksplozivnost', tempo: 'Eksplozivno gor, stopi dol',
+      cues: ['Zamah z rokami in hiter polčep', 'Doskok mehko, celo stopalo na škatli', 'Na vrhu se vzravnaj, nato STOPI dol'],
+      mistakes: ['Skok dol (obremenitev Ahilove tetive)', 'Doskok na prste'],
+      anim: {
+        scene: [BOX], focus: ['thigh', 'glute'],
+        frames: [
+          { d: 0.4, l: 'Zamah', p: stand({ aN: [10, 10] }) },
+          { d: 0.25, l: 'Polčep', p: stand({ t: 140, lN: [62, -26], aN: [-50, -44], hd: 10 }) },
+          { d: 0.35, l: 'SKOK', p: { pin: ['fN', 34, -74], t: 160, hd: -4, lN: [74, -30, 110], aN: [110, 110] } },
+          { d: 0.5, l: 'Mehak doskok', p: { pin: ['fN', 62, -58], t: 146, hd: 8, lN: [86, -32], aN: [70, 76] } },
+          { d: 0.5, l: 'Vzravnaj se', p: { pin: ['fN', 62, -58], t: 180, lN: [0, 0], aN: [4, 4] } },
+          { d: 0.7, l: 'Stopi dol', p: { pin: ['fN', 30, -34], t: 176, lN: [20, -10], aN: [8, 8] } }
+        ]
+      }
+    },
+    {
+      id: 'jump_rope', name: 'Kolebnica', equip: ['rope'], type: 'cardio', unit: 'min',
+      muscles: 'Meča, srce, koordinacija', tempo: '~120 obratov/min',
+      cues: ['Nizki odskoki s prstov, kolena mehka', 'Vrtenje iz zapestij, komolci ob telesu', 'Pogled naprej, dihaj enakomerno'],
+      mistakes: ['Previsoki skoki', 'Vrtenje iz ramen'],
+      anim: {
+        focus: ['shin'], period: 0.5, label: 'Iz zapestij',
+        fn: function (u) {
+          var hop = u > 0.3 && u < 0.7 ? 9 * Math.sin((u - 0.3) / 0.4 * Math.PI) : 0;
+          return { pin: ['fN', 0, -6 - hop], t: 179, hd: -4, lN: [4, -3, 58 + hop * 2], aN: [14, 82], aF: [12, 80], x: { rope: 180 - u * 360 } };
+        }
+      }
+    },
+    {
+      id: 'band_row', name: 'Veslanje z elastiko', equip: ['bands'], type: 'strength', unit: 'bw', load: 0, inc: 0,
+      muscles: 'Hrbet, zadnja rama, biceps', tempo: '1-2-2',
+      cues: ['Elastika pritrjena v višini prsi (vrata / drog)', 'Lopatice nazaj, komolci k bokom', 'Na koncu 2 s stisni, počasi nazaj'],
+      mistakes: ['Zibanje trupa', 'Prešibka elastika – brez napetosti na začetku'],
+      anim: {
+        scene: [ANCHOR_MID], cables: band(ANCHOR_MID), hold: { N: 'handle', F: 'handle' }, focus: ['torso', 'upper'],
+        frames: [
+          { d: 0.9, l: 'Vleci', p: split({ t: 172, aN: [80, 82] }) },
+          { d: 0.8, l: 'Stisni 2 s', p: split({ t: 178, aN: [-62, 86] }) },
+          { d: 1.6, l: 'Počasi nazaj', p: split({ t: 178, aN: [-62, 86] }) },
+          { d: 0.2, l: '', p: split({ t: 172, aN: [80, 82] }) }
+        ]
+      }
+    },
+    {
+      id: 'band_pushdown', name: 'Triceps potisk z elastiko', equip: ['bands'], type: 'strength', unit: 'bw', load: 0, inc: 0,
+      muscles: 'Triceps', tempo: '1-1-2',
+      cues: ['Elastika visoko pritrjena', 'Komolci ob telesu, iztegni do konca', 'Počasi nazaj do 90°'],
+      mistakes: ['Komolci gredo naprej'],
+      anim: {
+        scene: [ANCHOR_HIGH], cables: band(ANCHOR_HIGH), hold: { N: 'handle', F: 'handle' }, focus: ['upper'],
+        frames: [
+          { d: 0.8, l: 'Iztegni', p: stand({ t: 172, aN: [10, 140] }) },
+          { d: 0.5, l: 'Stisni', p: stand({ t: 172, aN: [8, 10] }) },
+          { d: 1.5, l: 'Počasi gor', p: stand({ t: 172, aN: [8, 10] }) },
+          { d: 0.2, l: '', p: stand({ t: 172, aN: [10, 140] }) }
+        ]
+      }
+    },
+    {
+      id: 'db_farmers', name: 'Kmečka hoja z utežmi', equip: ['db'], type: 'cardio', unit: 'kg', load: 20, inc: 2,
+      muscles: 'Prijem, trup, ramena', tempo: 'Hitri kratki koraki',
+      cues: ['Uteži ob telesu, ramena dol in nazaj', 'Hitri kratki koraki', 'Trup miren, brez nagibanja'],
+      mistakes: ['Ramena pri ušesih'],
+      anim: m(carryAnim, { hold: { N: 'db', F: 'db' } })
+    },
+
+    // ------------------------------------------------------------ BODYWEIGHT FALLBACKS
+    {
+      id: 'bw_squat', name: 'Počep z lastno težo', equip: ['floor'], type: 'strength', unit: 'bw', load: 0, inc: 0,
+      muscles: 'Kvadricepsi, zadnjica', tempo: '2-1-1',
+      cues: ['Stopala v širini ramen, roke naprej za ravnotežje', 'Boki nazaj in dol, pete na tleh', 'Na vrhu stisni zadnjico'],
+      mistakes: ['Kolena navznoter', 'Plitev počep'],
+      anim: {
+        focus: ['thigh', 'glute'],
+        frames: [
+          { d: 1.6, l: 'Spuščaj', p: stand({ aN: [10, 10] }) },
+          { d: 0.4, l: 'Dno', p: stand({ t: 146, lN: [100, -35], aN: [86, 88], hd: 10 }) },
+          { d: 0.9, l: 'Gor', p: stand({ t: 146, lN: [100, -35], aN: [86, 88], hd: 10 }) },
+          { d: 0.4, l: '', p: stand({ aN: [10, 10] }) }
+        ]
+      }
+    },
+    {
+      id: 'bw_lunge', name: 'Izpadni koraki z lastno težo', equip: ['floor'], type: 'strength', unit: 'bw', load: 0, inc: 0, repsPerCycle: 2,
+      muscles: 'Kvadricepsi, zadnjica', tempo: 'Enakomerno',
+      cues: ['Roke na bokih, trup pokonci', 'Zadnje koleno skoraj do tal', 'Potisni se nazaj skozi sprednjo peto'],
+      mistakes: ['Prekratek korak'],
+      anim: {
+        focus: ['thigh', 'glute'],
+        frames: [
+          { d: 0.7, l: 'Korak naprej', p: m(lungeP([0, -92], [6, -6], [-6, -6]), { aN: [24, -30] }) },
+          { d: 0.25, l: 'Koleno do tal', p: m(lungeP([-6, -50], [36, -6], [-44, -10]), { aN: [24, -30] }) },
+          { d: 0.7, l: 'Potisni nazaj', p: m(lungeP([-6, -50], [36, -6], [-44, -10]), { aN: [24, -30] }) },
+          { d: 0.7, l: 'Druga noga', p: m(lungeP([0, -92], [-6, -6], [6, -6]), { aN: [24, -30] }) },
+          { d: 0.25, l: 'Koleno do tal', p: m(lungeP([-6, -50], [-44, -10], [36, -6]), { aN: [24, -30] }) },
+          { d: 0.7, l: 'Potisni nazaj', p: m(lungeP([-6, -50], [-44, -10], [36, -6]), { aN: [24, -30] }) }
+        ]
+      }
+    },
+    {
+      id: 'glute_bridge', name: 'Most za zadnjico', equip: ['floor'], type: 'strength', unit: 'bw', load: 0, inc: 0,
+      muscles: 'Zadnjica, zadnje stegenske', tempo: '1-2-2',
+      cues: ['Na hrbtu, stopala blizu zadnjice', 'Potisni boke gor skozi pete', 'Na vrhu 2 s stisni, rebra dol'],
+      mistakes: ['Usločen ledveni del'],
+      anim: {
+        focus: ['glute', 'thigh'],
+        frames: [
+          { d: 0.9, l: 'Boki gor', p: { t: -88, hd: 0, pin: ['sho', -42, -11], aN: [92, 92], lN: [0, 0, 80], ik: { fN: [52, -6], fF: [49, -6] } } },
+          { d: 1.2, l: 'Stisni 2 s', p: { t: -62, hd: 20, pin: ['sho', -42, -11], aN: [96, 96], lN: [0, 0, 80], ik: { fN: [52, -6], fF: [49, -6] } } },
+          { d: 1.5, l: 'Počasi dol', p: { t: -62, hd: 20, pin: ['sho', -42, -11], aN: [96, 96], lN: [0, 0, 80], ik: { fN: [52, -6], fF: [49, -6] } } },
+          { d: 0.2, l: '', p: { t: -88, hd: 0, pin: ['sho', -42, -11], aN: [92, 92], lN: [0, 0, 80], ik: { fN: [52, -6], fF: [49, -6] } } }
+        ]
+      }
+    },
+    {
+      id: 'mountain_climber', name: 'Plezalec (mountain climber)', equip: ['floor'], type: 'cardio', unit: 's', repsPerCycle: 2,
+      muscles: 'Trup, rame, srce', tempo: 'Hitro',
+      cues: ['Dlani pod rameni, boki v liniji', 'Izmenično hitro kolena k prsim', 'Ramena nad dlanmi, ne nazaj'],
+      mistakes: ['Boki visoko', 'Ramena za dlanmi'],
+      anim: {
+        focus: ['torso', 'thigh'],
+        frames: [
+          { d: 0.3, l: 'Desno koleno', p: { pin: ['hN', 40, -5], t: 108, hd: -8, aN: [0, 0], lN: [40, -100, -30], lF: [-62, -62, 15] } },
+          { d: 0.3, l: 'Levo koleno', p: { pin: ['hN', 40, -5], t: 108, hd: -8, aN: [0, 0], lN: [-62, -62, 15], lF: [40, -100, -30] } }
+        ]
+      }
+    },
+    {
+      id: 'high_knees', name: 'Tek na mestu z visokimi koleni', equip: ['floor'], type: 'cardio', unit: 'min',
+      muscles: 'Srce, upogibalke kolka, meča', tempo: 'Hitro',
+      cues: ['Kolena do višine bokov', 'Pristanek na prstih, mehko', 'Roke nihajo kot pri šprintu'],
+      mistakes: ['Pristanek na petah', 'Nagib nazaj'],
+      anim: {
+        focus: ['thigh'], period: 0.6, label: 'Kolena visoko',
+        fn: function (u) {
+          var a = Math.sin(u * Math.PI * 2), s1 = Math.max(0, a), s2 = Math.max(0, -a);
+          return {
+            r: [0, -93 + 2 * Math.abs(a)], t: 178, hd: -4,
+            lN: [78 * s1, -14 * s1, 70 + 20 * s1], lF: [78 * s2, -14 * s2, 70 + 20 * s2],
+            aN: [40 * (s1 - s2), 40 * (s1 - s2) + 90], aF: [40 * (s2 - s1), 40 * (s2 - s1) + 90]
+          };
+        }
+      }
     }
   ];
 
@@ -863,11 +1195,68 @@
     hip_flexor: ['mobilnost', 'noge'], hamstring_bench: ['mobilnost', 'noge'],
     hx_bike_run: ['kardio', 'noge', 'hyrox'], k_ski: ['kardio', 'hrbet', 'trup', 'hyrox'], bike_sled: ['kardio', 'noge', 'hyrox'], k_sled_pull: ['kardio', 'hrbet', 'roke', 'hyrox'],
     burpee_bj: ['kardio', 'noge', 'prsa', 'hyrox'], kb_farmers: ['kardio', 'trup', 'roke', 'hyrox'], kb_lunge: ['noge', 'zadnjica', 'hyrox'], db_thruster: ['noge', 'rame', 'kardio', 'hyrox'],
-    row_steady: ['kardio', 'hrbet', 'hyrox']
+    row_steady: ['kardio', 'hrbet', 'hyrox'],
+    treadmill_run: ['kardio', 'noge', 'hyrox'], skierg: ['kardio', 'hrbet', 'trup', 'hyrox'], sled_push: ['kardio', 'noge', 'zadnjica', 'hyrox'],
+    sled_pull: ['kardio', 'hrbet', 'roke', 'hyrox'], wall_ball: ['kardio', 'noge', 'rame', 'hyrox'], sandbag_lunge: ['noge', 'zadnjica', 'hyrox'],
+    bb_squat: ['noge', 'zadnjica', 'trup'], bb_deadlift: ['zadnjica', 'noge', 'hrbet'], bb_bench: ['prsa', 'roke', 'rame'], box_jump: ['noge', 'zadnjica'],
+    jump_rope: ['kardio', 'noge'], band_row: ['hrbet', 'roke'], band_pushdown: ['roke'], db_farmers: ['kardio', 'trup', 'roke'],
+    bw_squat: ['noge', 'zadnjica'], bw_lunge: ['noge', 'zadnjica'], glute_bridge: ['zadnjica', 'noge'], mountain_climber: ['kardio', 'trup'], high_knees: ['kardio', 'noge']
   };
   // Multi-joint lifts go first in a generated session
-  var COMPOUND = ['kb_goblet_squat', 'kb_deadlift', 'db_rdl', 'db_bulgarian', 'db_hip_thrust', 'kb_swing', 'db_bench', 'db_incline', 'pullup',
+  var COMPOUND = ['bb_squat', 'bb_deadlift', 'bb_bench', 'kb_goblet_squat', 'kb_deadlift', 'db_rdl', 'db_bulgarian', 'db_hip_thrust', 'kb_swing', 'db_bench', 'db_incline', 'pullup',
     'db_row', 'k_pulldown', 'db_shoulder_press', 'kb_press', 'k_chest_press', 'k_row', 'db_stepup', 'pushup', 'k_pullthrough', 'back_ext'];
+
+  // Movement patterns, each list in preference order. Used to substitute exercises
+  // when a profile lacks equipment, and to upgrade HYROX substitutes to the real station.
+  var PATTERNS = {
+    squat: ['bb_squat', 'kb_goblet_squat', 'bw_squat'],
+    hinge: ['bb_deadlift', 'kb_deadlift', 'db_rdl', 'glute_bridge'],
+    swing: ['kb_swing', 'k_pullthrough', 'db_rdl', 'glute_bridge'],
+    bridge: ['db_hip_thrust', 'glute_bridge'],
+    lunge: ['db_bulgarian', 'db_stepup', 'kb_lunge', 'sandbag_lunge', 'bw_lunge'],
+    stepup: ['db_stepup', 'box_jump', 'db_bulgarian', 'bw_lunge'],
+    backext: ['back_ext', 'k_pullthrough', 'glute_bridge', 'bird_dog'],
+    hpush: ['db_bench', 'bb_bench', 'k_chest_press', 'pushup'],
+    incline: ['db_incline', 'k_chest_press', 'bb_bench', 'pushup'],
+    vpush: ['db_shoulder_press', 'kb_press', 'pushup'],
+    hpull: ['db_row', 'k_row', 'band_row', 'pullup'],
+    vpull: ['pullup', 'k_pulldown', 'band_row', 'db_row'],
+    rear: ['k_face_pull', 'band_row', 'db_row'],
+    curl: ['db_curl', 'band_row'],
+    triceps: ['k_pushdown', 'band_pushdown', 'pushup'],
+    corehang: ['hang_knee_raise', 'hang_leg_raise', 'situp', 'dead_bug'],
+    coreflex: ['situp', 'hang_knee_raise', 'dead_bug'],
+    corerot: ['k_woodchop', 'bird_dog', 'plank'],
+    hang: ['dead_hang', 'hip_flexor'],
+    stretch: ['hamstring_bench', 'hip_flexor'],
+    thruster: ['db_thruster', 'wall_ball', 'kb_goblet_squat', 'bw_squat'],
+    carry: ['kb_farmers', 'db_farmers', 'plank'],
+    steady: ['bike_z2', 'row_steady', 'treadmill_run', 'skierg', 'jump_rope', 'high_knees'],
+    steadyRow: ['row_steady', 'skierg', 'bike_z2', 'treadmill_run', 'high_knees'],
+    intervals: ['bike_hiit', 'row_hiit', 'treadmill_run', 'skierg', 'jump_rope', 'high_knees', 'mountain_climber'],
+    intervalsRow: ['row_hiit', 'skierg', 'bike_hiit', 'treadmill_run', 'jump_rope', 'high_knees'],
+    hxrun: ['treadmill_run', 'hx_bike_run', 'row_steady', 'high_knees'],
+    hxski: ['skierg', 'k_ski', 'row_steady', 'mountain_climber'],
+    hxpush: ['sled_push', 'bike_sled', 'mountain_climber'],
+    hxpull: ['sled_pull', 'k_sled_pull', 'band_row', 'db_row'],
+    hxwb: ['wall_ball', 'db_thruster', 'bw_squat'],
+    hxlunge: ['sandbag_lunge', 'kb_lunge', 'bw_lunge'],
+    hxcarry: ['kb_farmers', 'db_farmers'],
+    hxrow: ['row_steady', 'skierg', 'bike_z2'],
+    burpee: ['burpee_bj', 'mountain_climber'],
+    plank: ['plank', 'dead_bug'], deadbug: ['dead_bug', 'plank'], birddog: ['bird_dog', 'dead_bug'], pushup: ['pushup', 'k_chest_press'], hipflex: ['hip_flexor']
+  };
+  var PATTERN_OF = {
+    kb_goblet_squat: 'squat', bb_squat: 'squat', bw_squat: 'squat', kb_deadlift: 'hinge', bb_deadlift: 'hinge', db_rdl: 'hinge', kb_swing: 'swing', k_pullthrough: 'swing',
+    db_hip_thrust: 'bridge', glute_bridge: 'bridge', db_bulgarian: 'lunge', kb_lunge: 'hxlunge', bw_lunge: 'lunge', db_stepup: 'stepup', box_jump: 'stepup', back_ext: 'backext',
+    db_bench: 'hpush', bb_bench: 'hpush', k_chest_press: 'hpush', db_incline: 'incline', db_shoulder_press: 'vpush', kb_press: 'vpush',
+    db_row: 'hpull', k_row: 'hpull', band_row: 'hpull', pullup: 'vpull', k_pulldown: 'vpull', k_face_pull: 'rear', db_curl: 'curl', k_pushdown: 'triceps', band_pushdown: 'triceps',
+    hang_knee_raise: 'corehang', hang_leg_raise: 'corehang', situp: 'coreflex', k_woodchop: 'corerot', dead_hang: 'hang', hamstring_bench: 'stretch', hip_flexor: 'hipflex',
+    db_thruster: 'hxwb', kb_farmers: 'carry', db_farmers: 'carry', bike_z2: 'steady', row_steady: 'steadyRow', bike_hiit: 'intervals', row_hiit: 'intervalsRow',
+    hx_bike_run: 'hxrun', treadmill_run: 'hxrun', k_ski: 'hxski', skierg: 'hxski', bike_sled: 'hxpush', sled_push: 'hxpush', k_sled_pull: 'hxpull', sled_pull: 'hxpull',
+    wall_ball: 'hxwb', sandbag_lunge: 'hxlunge', burpee_bj: 'burpee', plank: 'plank', dead_bug: 'deadbug', bird_dog: 'birddog', pushup: 'pushup',
+    jump_rope: 'intervals', high_knees: 'intervals', mountain_climber: 'intervals'
+  };
 
   var BY_ID = {};
   LIST.forEach(function (e) {
@@ -876,5 +1265,23 @@
     BY_ID[e.id] = e;
   });
 
-  global.Exercises = { LIST: LIST, BY_ID: BY_ID, EQUIP: EQUIP, FOCUS: FOCUS, COMPOUND: COMPOUND };
+  // true when every piece of equipment the exercise needs is owned (bodyweight is always available)
+  function available(id, owned) {
+    var e = BY_ID[id];
+    return !!e && e.equip.every(function (k) { return k === 'floor' || owned.indexOf(k) >= 0; });
+  }
+  // best available exercise for a slot: the original, else first available in its movement pattern
+  function substitute(id, owned, avoid) {
+    if (available(id, owned)) return id;
+    var list = PATTERNS[PATTERN_OF[id]] || [];
+    for (var i = 0; i < list.length; i++) {
+      if (list[i] !== id && available(list[i], owned) && (!avoid || avoid.indexOf(list[i]) < 0)) return list[i];
+    }
+    return null;
+  }
+
+  global.Exercises = {
+    LIST: LIST, BY_ID: BY_ID, EQUIP: EQUIP, EQUIP_GROUPS: EQUIP_GROUPS, HOME_GYM: HOME_GYM, FOCUS: FOCUS, COMPOUND: COMPOUND,
+    PATTERNS: PATTERNS, PATTERN_OF: PATTERN_OF, available: available, substitute: substitute
+  };
 })(window);

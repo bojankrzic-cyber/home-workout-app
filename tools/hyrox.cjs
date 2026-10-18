@@ -10,7 +10,7 @@ const path = require('path');
   const url = 'file://' + path.resolve(__dirname, '../index.html');
   const log = (...a) => console.log(...a);
   await p.goto(url); await p.evaluate(() => localStorage.clear()); await p.reload(); await p.waitForTimeout(300);
-  await p.keyboard.type('Bojan'); await p.click('[data-fid="pe-level-adv"]'); await p.click('#pSave'); await p.waitForTimeout(800);
+  await p.keyboard.type('Bojan'); await p.click('[data-fid="pe-level-adv"]'); await p.click('#pSave'); await p.waitForTimeout(400); await p.click('#eqSave'); await p.waitForTimeout(500);
   await p.screenshot({ path: out + '/h1-home.png' });
   await p.screenshot({ path: out + '/h1-home-full.png', fullPage: true });
   // normal strength player

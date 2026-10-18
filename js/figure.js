@@ -148,7 +148,17 @@
         circ(add(c, dir + 140, 4), 2.2, 'p-kb-shine' + far);
     }
     if (type === 'handle') return circ(h, 5, 'p-handle' + far);
+    // barbell seen from the side: the plate is what the eye reads
+    if (type === 'plate') return circ(h, 22, 'p-bbplate' + far) + circ(h, 7, 'p-plate-in' + far) + circ(h, 3, 'p-metal-c');
+    if (side === 'F') return '';
+    if (type === 'bar') { var c2 = add(J.sho, J.ang.t + 55, 8); return circ(c2, 22, 'p-bbplate') + circ(c2, 7, 'p-plate-in') + circ(c2, 3, 'p-metal-c'); }
+    if (type === 'bag') { var c3 = add(J.sho, J.ang.t + 50, 10); return '<ellipse cx="' + f1(c3[0]) + '" cy="' + f1(c3[1]) + '" rx="15" ry="12" class="p-bag"/>' + line(add(c3, 200, 9), add(c3, 140, 9), 2, 'p-bag-h'); }
+    if (type === 'ball' && !J.extra.ball) { var m = [(J.hN[0] + J.hF[0]) / 2 + 6, (J.hN[1] + J.hF[1]) / 2]; return ballSvg(m); }
     return '';
+  }
+  function ballSvg(c) {
+    return circ(c, 12, 'p-ball') + path('M' + P([c[0] - 12, c[1]]) + ' Q' + P([c[0], c[1] - 7]) + ' ' + P([c[0] + 12, c[1]]), 'p-ball-seam', 1.6) +
+      path('M' + P([c[0], c[1] - 12]) + ' Q' + P([c[0] + 6, c[1]]) + ' ' + P([c[0], c[1] + 12]), 'p-ball-seam', 1.6);
   }
 
   // ---- static scenery -----------------------------------------------------
@@ -235,6 +245,56 @@
       s += line(bar, [bar[0] + 8, bar[1] - 4], 6, 'p-pad-l');
       return s;
     },
+    // Treadmill: belt from x0 to x1, console at the front
+    treadmill: function (o) {
+      var s = '';
+      s += rect(o.x0 - 6, -16, o.x1 - o.x0 + 14, 12, 'p-metal-d', 6);
+      s += rect(o.x0, -18, o.x1 - o.x0, 5, 'p-belt', 2);
+      s += line([o.x1 + 4, -12], [o.x1 + 22, -128], 7, 'p-bike');
+      s += line([o.x1 + 22, -128], [o.x1 - 18, -100], 6, 'p-bike');
+      s += rect(o.x1 + 6, -146, 34, 22, 'p-kin-screen', 4);
+      return s;
+    },
+    // Concept-style SkiErg tower; handles hang from the top pulleys (cables drawn per frame)
+    skierg: function (o) {
+      var x = o.x, s = '';
+      s += rect(x - 30, -6, 70, 6, 'p-metal-d', 3);
+      s += rect(x - 7, -214, 16, 210, 'p-bike', 5);
+      s += circ([x + 1, -168], 15, 'p-fly');
+      s += rect(x - 12, -222, 26, 14, 'p-metal-d', 4) + circ([x - 8, -208], 4, 'p-metal-c');
+      return s;
+    },
+    // HYROX sled with push poles (static); x = rear of sled
+    sled: function (o) {
+      var x = o.x, s = '';
+      s += poly([[x, -6], [x + 70, -6], [x + 78, -20], [x - 4, -20]], 'p-sled');
+      s += rect(x + 10, -34, 50, 14, 'p-bbplate', 4);
+      if (!o.rope) {
+        s += line([x + 4, -18], [x - 2, -112], 6, 'p-metal');
+        s += line([x - 2, -112], [x - 16, -112], 6, 'p-metal');
+      }
+      return s;
+    },
+    box: function (o) {
+      var s = '';
+      s += rect(o.x, -o.h, o.w, o.h, 'p-wood', 4);
+      s += rect(o.x + 8, -o.h + 10, o.w - 16, o.h - 20, 'p-wood-d', 3);
+      s += line([o.x, -o.h], [o.x + o.w, -o.h], 3, 'p-wood');
+      return s;
+    },
+    // wall with a wall-ball target at height y
+    target: function (o) {
+      return rect(o.x, o.y - 40, 14, -o.y + 40, 'p-wall') + circ([o.x - 2, o.y], 13, 'p-target') + circ([o.x - 2, o.y], 5, 'p-target-in');
+    },
+    rack: function (o) {
+      var s = '';
+      s += rect(o.x - 4, -232, 8, 232, 'p-rack') + rect(o.x - 40, -6, 80, 6, 'p-metal-d', 3);
+      s += line([o.x + 4, o.y], [o.x + 16, o.y], 5, 'p-metal') + line([o.x + 16, o.y], [o.x + 16, o.y - 8], 5, 'p-metal');
+      return s;
+    },
+    anchor: function (o) {
+      return rect(o.x - 3, -220, 10, 220, 'p-wood-d') + circ([o.x, o.y], 4.5, 'p-band-anchor');
+    },
     // Wooden water rower. fx = footplate x
     rower: function (o) {
       var fx = o.fx, s = '';
@@ -254,8 +314,30 @@
     var s = '';
     (anim.cables || []).forEach(function (c) {
       var to = c.to.map(function (k) { return J[k]; });
-      to.forEach(function (pt) { s += line(c.from, pt, 1.6, 'p-cable'); });
+      to.forEach(function (pt) { s += line(c.from, pt, c.w || 1.6, c.cls || 'p-cable'); });
     });
+    if (J.extra.mv !== undefined) {
+      // moving floor marks show forward travel while the figure stays centred
+      for (var k = -6; k <= 6; k++) {
+        var mx = k * 40 - (J.extra.mv % 40);
+        s += line([mx, 1.5], [mx + 16, 1.5], 3, 'p-floor-mark');
+      }
+    }
+    if (J.extra.belt !== undefined) {
+      for (var b = 0; b < 8; b++) {
+        var bx = J.extra.bx0 + ((b * 18 - J.extra.belt % 18 + 180) % 144);
+        s += line([bx, -15.5], [bx + 6, -15.5], 2, 'p-belt-mark');
+      }
+    }
+    if (J.extra.rope !== undefined) {
+      var hm2 = [(J.hN[0] + J.hF[0]) / 2, (J.hN[1] + J.hF[1]) / 2];
+      var cen = [J.hip[0], J.hip[1] - 10];
+      var apex = add(cen, J.extra.rope, 104);
+      var ctl = add(cen, J.extra.rope, 120);
+      var c1 = add(ctl, J.extra.rope + 90, 34), c2 = add(ctl, J.extra.rope - 90, 34);
+      s += path('M' + P(hm2) + ' Q' + P(c1) + ' ' + P(apex) + ' Q' + P(c2) + ' ' + P(hm2), 'p-rope', 2.4);
+    }
+    if (J.extra.ball) s += ballSvg(J.extra.ball);
     var sc = anim.scene || [];
     sc.forEach(function (o) {
       if (o.type === 'rower') {
@@ -263,6 +345,10 @@
         s += line([o.fx + 20, -44], hm, 2, 'p-chain');
         s += line([hm[0], hm[1] - 9], [hm[0], hm[1] + 9], 5, 'p-metal');
         s += rect(J.hip[0] - 16, -26, 30, 8, 'p-pad', 3);
+      }
+      if (o.type === 'sled' && o.rope) {
+        var hm3 = [(J.hN[0] + J.hF[0]) / 2, (J.hN[1] + J.hF[1]) / 2];
+        s += path('M' + P([o.x - 4, -14]) + ' Q' + P([(o.x + hm3[0]) / 2, -4]) + ' ' + P(hm3), 'p-rope', 3);
       }
       if (o.type === 'bike' && J.extra.crank !== undefined) {
         var cr = [o.cx, o.cy], a = J.extra.crank;
@@ -349,7 +435,14 @@
     wall: function (o) { return [o.x - 34, o.y - 30, o.bx + 10, 0]; },
     kinesis: function (o) { return [o.x - 12, -215, o.x + 12, 0]; },
     bike: function (o) { return [o.sx - 42, o.by - 10, o.bx + 45, 0]; },
-    rower: function (o) { return [o.fx - 172, -60, o.fx + 82, 0]; }
+    rower: function (o) { return [o.fx - 172, -60, o.fx + 82, 0]; },
+    treadmill: function (o) { return [o.x0 - 8, -150, o.x1 + 44, 0]; },
+    skierg: function (o) { return [o.x - 32, -224, o.x + 42, 0]; },
+    sled: function (o) { return [o.x - 18, -114, o.x + 80, 0]; },
+    box: function (o) { return [o.x, -o.h, o.x + o.w, 0]; },
+    target: function (o) { return [o.x - 16, o.y - 20, o.x + 14, 0]; },
+    rack: function (o) { return [o.x - 40, -234, o.x + 40, 0]; },
+    anchor: function (o) { return [o.x - 6, o.y - 10, o.x + 8, 0]; }
   };
 
   function computeBox(anim) {
@@ -454,8 +547,53 @@
   Player.prototype.setTime = function (t) { this.time = t; this.render(); };
   Player.prototype.destroy = function () { this.stop(); this.el.innerHTML = ''; };
 
+  // ---- static icons (equipment picker) --------------------------------------
+  var ICON_PROP = {
+    db: function (x, y, k) {
+      k = k || 1;
+      return line([x - 26 * k, y], [x + 26 * k, y], 5 * k, 'p-metal') + rect(x - 30 * k, y - 15 * k, 12 * k, 30 * k, 'p-plate', 4 * k) + rect(x + 18 * k, y - 15 * k, 12 * k, 30 * k, 'p-plate', 4 * k) +
+        rect(x - 36 * k, y - 11 * k, 7 * k, 22 * k, 'p-plate', 3 * k) + rect(x + 29 * k, y - 11 * k, 7 * k, 22 * k, 'p-plate', 3 * k);
+    },
+    kb: function (x, y, k) {
+      k = k || 1;
+      // wide flat-topped handle + slightly flattened bell reads as a kettlebell, not a padlock
+      return path('M' + P([x - 15 * k, y - 6 * k]) + ' C' + P([x - 22 * k, y - 40 * k]) + ' ' + P([x + 22 * k, y - 40 * k]) + ' ' + P([x + 15 * k, y - 6 * k]), 'p-kb-h', 6.5 * k) +
+        '<ellipse cx="' + x + '" cy="' + (y + 8 * k) + '" rx="' + 24 * k + '" ry="' + 21 * k + '" class="p-kb"/>' + rect(x - 14 * k, y + 26 * k, 28 * k, 4 * k, 'p-kb', 2 * k) +
+        circ([x - 9 * k, y], 4 * k, 'p-kb-shine');
+    },
+    barbell: function (x, y, k) {
+      k = k || 1;
+      return line([x - 80 * k, y], [x + 80 * k, y], 5 * k, 'p-metal') + rect(x - 66 * k, y - 32 * k, 14 * k, 64 * k, 'p-bbplate', 5 * k) + rect(x + 52 * k, y - 32 * k, 14 * k, 64 * k, 'p-bbplate', 5 * k) +
+        rect(x - 52 * k, y - 24 * k, 8 * k, 48 * k, 'p-plate', 3 * k) + rect(x + 44 * k, y - 24 * k, 8 * k, 48 * k, 'p-plate', 3 * k);
+    },
+    ball: function (x, y, k) { return '<g transform="translate(' + x + ' ' + y + ') scale(' + (2.4 * (k || 1)) + ')">' + ballSvg([0, 0]) + '</g>'; },
+    bag: function (x, y, k) {
+      k = k || 1;
+      return rect(x - 42 * k, y - 18 * k, 84 * k, 36 * k, 'p-bag', 18 * k) + path('M' + P([x - 18 * k, y - 18 * k]) + ' Q' + P([x - 10 * k, y - 34 * k]) + ' ' + P([x - 2 * k, y - 18 * k]), 'p-bag-h', 4 * k) +
+        path('M' + P([x + 2 * k, y - 18 * k]) + ' Q' + P([x + 10 * k, y - 34 * k]) + ' ' + P([x + 18 * k, y - 18 * k]), 'p-bag-h', 4 * k);
+    },
+    rope: function (x, y, k) {
+      k = k || 1;
+      return path('M' + P([x - 40 * k, y - 20 * k]) + ' C' + P([x - 50 * k, y + 50 * k]) + ' ' + P([x + 50 * k, y + 50 * k]) + ' ' + P([x + 40 * k, y - 20 * k]), 'p-rope', 3 * k) +
+        line([x - 40 * k, y - 20 * k], [x - 44 * k, y - 46 * k], 8 * k, 'p-handle-g') + line([x + 40 * k, y - 20 * k], [x + 44 * k, y - 46 * k], 8 * k, 'p-handle-g');
+    },
+    band: function (x, y, k) {
+      k = k || 1;
+      return '<ellipse cx="' + x + '" cy="' + y + '" rx="' + 46 * k + '" ry="' + 24 * k + '" class="p-band-loop" stroke-width="' + 7 * k + '"/>' +
+        '<ellipse cx="' + (x + 8 * k) + '" cy="' + (y + 6 * k) + '" rx="' + 38 * k + '" ry="' + 18 * k + '" class="p-band-loop b2" stroke-width="' + 6 * k + '"/>';
+    }
+  };
+  // spec = { vb: [x, y, w, h], scene: [...], props: [{ t, x, y, k }], pose: {...} }
+  function icon(spec) {
+    var body = (spec.scene || []).map(function (o) { return SCENE[o.type] ? SCENE[o.type](o) : ''; }).join('');
+    if (spec.pose) body += drawFigure(solve(spec.pose), { focus: spec.focus || [], hold: spec.hold || {} });
+    (spec.props || []).forEach(function (pr) { body += ICON_PROP[pr.t](pr.x, pr.y, pr.k); });
+    var floor = spec.noFloor ? '' : line([spec.vb[0] - 20, 0], [spec.vb[0] + spec.vb[2] + 20, 0], 2, 'p-floor-line');
+    return '<svg class="fig-svg icon" viewBox="' + spec.vb.join(' ') + '" preserveAspectRatio="xMidYMid meet">' + floor + body + '</svg>';
+  }
+
   global.Figure = {
     L: L, solve: solve, sample: sample, totalDur: totalDur, viewBox: viewBox,
-    d: d, add: add, ik2: ik2, Player: Player
+    d: d, add: add, ik2: ik2, Player: Player, icon: icon
   };
 })(window);

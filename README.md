@@ -1,6 +1,6 @@
 # Finest Form — by Nature's Finest
 
-*Finest* = znamka, *Form* = pravilna tehnika (animacije) in "v vrhunski formi". Barve in pisave sledijo Nature's Finest: listno zelena `#33ab59` (za temni TV dvignjena na `#3ec46d`), temno zelena `#006837`, Rethink Sans + Playfair Display.
+*Finest* = znamka, *Form* = pravilna tehnika (animacije) in "v vrhunski formi". Znak uporablja **originalni list Nature's Finest** (`#0ba74b`) in enako sestavo kot logotip "nature's / FINEST / BY NUTRISSLIM": krepak serif v malih črkah (Fraunces) → razprt "F O R M" → "BY NATURE'S FINEST". UI barve: listno zelena, temno zelena `#006837`, Rethink Sans.
 
 Osebni trener za domačo telovadnico, narejen **izključno za opremo, ki jo imaš**, in optimiziran za **TV zaslon (10-foot UI, upravljanje z daljincem)**.
 
@@ -15,7 +15,15 @@ Osebni trener za domačo telovadnico, narejen **izključno za opremo, ki jo ima�
 | Technogym Kinesis Personal | potisk za prsa, veslanje, poteg navzdol, face pull, triceps, pull-through, sekanje drv – breme v **stopnjah 0–20** |
 | Stena (drog + dvig nog) | zgibi, dvig kolen/nog v visenju, visenje |
 
-**44 vaj, vsaka z animacijo** (2D skeletna animacija s pravilnim zaporedjem gibanja, faznimi napisi "Spuščaj 3 s / Pavza / Potisni", poudarjenimi delovnimi mišicami, navodili in pogostimi napakami).
+**63 vaj, vsaka z animacijo** (2D skeletna animacija s pravilnim zaporedjem gibanja, faznimi napisi "Spuščaj 3 s / Pavza / Potisni", poudarjenimi delovnimi mišicami, navodili in pogostimi napakami).
+
+### Oprema po profilu
+Vsaka oseba v profilu izbere svojo opremo (zaslon *Moja oprema*: ilustracije, število odklenjenih vaj, hitre izbire *Domača telovadnica / Samo lastna teža / Polno opremljen fitnes*). Na voljo je 17 naprav – tvojih 8 in dodatne: **tekalna steza, SkiErg, olimpijska palica + stojalo, sandbag, wall ball, plyo škatla, elastike, sani, kolebnica**.
+
+- **Programi se prilagodijo samodejno**: vsaka vaja ima vzorec gibanja (počep, zgib v kolkih, horizontalni potisk …). Če oseba nima opreme, se vaja zamenja z najboljšo razpoložljivo iz istega vzorca (npr. potisk na klopi → sklece, kolo → tek na mestu); v pregledu treninga piše "⇄ namesto …". Kar nima enakovrednika (npr. vlečenje brez opreme), se izpusti in to je jasno izpisano.
+- **HYROX z realno opremo**: če ima oseba tekalno stezo, SkiErg, sani, wall ball in sandbag, simulacija uporabi prave postaje z uradnimi razdaljami (8 × 1 km tek, 1000 m SkiErg, 50 m sani, 100 wall balls …).
+- **Generator** pri polni opremi da prednost osnovnim vajam s palico; dveh težkih vaj s palico nikoli ne združi v superset.
+- **Knjižnica** privzeto kaže *Mojo opremo*; *Vse vaje* prikaže tudi zaklenjene z napisom, kaj manjka.
 
 ### HYROX (na tvoji opremi)
 Tri formati: **celotna simulacija** (8 × tek + postaja), **polovica** (4 postaje) in **trening postaj** (3 krogi). Način *na čas*: race ura, vmesni časi po postajah, povzetek na koncu. Količine: napreden = uradne (1000 m veslanja, 100 m izpadnih korakov ≈ 50, 50 thrusterjev ...), srednji 80 %, začetnik 60 %.
@@ -131,6 +139,7 @@ NODE_PATH=$(npm root -g) node tools/snap.cjs c.png kb_swing,pullup # izbrane vaj
 NODE_PATH=$(npm root -g) node tools/ui.cjs ./out                   # UI smoke test + posnetki zaslonov
 NODE_PATH=$(npm root -g) node tools/profiles.cjs ./out             # profili, PIN, sestavljalnik, knjižnica
 NODE_PATH=$(npm root -g) node tools/hyrox.cjs ./out                # HYROX, race ura, vmesni časi, HUD predvajalnika
+NODE_PATH=$(npm root -g) node tools/equipment.cjs ./out            # oprema po profilu, zamenjave, HYROX z realno opremo
 ```
 
 Nova vaja = en objekt v `js/exercises.js` (+ vnos v `js/program.js`, če naj bo v programu).

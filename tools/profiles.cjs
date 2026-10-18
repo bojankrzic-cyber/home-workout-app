@@ -25,7 +25,7 @@ const path = require('path');
   log('name kept after refresh:', await p.$eval('#pName', e => e.value), '| focus kept:', await p.evaluate(() => document.activeElement.getAttribute('data-fid')));
   await p.fill('#pPin', '1234');
   await p.screenshot({ path: out + '/p2-edit.png' });
-  await p.click('#pSave'); await p.waitForTimeout(300);
+  await p.click('#pSave'); await p.waitForTimeout(300); await p.click('#eqSave'); await p.waitForTimeout(300);
   log('active after create:', await p.$eval('.who', e => e.textContent));
   // profile picker on reload (2 profiles)
   await p.reload(); await p.waitForTimeout(300);

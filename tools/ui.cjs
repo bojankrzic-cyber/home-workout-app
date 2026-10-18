@@ -15,7 +15,7 @@ const path = require('path');
   // first run: create a profile
   await page.screenshot({ path: out + '/0-first-run.png' });
   await page.keyboard.type('Bojan');
-  await page.click('#pSave');
+  await page.click('#pSave'); await page.waitForTimeout(300); await page.click('#eqSave');
   await page.waitForTimeout(600);
   await page.screenshot({ path: out + '/1-home.png' });
   // D-pad: focus is on "Začni trening"; go right to Predogled
