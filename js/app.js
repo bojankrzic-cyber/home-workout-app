@@ -52,6 +52,7 @@
       if (!state || !state.settings.beeps) return;
       try {
         this.ctx = this.ctx || new (window.AudioContext || window.webkitAudioContext)();
+        if (this.ctx.state === 'suspended') this.ctx.resume();
         var o = this.ctx.createOscillator(), g = this.ctx.createGain();
         o.frequency.value = freq || 880; o.type = 'sine';
         g.gain.setValueAtTime(0.25, this.ctx.currentTime);
@@ -62,26 +63,65 @@
   };
   var Voice = {
     v: null,
+    pick: function () {
+      var vs = speechSynthesis.getVoices();
+      var by = function (re) { return vs.filter(function (v) { return re.test(String(v.lang).replace('_', '-')); })[0]; };
+      Voice.v = by(/^en-GB/i) || by(/^en-US/i) || by(/^en/i) || null;
+    },
     init: function () {
       if (!('speechSynthesis' in window)) return;
-      var pick = function () {
-        var vs = speechSynthesis.getVoices();
-        var by = function (re) { return vs.filter(function (v) { return re.test(String(v.lang).replace('_', '-')); })[0]; };
-        Voice.v = by(/^en-GB/i) || by(/^en-US/i) || by(/^en/i) || null;
-      };
-      pick();
-      speechSynthesis.onvoiceschanged = pick;
+      Voice.pick();
+      if (speechSynthesis.addEventListener) speechSynthesis.addEventListener('voiceschanged', Voice.pick);
+      else speechSynthesis.onvoiceschanged = Voice.pick;
     },
+    // iOS often reports no voices until later; speak anyway with lang=en-GB and let the system choose
     say: function (text) {
-      if (!state || !state.settings.voice || !this.v || !('speechSynthesis' in window)) return;
+      if (!state || !state.settings.voice || !('speechSynthesis' in window)) return;
       try {
-        speechSynthesis.cancel();
-        var u = new SpeechSynthesisUtterance(text); u.voice = this.v; u.lang = this.v.lang || 'en-GB'; u.rate = 1.0;
-        speechSynthesis.speak(u);
+        if (!this.v) this.pick();
+        var u = new SpeechSynthesisUtterance(text);
+        if (this.v) u.voice = this.v;
+        u.lang = (this.v && this.v.lang) || 'en-GB'; u.rate = 1.0;
+        var busy = speechSynthesis.speaking || speechSynthesis.pending;
+        if (busy) speechSynthesis.cancel();
+        // Safari drops an utterance queued in the same tick as cancel()
+        if (busy) setTimeout(function () { speechSynthesis.speak(u); }, 80); else speechSynthesis.speak(u);
+        if (speechSynthesis.paused) speechSynthesis.resume();
       } catch (e) { /* ignore */ }
     }
   };
   Voice.init();
+
+  // iPhone/iPad: sound only starts after a tap, and the ring/silent switch mutes web audio.
+  // On the first tap we unlock speech + Web Audio, and during workouts a silent looping
+  // <audio> keeps the audio session in "playback" mode so beeps and voice play even in silent mode.
+  var Sound = {
+    unlocked: false, el: null,
+    silent: function () {
+      var n = 8000, b = new ArrayBuffer(44 + n), d = new DataView(b), w = function (o, t) { for (var i = 0; i < t.length; i++) d.setUint8(o + i, t.charCodeAt(i)); };
+      w(0, 'RIFF'); d.setUint32(4, 36 + n, true); w(8, 'WAVEfmt '); d.setUint32(16, 16, true); d.setUint16(20, 1, true); d.setUint16(22, 1, true);
+      d.setUint32(24, 8000, true); d.setUint32(28, 8000, true); d.setUint16(32, 1, true); d.setUint16(34, 8, true); w(36, 'data'); d.setUint32(40, n, true);
+      for (var i = 0; i < n; i++) d.setUint8(44 + i, 128);
+      return URL.createObjectURL(new Blob([b], { type: 'audio/wav' }));
+    },
+    session: function (on) {
+      try {
+        if (!this.el) { this.el = document.createElement('audio'); this.el.src = this.silent(); this.el.loop = true; this.el.setAttribute('playsinline', ''); }
+        if (on) { var pr = this.el.play(); if (pr && pr.catch) pr.catch(function () {}); } else this.el.pause();
+      } catch (e) { /* no media element */ }
+    },
+    unlock: function () {
+      if (Sound.unlocked) return;
+      Sound.unlocked = true;
+      try {
+        Audio.ctx = Audio.ctx || new (window.AudioContext || window.webkitAudioContext)();
+        if (Audio.ctx.state === 'suspended') Audio.ctx.resume();
+      } catch (e) { /* no web audio */ }
+      try { if ('speechSynthesis' in window) { var u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } } catch (e) { /* ignore */ }
+    }
+  };
+  document.addEventListener('pointerdown', Sound.unlock, true);
+  document.addEventListener('keydown', Sound.unlock, true);
 
   // keep TV screen awake during workouts
   var wake = null;
@@ -691,7 +731,7 @@
     function tipChip(val, label) {   // the effective state (explicit choice, else the global pilot switch)
       return '<button class="chip focusable' + (Products.enabled(state) === val ? ' on' : '') + '" data-set="tips" data-val=\'' + val + '\'>' + label + '</button>';
     }
-    var voiceInfo = Voice.v ? 'Voice: ' + Voice.v.name : 'No English voice on this device – using beeps.';
+    var voiceInfo = !('speechSynthesis' in window) ? 'This browser has no speech – using beeps.' : Voice.v ? 'Voice: ' + Voice.v.name : 'Uses the device’s default English voice.';
     root.innerHTML = '<div class="screen"><div class="topbar"><h1>Settings</h1><div class="spacer"></div>' +
       '<button class="btn sm ghost focusable who" data-go="profiles">' + avatar(state) + 'Switch person</button></div>' +
       '<div class="panel"><h3>Profile</h3><div class="opt-row">' + avatar(state, true) + '<div style="flex:1"><b style="font-size:1.3rem">' + esc(state.name) + '</b><div class="hint">' +
@@ -704,7 +744,7 @@
       '</div><div class="spacer"></div><button class="btn focusable" data-go="equipment">' + pl((state.settings.equipment || []).length, NAP) + ' · ' + pl(unlocked(state.settings.equipment || []), VAJ) + ' · edit →</button></div></div><div class="panel">' +
       '<div class="opt-row"><div class="k">Workouts per week</div>' + opt('days', 3, '3× – full body') + opt('days', 4, '4× – upper / lower') + '</div>' +
       '<div class="opt-row"><div class="k">Level</div>' + opt('level', 'beg', 'Beginner') + opt('level', 'mid', 'Intermediate') + opt('level', 'adv', 'Advanced') + '</div>' +
-      '<div class="opt-row"><div class="k">Voice coaching</div>' + opt('voice', true, 'On') + opt('voice', false, 'Off') + '<span class="hint">' + esc(voiceInfo) + '</span></div>' +
+      '<div class="opt-row"><div class="k">Voice coaching</div>' + opt('voice', true, 'On') + opt('voice', false, 'Off') + '<button class="btn sm focusable" id="vTest">▶ Test sound</button><span class="hint">' + esc(voiceInfo) + ' On iPhone, silent mode can mute sound outside workouts.</span></div>' +
       '<div class="opt-row"><div class="k">Beeps</div>' + opt('beeps', true, 'On') + opt('beeps', false, 'Off') + '</div>' +
       '<div class="opt-row"><div class="k">Nature’s Finest product tips</div>' + tipChip(true, 'On') + tipChip(false, 'Off') +
       '<span class="hint">' + (Products.eligible(state) ? 'Goal-based supplement tips on home and after workouts. Matching happens on this device only.' : 'Shown only to adults – add your age in your profile.') + '</span></div>' +
@@ -723,6 +763,12 @@
         refresh();
       };
     });
+    $('#vTest').onclick = function () {
+      Sound.unlock(); Sound.session(true);
+      Audio.beep(880, 0.15); setTimeout(function () { Audio.beep(1320, 0.25); }, 250);
+      Voice.say('Voice coaching is on. Three, two, one, go!');
+      setTimeout(function () { Sound.session(false); }, 4000);
+    };
     $('#newBlock').onclick = function () { s.startDate = new Date().toISOString().slice(0, 10); Store.save(); toast('New block starts today – Week 1'); refresh(); };
     $('#exp').onclick = function () { Store.exportJSON(); };
     $('#impL').onclick = function (e) { if (e.target.id !== 'imp') $('#imp').click(); };
@@ -848,6 +894,7 @@
       (race ? '<div class="splits" id="wSplits"></div>' : '') + '</div>';
     document.body.appendChild(el);
     keepAwake(true);
+    Sound.unlock(); Sound.session(true);
     // Phones: timer and technique can't both fit, so the screen alternates between them
     // (technique 7 s → timer 9 s); tapping a tab takes over for 20 s. TVs/desktops show both side by side.
     var narrow = window.matchMedia('(max-width: 900px)');
@@ -1127,7 +1174,7 @@
         return false;
       },
       confirmExit: function (leave) { ask('Leave workout? Unsaved sets will be lost.', 'Leave', leave); },
-      destroy: function () { clearInterval(iv); el.remove(); if ('speechSynthesis' in window) speechSynthesis.cancel(); }
+      destroy: function () { clearInterval(iv); el.remove(); Sound.session(false); if ('speechSynthesis' in window) speechSynthesis.cancel(); }
     };
     enter(0);
   };
