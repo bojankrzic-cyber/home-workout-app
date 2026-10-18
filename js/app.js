@@ -257,6 +257,26 @@
     return '<span class="avatar' + (big ? ' big' : '') + '" style="background:' + p.color + '">' + esc((p.name || '?').trim().charAt(0).toUpperCase()) + '</span>';
   }
 
+  // Phase cues change with every keyframe (often < 1 s). Each cue stays up for at least 2.4 s
+  // and the newest one waiting is shown next, so it can be read from across the room.
+  function cueHolder(el) {
+    var shown = null, since = 0, pending = null, t = 0;
+    function show(l) {
+      shown = l; since = Date.now(); pending = null;
+      el.classList.remove('cue-in'); void el.offsetWidth; el.classList.add('cue-in');
+      el.textContent = l || ' ';
+    }
+    return function (l) {
+      l = l || '';
+      if (l === shown) { pending = null; return; }
+      var wait = 2400 - (Date.now() - since);
+      if (wait <= 0) { show(l); return; }
+      pending = l;
+      clearTimeout(t);
+      t = setTimeout(function () { if (pending !== null && el.isConnected) show(pending); }, wait);
+    };
+  }
+
   // ---------------------------------------------------------------- figure helpers
   function mountFigure(el, id, opts) {
     var e = ex(id);
@@ -571,10 +591,11 @@
       '<button class="btn focusable" id="gd">Form guides: on</button><button class="btn ghost focusable" id="bk">← Back</button></div></div>';
     document.body.appendChild(el);
     var speeds = [1, 0.5, 0.25], si = 0;
+    var exCue = cueHolder($('#exPhase'));
     var pl = mountFigure($('#exFig'), p.id, {
       aspect: 1.45, labels: true, guides: true,
       onPhase: function (l, idx) {
-        $('#exPhase').textContent = l || ' ';
+        exCue(l);
         var cur = null;
         $$('#exSteps li').forEach(function (li) { if (+li.getAttribute('data-i') <= idx) cur = li; });
         $$('#exSteps li').forEach(function (li) { li.classList.toggle('on', li === cur); });
@@ -705,7 +726,7 @@
       '<button class="btn primary focusable" id="pvStart" data-autofocus>Start workout</button></div></div>';
     document.body.appendChild(el);
     keepAwake(true);
-    var pl = new Figure.Player($('#pvFig'), { aspect: 1.45, labels: true, guides: true, onPhase: function (l) { $('#pvPhase').textContent = l || ' '; } });
+    var pl = new Figure.Player($('#pvFig'), { aspect: 1.45, labels: true, guides: true, onPhase: cueHolder($('#pvPhase')) });
     players.push(pl);
 
     function show(i) {
@@ -818,7 +839,7 @@
       if (viewT >= (view === 'form' ? 7 : 9)) setView(view === 'form' ? 'timer' : 'form');
     }
     setView('form');
-    var pl = new Figure.Player($('#wFig'), { aspect: 1.45, labels: true, onPhase: function (l) { $('#wPhase').textContent = l || ' '; } });
+    var pl = new Figure.Player($('#wFig'), { aspect: 1.45, labels: true, onPhase: cueHolder($('#wPhase')) });
     players.push(pl);
     var nextPl = new Figure.Player($('#wNextThumb'), { aspect: 1.2 });
     players.push(nextPl);
@@ -1000,7 +1021,7 @@
         top.textContent = s.hard ? 'HARD' : s.easy ? 'EASY' : race ? 'STATION' : 'TIME';
         val.textContent = fmt(remain);
         var e = ex(s.id);
-        sub.textContent = e.type === 'cardio' && !/^(bike|row|hx_)/.test(s.id) ? '≈ ' + pacerReps() + ' reps' : 'of ' + fmt(s.sec);
+        sub.textContent = e.type === 'cardio' && !/^(bike|row|hx_|airbike|rope_waves)/.test(s.id) ? '≈ ' + pacerReps() + ' reps' : 'of ' + fmt(s.sec);
         setRing('wRing', remain / s.sec);
       }
     }

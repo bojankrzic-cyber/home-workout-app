@@ -32,12 +32,28 @@ Osebni trener za domačo telovadnico, narejen **izključno za opremo, ki jo ima�
 - **Omejitve** (kolena, spodnji hrbet, ramena, zapestja): vaje, ki obremenjujejo sklep, zamenja z nežnejšo iz istega gibalnega vzorca; če alternative ni, jo označi z opozorilom.
 
 ### Oprema po profilu
-Vsaka oseba v profilu izbere svojo opremo (zaslon *Moja oprema*: ilustracije, število odklenjenih vaj, hitre izbire *Domača telovadnica / Samo lastna teža / Polno opremljen fitnes*). Na voljo je 17 naprav – tvojih 8 in dodatne: **tekalna steza, SkiErg, olimpijska palica + stojalo, sandbag, wall ball, plyo škatla, elastike, sani, kolebnica**.
+Vsaka oseba v profilu izbere svojo opremo (zaslon *Moja oprema*: ilustracije, število odklenjenih vaj, hitre izbire *Domača telovadnica / Samo lastna teža / Polno opremljen fitnes*). Na voljo je 25 naprav – tvojih 8 in dodatne: **tekalna steza, SkiErg, olimpijska palica + stojalo, sandbag, wall ball, plyo škatla, elastike, sani, kolebnica**.
 
 - **Programi se prilagodijo samodejno**: vsaka vaja ima vzorec gibanja (počep, zgib v kolkih, horizontalni potisk …). Če oseba nima opreme, se vaja zamenja z najboljšo razpoložljivo iz istega vzorca (npr. potisk na klopi → sklece, kolo → tek na mestu); v pregledu treninga piše "⇄ namesto …". Kar nima enakovrednika (npr. vlečenje brez opreme), se izpusti in to je jasno izpisano.
 - **HYROX z realno opremo**: če ima oseba tekalno stezo, SkiErg, sani, wall ball in sandbag, simulacija uporabi prave postaje z uradnimi razdaljami (8 × 1 km tek, 1000 m SkiErg, 50 m sani, 100 wall balls …).
 - **Generator** pri polni opremi da prednost osnovnim vajam s palico; dveh težkih vaj s palico nikoli ne združi v superset.
 - **Knjižnica** privzeto kaže *Mojo opremo*; *Vse vaje* prikaže tudi zaklenjene z napisom, kaj manjka.
+
+#### Dodatna oprema (8 novih naprav, 16 animiranih vaj)
+| Oprema | Vaje |
+|---|---|
+| **Suspenzijski trak** (sidrišče nad glavo / na vratih) | veslanje, potisk za prsi, asistiran počep, »fallout« za trup |
+| **Kolo za trebušnjake** (ab wheel) | izteg iz klečanja |
+| **Slam žoga** | udarec nad glavo, rotacijski udarec (izmenično) |
+| **Bojne vrvi** (battle ropes) | izmenični valovi (intervali) |
+| **Valj za masažo** (foam roller) | zgornji del hrbta, sprednja stegna |
+| **Stojalo za dipe / bradlje** | dipi, L-sed |
+| **Landmine nastavek** (potrebuje tudi olimpijsko palico) | enoročni landmine potisk, T-bar veslanje |
+| **Zračno kolo** (air bike) | šprint intervali, Zona 2 |
+
+- Nove vaje so dodane **na konec** obstoječih vzorcev gibanja, zato se programi za domačo opremo (8 naprav) ne spremenijo; nova oprema ni del *Domače telovadnice*, je pa vključena v *Polno opremljen fitnes*.
+- **Landmine potisk** je ramenom prijazna različica potiska nad glavo: pri omejitvi *rama* program zdaj najde varno zamenjavo zanj (dipi in fallout pa so na seznamu za ramo).
+- Graditelj kardio treninga ponuja **zračno kolo**, **bojne vrvi** in **slam žogo** (zadnji dve samo kot intervale – ogrevanje in ohlajanje sta na napravi za enakomerno vožnjo).
 
 ### HYROX (na tvoji opremi)
 Tri formati: **celotna simulacija** (8 × tek + postaja), **polovica** (4 postaje) in **trening postaj** (3 krogi). Način *na čas*: race ura, vmesni časi po postajah, povzetek na koncu. Količine: napreden = uradne (1000 m veslanja, 100 m izpadnih korakov ≈ 50, 50 thrusterjev ...), srednji 80 %, začetnik 60 %.

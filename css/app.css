@@ -137,6 +137,26 @@ h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -.015em; }
 .p-rope { stroke: #d9e3dc; fill: none; }
 .p-handle-g { stroke: #3ec46d; }
 .p-floor-mark { stroke: #2e4536; }
+.p-strap { stroke: #d8b13a; }
+.p-strap.far { stroke: #7d6824; }
+.p-strap-b { stroke: #1a1d22; }
+.p-strap-b.far { stroke: #121418; }
+.p-grip { stroke: #4a5664; fill: #4a5664; }
+.p-wall-l { fill: #2a3542; }
+.p-wheel { fill: #22272e; stroke: #a7b3c2; stroke-width: 2.4; }
+.p-wheel-hub { fill: #3ec46d; }
+.p-wheel-sp { stroke: #0e131a; }
+.p-slam { fill: #262b31; stroke: #8994a1; stroke-width: 2; }
+.p-slam-l { stroke: #5c6773; fill: none; }
+.p-brope { stroke: #c9b386; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.p-brope.far { stroke: #7a6b4f; }
+.p-foam { fill: #2f6fb0; stroke: #6fa6dc; stroke-width: 1.6; }
+.p-foam-in { fill: #23578c; }
+.p-foam-c { fill: #0e131a; }
+.p-foam-tex { fill: none; stroke: #6fa6dc; stroke-width: 1; stroke-dasharray: 2 5; opacity: .6; }
+.p-fan { fill: #1b222b; stroke: #56616e; stroke-width: 3; }
+.p-fan-in { fill: none; stroke: #2f3945; stroke-width: 2; stroke-dasharray: 3 3; }
+.p-fan-blade { stroke: #8a96a3; }
 
 /* ===== Layout ============================================================ */
 #app { height: 100vh; display: flex; flex-direction: column; }
@@ -649,3 +669,5 @@ h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -.015em; }
   .p2 .stage .phase { top: 9rem; bottom: auto; }
   .p2 .stage .fig { inset: 12rem .4rem 11rem; }
 }
+.cue-in { animation: cueIn .35s ease; }
+@keyframes cueIn { from { opacity: 0; } to { opacity: 1; } }
