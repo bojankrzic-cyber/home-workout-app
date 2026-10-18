@@ -1,0 +1,103 @@
+/*
+ * Nature's Finest product tips – contextual, goal-aware recommendations.
+ *
+ * Edit this file to change products, copy, URLs or switch the feature on for everyone.
+ * Rules the app enforces:
+ *   - matching runs only on this device (goal/age never leave the browser; links carry UTM only)
+ *   - adults only: a profile needs an age of 18+ before any tip is shown
+ *   - never during a workout; at most one card on the finish screen
+ *   - claims: use only EU-authorised health-claim wording (Reg. 1924/2006, 432/2012) as approved for the webshop
+ */
+(function (global) {
+  'use strict';
+
+  var CONFIG = {
+    // false = pilot: tips are off by default, each profile can switch them on in Settings
+    live: false,
+    market: 'si',
+    shop: 'https://www.naturesfinest.si',
+    utm: { utm_source: 'formshaper', utm_medium: 'app' },
+    minAge: 18,
+    disclaimer: 'Food supplements are not a substitute for a varied, balanced diet and a healthy lifestyle.'
+  };
+
+  // goals: muscle | strength | fatloss | endurance | hyrox | general
+  var ITEMS = [
+    {
+      id: 'creatine', sku: 786110, name: 'Creatine Monohydrate', price: 14.99,
+      url: '/izdelek/creatine-monohydrate/', img: 'img/products/creatine.webp',
+      claim: 'Creatine increases physical performance in successive bursts of short-term, high-intensity exercise.',
+      note: 'Beneficial effect with a daily intake of 3 g · 85 servings · vegan',
+      goals: { strength: 3, muscle: 3, hyrox: 2, general: 1 }, moments: ['home', 'race']
+    },
+    {
+      id: 'recovery', sku: 567616, name: 'Recovery Shake', price: 9.99,
+      url: '/izdelek/recovery-shake/', img: 'img/products/recovery.webp',
+      claim: 'Magnesium and calcium contribute to normal muscle function. B vitamins contribute to the reduction of tiredness and fatigue.',
+      note: 'Whey protein + carbs 3:1 + electrolytes · rated 4.9/5',
+      goals: { muscle: 3, strength: 2, hyrox: 3, endurance: 2 }, moments: ['finish', 'home', 'race']
+    },
+    {
+      id: 'protein', sku: 978562, name: 'Bio Vegan Protein – Matcha & Vanilla', price: 14.59,
+      url: '/izdelek/bio-vegan-protein-matcha-vanilla/', img: 'img/products/protein.webp',
+      claim: '19 g plant protein (pea, rice, chia) and 2.7 g BCAA per serving, no added sugar.',
+      note: 'Organic · vegan',
+      goals: { fatloss: 3, general: 3, muscle: 2 }, moments: ['finish', 'home']
+    },
+    {
+      id: 'hydration', sku: 804496, name: 'Hydration + Energy', price: 22.27,
+      url: '/izdelek/hydration-energy-for-hot-weather/', img: 'img/products/hydration.webp',
+      claim: 'Magnesium contributes to electrolyte balance and normal muscle function, and to the reduction of tiredness and fatigue.',
+      note: 'Magnesium + B vitamins · dissolves fully · rated 4.9/5',
+      goals: { endurance: 3, hyrox: 3, fatloss: 1 }, moments: ['finish', 'home', 'race'], cardio: true
+    },
+    {
+      id: 'magnesium', sku: 852097, name: 'Magnesium (citrate)', price: 6.99,
+      url: '/izdelek/magnezij-kapsule/', img: 'img/products/magnesium.webp',
+      claim: 'Magnesium contributes to normal muscle function and to the reduction of tiredness and fatigue.',
+      note: 'Premium citrate form · vegan',
+      goals: { endurance: 2, general: 2, strength: 1, muscle: 1, fatloss: 1 }, moments: ['home']
+    },
+    {
+      id: 'vitd3', sku: 852053, name: 'Vitamin D3 2000 IU', price: 9.99,
+      url: '/izdelek/vitamin-d3-kapsule/', img: 'img/products/vitd3.webp',
+      claim: 'Vitamin D contributes to the maintenance of normal muscle function and normal bones.',
+      note: 'Especially relevant October–April',
+      goals: { general: 2, muscle: 1, strength: 1, endurance: 1, fatloss: 1, hyrox: 1 }, moments: ['home'], winter: true
+    }
+  ];
+
+  function link(item, campaign) {
+    var q = Object.keys(CONFIG.utm).map(function (k) { return k + '=' + encodeURIComponent(CONFIG.utm[k]); });
+    q.push('utm_campaign=' + encodeURIComponent(campaign), 'utm_content=' + encodeURIComponent(item.id));
+    return CONFIG.shop + item.url + '?' + q.join('&');
+  }
+
+  function age(s) { return s.birthYear ? new Date().getFullYear() - s.birthYear : null; }
+
+  // Is the feature on for this profile? (explicit choice wins, else the global pilot switch)
+  function enabled(state) {
+    var s = state.settings;
+    return s.tips === true || (s.tips == null && CONFIG.live);
+  }
+  function eligible(state) { var a = age(state.settings); return a != null && a >= CONFIG.minAge; }
+
+  // Best products for a profile and moment ('home' | 'finish' | 'race'), highest goal score first
+  function pick(state, moment, n, ctx) {
+    if (!enabled(state) || !eligible(state)) return [];
+    var goal = state.settings.goal || 'general', month = new Date().getMonth();
+    var winter = month >= 9 || month <= 3;
+    return ITEMS.filter(function (it) { return it.moments.indexOf(moment) >= 0 && (!it.winter || winter); })
+      .map(function (it) {
+        var sc = (it.goals[goal] || 0) * 10;
+        if (ctx && ctx.cardio && it.cardio) sc += 15;
+        return { it: it, sc: sc };
+      })
+      .filter(function (x) { return x.sc > 0; })
+      .sort(function (a, b) { return b.sc - a.sc; })
+      .slice(0, n || 1)
+      .map(function (x) { return x.it; });
+  }
+
+  global.Products = { CONFIG: CONFIG, ITEMS: ITEMS, link: link, pick: pick, enabled: enabled, eligible: eligible };
+})(window);

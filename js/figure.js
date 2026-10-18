@@ -226,7 +226,7 @@
       }
       return s;
     },
-    // Technogym Kinesis Personal: slim panel with pivoting arms; pulleys at given points
+    // Cable station: slim panel with pivoting arms; pulleys at given points
     kinesis: function (o) {
       var x = o.x, s = '';
       s += rect(x - 9, -212, 18, 212, 'p-kin', 4);
@@ -261,7 +261,7 @@
       s += rect(o.x1 + 6, -146, 34, 22, 'p-kin-screen', 4);
       return s;
     },
-    // Concept-style SkiErg tower; handles hang from the top pulleys (cables drawn per frame)
+    // Concept-style Ski machine tower; handles hang from the top pulleys (cables drawn per frame)
     skierg: function (o) {
       var x = o.x, s = '';
       s += rect(x - 30, -6, 70, 6, 'p-metal-d', 3);
@@ -270,7 +270,7 @@
       s += rect(x - 12, -222, 26, 14, 'p-metal-d', 4) + circ([x - 8, -208], 4, 'p-metal-c');
       return s;
     },
-    // HYROX sled with push poles (static); x = rear of sled
+    // hybrid race sled with push poles (static); x = rear of sled
     sled: function (o) {
       var x = o.x, s = '';
       s += poly([[x, -6], [x + 70, -6], [x + 78, -20], [x - 4, -20]], 'p-sled');

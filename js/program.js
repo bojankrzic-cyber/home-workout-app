@@ -1,7 +1,7 @@
 /*
  * Training program + progression engine.
  *
- * Model (reverse-engineered from Fitbod / Future / Peloton / Apple Fitness+ patterns):
+ * Model (reverse-engineered from Fitbod / Future / premium apps / Apple Fitness+ patterns):
  *  - Session rotation instead of fixed weekdays: next session = next in sequence, missed days don't break the plan.
  *  - 4-week blocks: W1–W3 progressive effort (RIR 3 → 2 → 1), W4 deload (-40 % sets, RIR 4).
  *  - Double progression per exercise: hit top of rep range on all sets → load goes up next time.
@@ -53,7 +53,7 @@
       ]
     },
     U2: {
-      name: 'Upper Body – Volume & Core', short: 'Kinesis, shoulders, core', color: '#b6c99b',
+      name: 'Upper Body – Volume & Core', short: 'Cables, shoulders, core', color: '#b6c99b',
       blocks: [
         { title: 'Warm-up', items: [C('row_steady', 5)] },
         { title: 'Superset A', items: [S('db_incline', 4, [8, 12], 0), S('k_pulldown', 4, [10, 12], 90)] },
@@ -89,7 +89,7 @@
       ]
     },
     F3: {
-      name: 'Full Body C – Glutes & Kinesis', short: 'Full body', color: '#f08a5d',
+      name: 'Full Body C – Glutes & Cables', short: 'Full body', color: '#f08a5d',
       blocks: [
         { title: 'Warm-up', items: [C('bike_z2', 6)] },
         { title: 'Superset A', items: [S('db_hip_thrust', 4, [8, 12], 0), S('k_pulldown', 4, [10, 12], 90)] },
@@ -102,12 +102,12 @@
     }
   };
 
-  // ---------------------------------------------------------------- HYROX (home substitutes, race format)
+  // ---------------------------------------------------------------- hybrid race (home substitutes, race format)
   function D(id, m) { return { id: id, dist: m }; }
   function hxRun(n, min) { return { title: 'Run ' + n + ' (bike)', items: [C('hx_bike_run', min)] }; }
   function hxSt(n, name, item) { return { title: 'Station ' + n + ' · ' + name, items: [item] }; }
   var HX_STATIONS = [
-    ['SkiErg', T('k_ski', 1, 240, 0)],
+    ['Ski machine', T('k_ski', 1, 240, 0)],
     ['Sled Push', T('bike_sled', 1, 150, 0)],
     ['Sled Pull', T('k_sled_pull', 1, 150, 0)],
     ['Burpee Broad Jumps', S('burpee_bj', 1, [25, 25], 0)],
@@ -123,16 +123,16 @@
     b.push({ title: 'Stretch', items: [T('hip_flexor', 1, 40, 10)] });
     return b;
   }
-  SESSIONS.HX1 = { name: 'HYROX Simulation – Full', short: '8 × (run + station) · for time', color: '#fcb900', race: true, blocks: hxRace(HX_STATIONS, 4) };
+  SESSIONS.HX1 = { name: 'Hybrid Race Simulation – Full', short: '8 × (run + station) · for time', color: '#fcb900', race: true, blocks: hxRace(HX_STATIONS, 4) };
   SESSIONS.HX2 = {
-    name: 'HYROX Simulation – Half', short: '4 × (run + station) · for time', color: '#fcb900', race: true,
+    name: 'Hybrid Race Simulation – Half', short: '4 × (run + station) · for time', color: '#fcb900', race: true,
     blocks: hxRace([
-      ['SkiErg', T('k_ski', 1, 150, 0)], ['Sled Push', T('bike_sled', 1, 90, 0)],
+      ['Ski machine', T('k_ski', 1, 150, 0)], ['Sled Push', T('bike_sled', 1, 90, 0)],
       ['Burpee Broad Jumps', S('burpee_bj', 1, [15, 15], 0)], ['Wall Balls', S('db_thruster', 1, [30, 30], 0)]
     ], 3)
   };
   SESSIONS.HX3 = {
-    name: 'HYROX Stations – Strength & Technique', short: '3 rounds of all stations', color: '#fcb900',
+    name: 'Race Stations – Strength & Technique', short: '3 rounds of all stations', color: '#fcb900',
     blocks: [
       { title: 'Warm-up', items: [C('row_steady', 5)] },
       { title: 'Station Circuit', items: [T('k_ski', 3, 60, 0), T('k_sled_pull', 3, 60, 0), S('kb_lunge', 3, [20, 20], 0), S('db_thruster', 3, [20, 20], 0), T('kb_farmers', 3, 60, 0), S('burpee_bj', 3, [10, 10], 120)] },
@@ -141,7 +141,7 @@
       { title: 'Stretch', items: [T('hamstring_bench', 1, 40, 10)] }
     ]
   };
-  // adv = official HYROX volumes; lower levels scale down (weights scale via progression)
+  // adv = official hybrid race volumes; lower levels scale down (weights scale via progression)
   var HX_SCALE = { beg: 0.6, mid: 0.8, adv: 1 };
 
   var PLANS = {
@@ -207,7 +207,7 @@
 
   function owned(state) { return (state.settings && state.settings.equipment) || Exercises.HOME_GYM; }
 
-  // Real HYROX stations replace home substitutes when the profile owns the equipment
+  // Real hybrid race stations replace home substitutes when the profile owns the equipment
   var STATION = { treadmill_run: { dist: 1000 }, skierg: { dist: 1000 }, sled_push: { dist: 50 }, sled_pull: { dist: 50 }, wall_ball: { reps: [100, 100] } };
 
   // Joint-friendly swaps: exercises that load a sore joint give way to a gentler option from the same pattern
@@ -517,7 +517,7 @@
     bike: { z2: 'bike_z2', hiit: 'bike_hiit', work: 20, easy: 40, name: 'Bike' },
     rower: { z2: 'row_steady', hiit: 'row_hiit', work: 30, easy: 30, name: 'Rower' },
     treadmill: { z2: 'treadmill_run', hiit: 'treadmill_run', work: 30, easy: 60, name: 'Treadmill' },
-    skierg: { z2: 'skierg', hiit: 'skierg', work: 30, easy: 30, name: 'SkiErg' },
+    skierg: { z2: 'skierg', hiit: 'skierg', work: 30, easy: 30, name: 'Ski machine' },
     rope: { z2: 'jump_rope', hiit: 'jump_rope', work: 40, easy: 20, name: 'Jump Rope' },
     floor: { z2: 'high_knees', hiit: 'high_knees', work: 30, easy: 30, name: 'Bodyweight' },
     airbike: { z2: 'airbike_z2', hiit: 'airbike_sprint', work: 20, easy: 40, name: 'Air bike' },
