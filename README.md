@@ -10,8 +10,8 @@ Osebni trener za domačo telovadnico, narejen **izključno za opremo, ki jo ima�
 | Veslač (lesen, vodni) | ogrevanje, tehnika, intervali 30/30 in 60/60 |
 | Kettlebells | swing, goblet počep, mrtvi dvig, potisk nad glavo |
 | Dumbbells | potisk (ravna/poševna klop), veslanje, RDL, bolgarski počep, hip thrust, step-up, rame, biceps |
-| NOHrD TriaTrainer (trebušne/hrbet) | zaprt = trebušnjaki, pol-odprt = iztegovanje hrbta (45°) |
-| NOHrD klop | ravna / poševna / skoraj pokončna klop za uteži, opora za veslanje, step-up, razteg |
+| Klop za trebušne in hrbet | zaprt = trebušnjaki, pol-odprt = iztegovanje hrbta (45°) |
+| Nastavljiva klop za uteži | ravna / poševna / skoraj pokončna klop za uteži, opora za veslanje, step-up, razteg |
 | Technogym Kinesis Personal | potisk za prsa, veslanje, poteg navzdol, face pull, triceps, pull-through, sekanje drv – breme v **stopnjah 0–20** |
 | Stena (drog + dvig nog) | zgibi, dvig kolen/nog v visenju, visenje |
 

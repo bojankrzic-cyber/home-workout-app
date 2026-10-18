@@ -1,7 +1,7 @@
 /*
  * Exercise library — every exercise uses only the home equipment:
- * exercise bike, water rower, kettlebells, dumbbells, NOHrD TriaTrainer (abs/back),
- * NOHrD weight bench, Technogym Kinesis Personal, wall pull-up / leg-raise station.
+ * exercise bike, water rower, kettlebells, dumbbells, ab & back-extension bench,
+ * adjustable weight bench, Technogym Kinesis Personal, wall pull-up / leg-raise station.
  *
  * anim.frames: looping keyframes, each { d: seconds to next frame, l: phase label, p: pose }.
  * Pose fields are documented in figure.js.
@@ -24,8 +24,8 @@
     barbell: { name: 'Olympic barbell + rack', group: 'utezi', desc: 'Squats, deadlifts, barbell presses', icon: { vb: [-100, -92, 200, 104], props: [{ t: 'barbell', x: 0, y: -34 }] } },
     sandbag: { name: 'Sandbag', group: 'utezi', desc: 'HYROX Sandbag Lunges, carries', icon: { vb: [-64, -72, 128, 84], props: [{ t: 'bag', x: 0, y: -20 }] } },
     wallball: { name: 'Wall ball (med ball)', group: 'utezi', desc: 'HYROX Wall Balls (needs a wall)', icon: { vb: [-50, -72, 100, 84], props: [{ t: 'ball', x: 0, y: -30 }] } },
-    bench: { name: 'NOHrD bench', group: 'klopi', desc: 'Flat / incline bench, support', icon: { vb: [-82, -86, 180, 98], scene: [{ type: 'bench', x: -62, len: 118 }] } },
-    tria: { name: 'NOHrD TriaTrainer', group: 'klopi', desc: 'Sit-ups and back extensions', icon: { vb: [-56, -92, 176, 104], scene: [{ type: 'tria_abs', x: -40 }] } },
+    bench: { name: 'Adjustable weight bench', group: 'klopi', desc: 'Flat / incline bench, support', icon: { vb: [-82, -86, 180, 98], scene: [{ type: 'bench', x: -62, len: 118 }] } },
+    tria: { name: 'Ab & back-extension bench', group: 'klopi', desc: 'Sit-ups and back extensions', icon: { vb: [-56, -92, 176, 104], scene: [{ type: 'tria_abs', x: -40 }] } },
     wall: { name: 'Wall station: pull-up bar + leg raise', group: 'klopi', desc: 'Pull-ups, leg raises, hangs', icon: { vb: [-92, -252, 160, 264], scene: [{ type: 'wall', x: -48, y: -226, bx: 46 }] } },
     box: { name: 'Plyo box', group: 'klopi', desc: 'Box jumps, step-ups', icon: { vb: [-60, -74, 120, 86], scene: [{ type: 'box', x: -32, w: 64, h: 54 }] } },
     kinesis: { name: 'Technogym Kinesis Personal', group: 'kabli', desc: 'Cable exercises, resistance 0–20', icon: { vb: [-62, -222, 124, 234], scene: [{ type: 'kinesis', x: 0, pulleys: [[-24, -186], [-24, -112], [-24, -36]] }] } },
@@ -154,7 +154,7 @@
   var BAR = ['hN', 30, -226];
   function hang(x) { return m({ t: 180, hd: -14, aN: [180, 180], aF: [178, 178], lN: [4, 0, 50], pin: BAR }, x); }
 
-  // ------------------------------------------------------------ TriaTrainer
+  // ------------------------------------------------------------ ab & back-extension bench
   var TRIA_BACK = { type: 'tria_back', x: 2, y: -86 };
   function backExt(t) {
     return { r: [-2, -84], t: t, hd: t > 100 ? 10 : 25, aN: [t - 160, t - 30], lN: [0, 0, -30], ik: { fN: [-56, -18], fF: [-58, -18] } };
@@ -674,9 +674,9 @@
       }
     },
 
-    // ------------------------------------------------------------ TRIATRAINER
+    // ------------------------------------------------------------ AB & BACK-EXTENSION BENCH
     {
-      id: 'back_ext', name: 'Back extension (TriaTrainer half-open)', equip: ['tria'], type: 'strength', unit: 'kg', load: 0, inc: 2.5,
+      id: 'back_ext', name: 'Back extension (45° bench)', equip: ['tria'], type: 'strength', unit: 'kg', load: 0, inc: 2.5,
       muscles: 'Spinal erectors, glutes, hamstrings', tempo: '2-1-2',
       cues: ['Pad just below the hip bones', 'Lower with a flat back, then squeeze the glutes', 'Up only to a straight line – no overextension'],
       mistakes: ['Hyperextending at the top', 'Jerky movement'],
@@ -691,7 +691,7 @@
       }
     },
     {
-      id: 'situp', name: 'Decline sit-up (TriaTrainer closed)', equip: ['tria'], type: 'core', unit: 'bw', load: 0, inc: 2.5,
+      id: 'situp', name: 'Decline sit-up (ab bench)', equip: ['tria'], type: 'core', unit: 'bw', load: 0, inc: 2.5,
       muscles: 'Abs', tempo: '1-1-2',
       cues: ['Feet hooked under the rollers', 'Curl up one vertebra at a time, chin to chest', 'Lower slowly, don\'t flop onto the pad'],
       mistakes: ['Pulling on the neck', 'Jerking up with the hip flexors'],
