@@ -21,6 +21,7 @@
       goal: 'general', why: '', targetWeight: null, targetDate: null,
       sex: null, birthYear: null, height: null, weight: null, bodyLog: [],   // bodyLog: [{ date, kg }]
       maxHr: null, restHr: null, limits: [], prefDays: [], sessionMin: null,
+      coachVoice: 'recorded',
       equipment: (global.Exercises ? Exercises.HOME_GYM : ['bike', 'rower', 'kb', 'db', 'tria', 'bench', 'kinesis', 'wall']).slice()
     };
   }
