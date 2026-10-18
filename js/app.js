@@ -169,6 +169,7 @@
     if (!replace && stack.length) stack[stack.length - 1].focusIdx = focusables().indexOf(document.activeElement);
     if (replace) stack.pop();
     stack.push({ screen: screen, params: params || {} });
+    if (!replace && stack.length > 1) { try { history.pushState({ fs: stack.length }, ''); } catch (e) {} }
     render(false, fid);
   }
   // re-render the current screen, keeping focus on the element with the same data-fid
@@ -179,10 +180,28 @@
     go(top.screen, params || top.params, true, fid);
   }
   function resetTo(screen, params) { stack = []; go(screen, params); }
+  // In-app back, browser back and the iOS edge swipe all end up here; history stays in step with the stack
+  var skipPop = false;
   function back() {
-    if (activeSession && activeSession.confirmExit) { activeSession.confirmExit(popScreen); return; }
+    if (activeSession && activeSession.confirmExit) { activeSession.confirmExit(histBack); return; }
+    histBack();
+  }
+  function histBack() {
+    if (stack.length <= 1) return;
+    if (history.state && history.state.fs) { skipPop = true; try { history.back(); } catch (e) { skipPop = false; } }
     popScreen();
   }
+  window.addEventListener('popstate', function () {
+    if (skipPop) { skipPop = false; return; }
+    closeAsk();
+    if (stack.length <= 1) return;
+    if (activeSession && activeSession.confirmExit) {
+      try { history.pushState({ fs: stack.length }, ''); } catch (e) {}
+      activeSession.confirmExit(histBack);
+      return;
+    }
+    popScreen();
+  });
   function popScreen() {
     if (stack.length <= 1) return;
     stack.pop();
@@ -193,6 +212,7 @@
     teardown();
     var top = stack[stack.length - 1];
     SCREENS[top.screen](top.params);
+    addBackButton(top.screen);
     var list = focusables();
     var scope = $('.player') || root;
     var idx = restoring && top.focusIdx >= 0 ? top.focusIdx : 0;
@@ -200,6 +220,19 @@
     var el = restoring ? list[idx] : (auto || list[0]);
     if (el) el.focus({ preventScroll: !!fid });
   }
+
+  // Every screen except home and the workout player gets the same "← Back" in the same place
+  function addBackButton(screen) {
+    if (stack.length <= 1 || screen === 'home' || screen === 'player') return;
+    var b = document.createElement('button');
+    b.className = 'btn sm ghost focusable back-top'; b.setAttribute('data-back', ''); b.setAttribute('data-fid', 'back-top');
+    b.innerHTML = '← Back';
+    var stage = $('.player .stage');
+    if (stage) { b.classList.add('floating'); stage.appendChild(b); return; }
+    var scr = $('.screen', root); if (!scr) return;
+    scr.insertBefore(b, scr.firstChild);
+  }
+  document.addEventListener('click', function (e) { if (e.target.closest('[data-back]')) back(); });
 
   // store a generated / custom session in the profile and open it
   function startCustom(src, screen) {
@@ -707,7 +740,9 @@
       '<div class="hud-clock"><small>' + (race ? 'RACE TIME' : 'TOTAL') + '</small><b id="wClock">0:00</b></div></div>' +
       '<div class="next-card" id="wNextCard"><div class="nc-thumb" id="wNextThumb"></div><div><small id="wNextLbl"></small><b id="wNextName"></b></div></div>' +
       '<div class="pip" id="wPip" hidden><img alt=""><span>Real form</span></div>' +
+      '<div class="mini-time" id="wMini"><small></small><b></b></div>' +
       '<div class="finish" id="wFinish" hidden></div></div>' +
+      '<div class="view-tabs" role="tablist"><button class="focusable" data-view="timer">Timer</button><button class="focusable" data-view="form">How to</button></div>' +
       '<div class="side"><div class="kicker"><span id="wBlock"></span><span class="dots-set" id="wDots"></span></div>' +
       '<h2 id="wName"></h2><div class="why" id="wWhy"></div><div id="wMus"></div>' +
       ring('wRing') +
@@ -720,6 +755,25 @@
       (race ? '<div class="splits" id="wSplits"></div>' : '') + '</div>';
     document.body.appendChild(el);
     keepAwake(true);
+    // Phones: timer and technique can't both fit, so the screen alternates between them
+    // (technique 7 s → timer 9 s); tapping a tab takes over for 20 s. TVs/desktops show both side by side.
+    var narrow = window.matchMedia('(max-width: 900px)');
+    var view = 'form', viewT = 0, manualUntil = 0, done = false;
+    if (narrow.matches) el.appendChild($('.controls', el));
+    function setView(v) {
+      view = v; viewT = 0;
+      el.classList.toggle('v-form', v === 'form');
+      $$('[data-view]', el).forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-view') === v); });
+    }
+    $$('[data-view]', el).forEach(function (b) {
+      b.onclick = function () { setView(b.getAttribute('data-view')); manualUntil = Date.now() + 20000; };
+    });
+    function autoView() {
+      if (!narrow.matches || done || Date.now() < manualUntil) return;
+      viewT += 0.25;
+      if (viewT >= (view === 'form' ? 7 : 9)) setView(view === 'form' ? 'timer' : 'form');
+    }
+    setView('form');
     var pl = new Figure.Player($('#wFig'), { aspect: 1.45, labels: true, onPhase: function (l) { $('#wPhase').textContent = l || ' '; } });
     players.push(pl);
     var nextPl = new Figure.Player($('#wNextThumb'), { aspect: 1.2 });
@@ -771,6 +825,7 @@
       var s = st[i], e = ex(s.id), it = s.item;
       phase = 'work'; elapsed = 0; pacerHit = false;
       el.classList.remove('resting');
+      if (Date.now() >= manualUntil) setView('form');
       showAnim(s.id, s.easy ? 0.7 : 1);
       pacerBase = pl.time;
       $('#wBlock').textContent = s.block + (s.tag ? ' · ' + s.tag : '');
@@ -871,6 +926,11 @@
 
     // single place that paints the ring + clocks
     function draw() {
+      drawRing();
+      $('#wMini small').textContent = $('#wRingTop').textContent;
+      $('#wMini b').textContent = $('#wRingVal').textContent;
+    }
+    function drawRing() {
       $('#wClock').textContent = fmt(total);
       var s = st[i]; if (!s) return;
       var top = $('#wRingTop'), val = $('#wRingVal'), sub = $('#wRingSub');
@@ -900,6 +960,7 @@
     function tick() {
       if (paused || !st[i]) return;
       total += 0.25;
+      autoView();
       if (phase === 'rest') {
         remain -= 0.25;
         if (remain <= 3.01 && remain > 0 && Math.abs(remain - Math.round(remain)) < 0.01) Audio.beep(880, 0.12);
@@ -920,6 +981,7 @@
 
     function finish() {
       clearInterval(iv);
+      done = true; setView('form');
       var min = Math.max(1, Math.round(total / 60));
       if (logged.length || min >= 10) {
         Store.recordSession(state, { date: new Date().toISOString(), session: sess.key, name: sess.name, min: min, sec: Math.round(total), splits: race ? splits : undefined, sets: logged, items: itemsById });

@@ -1,5 +1,5 @@
 /* Offline cache: app works without internet once loaded (TV / gym corner with weak Wi-Fi). */
-var CACHE = 'formshaper-v8';
+var CACHE = 'formshaper-v9';
 var FILES = ['./', 'index.html', 'css/app.css', 'js/photos.js', 'js/figure.js', 'js/exercises.js', 'js/program.js', 'js/store.js', 'js/app.js', 'manifest.webmanifest', 'icons/icon.svg'];
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(FILES); }).then(function () { return self.skipWaiting(); }));
