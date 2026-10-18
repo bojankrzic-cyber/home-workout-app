@@ -24,7 +24,7 @@
   function newProfile(name, color) {
     return {
       id: 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-      name: name || 'Jaz', color: color || COLORS[0], pin: null,
+      name: name || 'Me', color: color || COLORS[0], pin: null,
       settings: defaultSettings(),
       log: [],      // [{ date, session, name, min, sets: [{ id, reps, load }] }]
       ex: {},       // per-exercise progression: { load, reps: [..], fails, date }
@@ -37,7 +37,7 @@
     var d = newProfile();
     p.settings = Object.assign(d.settings, p.settings || {});
     p.log = p.log || []; p.ex = p.ex || {}; p.customs = p.customs || {}; p.saved = p.saved || [];
-    p.color = p.color || COLORS[0]; p.name = p.name || 'Jaz';
+    p.color = p.color || COLORS[0]; p.name = p.name || 'Me';
     return p;
   }
 
@@ -54,7 +54,7 @@
       var v1 = localStorage.getItem(KEY_V1);
       if (v1) {
         // migrate the single-user v1 state into a first profile
-        var old = JSON.parse(v1), p = newProfile('Jaz');
+        var old = JSON.parse(v1), p = newProfile('Me');
         p.settings = Object.assign(p.settings, old.settings || {});
         delete p.settings.name;
         p.log = old.log || []; p.ex = old.ex || {};
@@ -125,7 +125,7 @@
     var blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'trening-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+    a.download = 'workout-backup-' + new Date().toISOString().slice(0, 10) + '.json';
     document.body.appendChild(a); a.click(); a.remove();
   }
 
@@ -139,11 +139,11 @@
         db.profiles[id] = normalize(s.profiles[id]);
       });
     } else if (s.settings && Array.isArray(s.log)) {
-      var p = newProfile('Uvoženo');
+      var p = newProfile('Imported');
       p.settings = Object.assign(p.settings, s.settings); delete p.settings.name;
       p.log = s.log; p.ex = s.ex || {};
       addProfile(p);
-    } else throw new Error('Neveljavna datoteka');
+    } else throw new Error('Invalid backup file');
     save();
   }
 

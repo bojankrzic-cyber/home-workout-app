@@ -111,7 +111,7 @@ Struktura vsakega treninga (~50–60 min): ogrevanje na kolesu/veslaču → glav
 | Generiranje treninga iz razpoložljive opreme | Fitbod | celotna knjižnica = samo tvoja oprema |
 | Bloki z deloadom in RIR | Future, Juggernaut, RP | 4-tedenski blok, RIR 3→2→1→deload |
 | TV-first layout: velika animacija levo, metrika desno, "Naslednje" spodaj | Apple Fitness+, Peloton | predvajalnik 16:9 z robnim napredkom |
-| Odštevanje 3-2-1, zvočni signali, glasovni napovednik | Peloton, Apple Fitness+ | WebAudio piski + sintetizator govora (sl-SI, če ga naprava ima) |
+| Odštevanje 3-2-1, zvočni signali, glasovni napovednik | Peloton, Apple Fitness+ | WebAudio piski + sintetizator govora (angleški glas en-GB/en-US) |
 | Kartica vaje: navodila + pogoste napake | Nike Training Club | `cues` + `mistakes` pri vsaki vaji |
 | Kinesis upor v stopnjah | Technogym Mywellness | breme Kinesis v stopnjah 0–20, ne kg |
 | Predogled vaj pred treningom | Apple Fitness+ "preview" | 📺 način: vse vaje treninga v zanki, nastavljiva dolžina |
@@ -159,5 +159,5 @@ Nova vaja = en objekt v `js/exercises.js` (+ vnos v `js/program.js`, če naj bo 
 
 - Animacije so stilizirana **2D stranska projekcija**, ne video. Rotacijske vaje (sekanje drv) so prikazane v projekciji — besedilna navodila to dopolnjujejo.
 - Profili in podatki so shranjeni **na napravi** (TV ≠ telefon) – ni oblačne prijave. Za prenos uporabi izvoz/uvoz v Nastavitvah (izvoz vsebuje vse profile).
-- Slovenski glas za govor večina TV-jev nima — takrat aplikacija uporabi zvočne signale.
+- Aplikacija je v angleščini (vmesnik in govor). Če naprava nima angleškega glasu, uporabi zvočne signale.
 - Začetne teže so ocena; prvi teden jih prilagodi (aplikacija si jih nato zapomni).

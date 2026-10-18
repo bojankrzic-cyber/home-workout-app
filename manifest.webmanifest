@@ -1,7 +1,7 @@
 {
   "name": "Formshaper – by Nature's Finest",
   "short_name": "Formshaper",
-  "description": "Osebni domači trening z animiranimi vajami za TV.",
+  "description": "Personal home workouts with animated exercises for your TV.",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",

@@ -498,9 +498,9 @@
 
   // ---- teaching overlays: muscle labels + joint angle checkpoints -------------
   var MUSCLE_NAME = {
-    quads: 'Kvadriceps', hams: 'Zadnja loža', glutes: 'Zadnjica', calves: 'Meča', hipflex: 'Upogibalke kolka',
-    abs: 'Trebušne', obliques: 'Poševne trebušne', lowback: 'Spodnji hrbet', chest: 'Prsne', lats: 'Široka hrbtna',
-    traps: 'Trapez', delts: 'Rame', biceps: 'Biceps', triceps: 'Triceps', forearms: 'Podlaket'
+    quads: 'Quads', hams: 'Hamstrings', glutes: 'Glutes', calves: 'Calves', hipflex: 'Hip flexors',
+    abs: 'Abs', obliques: 'Obliques', lowback: 'Lower back', chest: 'Chest', lats: 'Lats',
+    traps: 'Traps', delts: 'Delts', biceps: 'Biceps', triceps: 'Triceps', forearms: 'Forearms'
   };
   function labelSvg(pt, txt, dir) {
     var w = txt.length * 4.6 + 12;

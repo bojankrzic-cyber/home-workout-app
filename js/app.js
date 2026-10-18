@@ -28,7 +28,7 @@
     var prev = document.activeElement;
     var d = document.createElement('div'); d.className = 'dlg';
     d.innerHTML = '<div class="dlg-box" role="alertdialog" aria-modal="true"><p>' + esc(msg) + '</p><div class="dlg-row">' +
-      '<button class="btn ghost focusable" data-a="no">Prekliči</button><button class="btn primary focusable" data-a="yes">' + esc(yes) + '</button></div></div>';
+      '<button class="btn ghost focusable" data-a="no">Cancel</button><button class="btn primary focusable" data-a="yes">' + esc(yes) + '</button></div></div>';
     d.onclick = function (e) {
       var a = e.target.closest('[data-a]');
       if (!a && e.target !== d) return;
@@ -40,10 +40,10 @@
     $('[data-a="yes"]', d).focus();
   }
   function closeAsk() { var d = $('.dlg'); if (d) d.remove(); }
-  var DAYN = ['Ne', 'Po', 'To', 'Sr', 'Če', 'Pe', 'So'];
-  // Slovenian plural forms: [1, 2, 3–4, 5+]
-  function pl(n, f) { var k = Math.abs(n) % 100; return n + ' ' + (k === 1 ? f[0] : k === 2 ? f[1] : k === 3 || k === 4 ? f[2] : f[3]); }
-  var VAJ = ['vaja', 'vaji', 'vaje', 'vaj'], TRN = ['trening', 'treninga', 'treningi', 'treningov'], NAP = ['naprava', 'napravi', 'naprave', 'naprav'];
+  var DAYN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  // English plural forms: [singular, plural]
+  function pl(n, f) { return n + ' ' + (Math.abs(n) === 1 ? f[0] : f[1]); }
+  var VAJ = ['exercise', 'exercises'], TRN = ['workout', 'workouts'], NAP = ['item', 'items'];
 
   // ---------------------------------------------------------------- audio / voice
   var Audio = {
@@ -66,8 +66,8 @@
       if (!('speechSynthesis' in window)) return;
       var pick = function () {
         var vs = speechSynthesis.getVoices();
-        Voice.v = vs.filter(function (v) { return /^sl/i.test(v.lang); })[0] ||
-          vs.filter(function (v) { return /^(hr|sr|bs)/i.test(v.lang); })[0] || null;
+        var by = function (re) { return vs.filter(function (v) { return re.test(String(v.lang).replace('_', '-')); })[0]; };
+        Voice.v = by(/^en-GB/i) || by(/^en-US/i) || by(/^en/i) || null;
       };
       pick();
       speechSynthesis.onvoiceschanged = pick;
@@ -76,7 +76,7 @@
       if (!state || !state.settings.voice || !this.v || !('speechSynthesis' in window)) return;
       try {
         speechSynthesis.cancel();
-        var u = new SpeechSynthesisUtterance(text); u.voice = this.v; u.lang = this.v.lang; u.rate = 1.0;
+        var u = new SpeechSynthesisUtterance(text); u.voice = this.v; u.lang = this.v.lang || 'en-GB'; u.rate = 1.0;
         speechSynthesis.speak(u);
       } catch (e) { /* ignore */ }
     }
@@ -250,15 +250,15 @@
     var e = ex(item.id);
     if (item.cardio) return item.cardio.min ? item.cardio.min + ' min' : item.cardio.rounds + '× ' + item.cardio.work + '/' + item.cardio.easy + ' s';
     if (item.dist) return item.dist + ' m';
-    if (item.time && item.sets === 1) return item.time >= 60 ? fmt(item.time) + ' min' : item.time + ' s' + ((item.perSide || e.perSide) ? '/str.' : '');
-    if (item.time) return item.sets + '× ' + item.time + ' s' + ((item.perSide || e.perSide) ? '/str.' : '');
+    if (item.time && item.sets === 1) return item.time >= 60 ? fmt(item.time) + ' min' : item.time + ' s' + ((item.perSide || e.perSide) ? '/side' : '');
+    if (item.time) return item.sets + '× ' + item.time + ' s' + ((item.perSide || e.perSide) ? '/side' : '');
     var r = item.reps[0] === item.reps[1] ? item.reps[0] : item.reps[0] + '–' + item.reps[1];
-    return item.sets + '× ' + r + ((item.perSide || e.perSide) ? '/str.' : '');
+    return item.sets + '× ' + r + ((item.perSide || e.perSide) ? '/side' : '');
   }
   function loadTxt(e, load) {
-    if (e.unit === 'kg') return load ? load + ' kg' : 'lastna teža';
-    if (e.unit === 'stopnja') return 'stopnja ' + load;
-    return 'lastna teža';
+    if (e.unit === 'kg') return load ? load + ' kg' : 'bodyweight';
+    if (e.unit === 'stopnja') return 'level ' + load;
+    return 'bodyweight';
   }
 
   // ---------------------------------------------------------------- photos + muscles
@@ -282,7 +282,7 @@
   function musChips(mus, legend) {
     return '<div class="mus-chips">' + mus.p.map(function (m) { return '<span class="mchip p">' + esc(MUS_NAMES[m] || m) + '</span>'; }).join('') +
       mus.s.map(function (m) { return '<span class="mchip s">' + esc(MUS_NAMES[m] || m) + '</span>'; }).join('') + '</div>' +
-      (legend ? '<div class="mus-legend"><span class="mchip p">glavne</span><span class="mchip s">pomožne</span></div>' : '');
+      (legend ? '<div class="mus-legend"><span class="mchip p">primary</span><span class="mchip s">secondary</span></div>' : '');
   }
   // front + back anatomical map; muscles lit by role
   var MAP_FRONT = {
@@ -323,7 +323,7 @@
     return o + '<text x="50" y="210" class="mm-lbl">' + label + '</text></g>';
   }
   function muscleMap(mus) {
-    return '<svg viewBox="0 0 210 216" class="mmap">' + mapHalf(MAP_FRONT, mus, 0, 'SPREDAJ') + mapHalf(MAP_BACK, mus, 106, 'ZADAJ') + '</svg>';
+    return '<svg viewBox="0 0 210 216" class="mmap">' + mapHalf(MAP_FRONT, mus, 0, 'FRONT') + mapHalf(MAP_BACK, mus, 106, 'BACK') + '</svg>';
   }
 
   // ---------------------------------------------------------------- screens
@@ -358,45 +358,45 @@
       var s = Program.SESSIONS[k];
       var cp = sessionPhoto(s);
       return '<div class="session-card focusable' + (cp ? ' photo-card' : '') + (k === nextKey ? ' next' : '') + '" tabindex="0" data-go="overview" data-p=\'{"key":"' + k + '"}\'' + cardBg(cp) + '>' +
-        '<div class="tag" style="color:' + s.color + '">' + (k === nextKey ? 'NASLEDNJI' : 'TRENING ' + (plan.order.indexOf(k) + 1)) + '</div>' +
+        '<div class="tag" style="color:' + s.color + '">' + (k === nextKey ? 'UP NEXT' : 'WORKOUT ' + (plan.order.indexOf(k) + 1)) + '</div>' +
         '<h3>' + esc(s.name) + '</h3><p>' + esc(s.short) + '</p></div>';
     }).join('');
 
     root.innerHTML =
       '<div class="screen">' +
       '<div class="topbar">' + brandMark() + '<span class="chip on">' + esc(sess.weekInfo.label) + '</span><div class="spacer"></div>' +
-      '<button class="btn sm focusable" data-go="builder">＋ Sestavi trening</button>' +
-      '<button class="btn sm ghost focusable" data-go="library">Knjižnica vaj</button>' +
-      '<button class="btn sm ghost focusable" data-go="history">Napredek</button>' +
-      '<button class="btn sm ghost focusable" data-go="settings">Nastavitve</button>' +
-      '<button class="btn sm ghost focusable who" data-go="profiles" title="Zamenjaj osebo">' + avatar(state) + esc(state.name) + '</button></div>' +
-      '<div class="hero"><div class="hero-card' + (heroPhoto ? ' has-photo' : '') + '"' + photoBg(heroPhoto) + '><div class="eyebrow">Današnji trening · ' + esc(sess.weekInfo.label) + '</div>' +
+      '<button class="btn sm focusable" data-go="builder">＋ Build workout</button>' +
+      '<button class="btn sm ghost focusable" data-go="library">Library</button>' +
+      '<button class="btn sm ghost focusable" data-go="history">Progress</button>' +
+      '<button class="btn sm ghost focusable" data-go="settings">Settings</button>' +
+      '<button class="btn sm ghost focusable who" data-go="profiles" title="Switch person" aria-label="Switch person">' + avatar(state) + esc(state.name) + '</button></div>' +
+      '<div class="hero"><div class="hero-card' + (heroPhoto ? ' has-photo' : '') + '"' + photoBg(heroPhoto) + '><div class="eyebrow">Today’s workout · ' + esc(sess.weekInfo.label) + '</div>' +
       '<h1>' + esc(sess.name) + '</h1>' +
-      '<div class="meta"><div><b>~' + mins + ' min</b>trajanje</div><div><b>' + exCount + '</b>vaj</div><div><b>RIR ' + sess.weekInfo.rir + '</b>napor</div></div>' +
+      '<div class="meta"><div><b>~' + mins + ' min</b>duration</div><div><b>' + exCount + '</b>' + (exCount === 1 ? 'exercise' : 'exercises') + '</div><div><b>RIR ' + sess.weekInfo.rir + '</b>effort</div></div>' +
       '<div class="hint">' + esc(sess.weekInfo.note) + '</div>' +
-      '<div class="actions"><button class="btn primary focusable" data-autofocus data-go="player" data-p=\'{"key":"' + nextKey + '"}\'>▶ Začni trening</button>' +
-      '<button class="btn focusable" data-go="preview" data-p=\'{"key":"' + nextKey + '"}\'>📺 Predogled vaj</button>' +
-      '<button class="btn ghost focusable" data-go="overview" data-p=\'{"key":"' + nextKey + '"}\'>Podrobnosti</button></div>' +
+      '<div class="actions"><button class="btn primary focusable" data-autofocus data-go="player" data-p=\'{"key":"' + nextKey + '"}\'>▶ Start workout</button>' +
+      '<button class="btn focusable" data-go="preview" data-p=\'{"key":"' + nextKey + '"}\'>📺 Preview</button>' +
+      '<button class="btn ghost focusable" data-go="overview" data-p=\'{"key":"' + nextKey + '"}\'>Details</button></div>' +
       (heroPhoto ? '' : '<div class="hero-fig" id="heroFig"></div>') + '</div>' +
-      '<div class="week"><h3>Ta teden · ' + weekDone + ' / ' + plan.order.length + ' treningov</h3><div class="days">' + daysHtml + '</div>' +
-      '<div class="stats"><div class="stat"><b>' + state.log.length + '</b><span>treningov skupaj</span></div>' +
-      '<div class="stat"><b>' + Math.round(totalMin / 60) + ' h</b><span>skupni čas</span></div>' +
-      '<div class="stat"><b>' + streak + '</b><span>zaporednih tednov</span></div></div></div></div>' +
-      '<div class="section-title"><h2>Tvoj program</h2><span>' + plan.order.length + ' treningi v rotaciji · zamujen dan ne podre plana</span></div>' +
+      '<div class="week"><h3>This week · ' + weekDone + ' / ' + plan.order.length + ' workouts</h3><div class="days">' + daysHtml + '</div>' +
+      '<div class="stats"><div class="stat"><b>' + state.log.length + '</b><span>total workouts</span></div>' +
+      '<div class="stat"><b>' + Math.round(totalMin / 60) + ' h</b><span>total time</span></div>' +
+      '<div class="stat"><b>' + streak + '</b><span>week streak</span></div></div></div></div>' +
+      '<div class="section-title"><h2>Your program</h2><span>' + plan.order.length + ' workouts in rotation · a missed day won’t derail your plan</span></div>' +
       '<div class="row">' + cards + '</div>' +
-      '<div class="section-title"><h2>Trening po izbiri</h2><span>izberi fokus ali vrsto – sestavi se samo iz tvoje opreme</span></div>' +
+      '<div class="section-title"><h2>Quick workouts</h2><span>pick a focus or type – built only from your equipment</span></div>' +
       '<div class="row">' + QUICK.map(function (q, i) {
         var qp = q.photo && photo(q.photo);
         return '<div class="session-card focusable quick' + (qp ? ' photo-card' : '') + '" tabindex="0" data-quick="' + i + '"' + cardBg(qp) + '><div class="tag" style="color:' + q.color + '">' + q.tag + '</div><h3>' + esc(q.name) + '</h3><p>' + esc(q.sub) + '</p></div>';
-      }).join('') + '<div class="session-card focusable quick" tabindex="0" data-go="builder"><div class="tag">PO MERI</div><h3>＋ Sestavi svoj trening</h3><p>moč / kardio / kombinirano · fokus · trajanje</p></div></div>' +
-      '<div class="section-title"><h2>🏁 HYROX</h2><span>simulacija tekme na tvoji opremi – na čas, z vmesnimi časi</span></div>' +
+      }).join('') + '<div class="session-card focusable quick" tabindex="0" data-go="builder"><div class="tag">CUSTOM</div><h3>＋ Build your own</h3><p>strength / cardio / mixed · focus · duration</p></div></div>' +
+      '<div class="section-title"><h2>🏁 HYROX</h2><span>race simulation on your equipment – for time, with splits</span></div>' +
       '<div class="row">' + Program.HX_KEYS.map(function (k) {
         var hs = Program.SESSIONS[k];
-        return '<div class="session-card hx focusable photo-card" tabindex="0" data-go="overview" data-p=\'{"key":"' + k + '"}\'' + cardBg(photo(['kb_swing', 'row_hiit', 'kb_deadlift'][Program.HX_KEYS.indexOf(k)])) + '><div class="tag">' + (hs.race ? 'NA ČAS' : 'TRENING') + '</div><h3>' + esc(hs.name) + '</h3><p>' + esc(hs.short) + '</p></div>';
+        return '<div class="session-card hx focusable photo-card" tabindex="0" data-go="overview" data-p=\'{"key":"' + k + '"}\'' + cardBg(photo(['kb_swing', 'row_hiit', 'kb_deadlift'][Program.HX_KEYS.indexOf(k)])) + '><div class="tag">' + (hs.race ? 'FOR TIME' : 'WORKOUT') + '</div><h3>' + esc(hs.name) + '</h3><p>' + esc(hs.short) + '</p></div>';
       }).join('') + '</div>' +
-      (state.saved.length ? '<div class="section-title"><h2>Moji shranjeni treningi</h2></div><div class="row">' + state.saved.filter(function (k) { return state.customs[k]; }).map(function (k) {
+      (state.saved.length ? '<div class="section-title"><h2>Saved workouts</h2></div><div class="row">' + state.saved.filter(function (k) { return state.customs[k]; }).map(function (k) {
         var c = state.customs[k];
-        return '<div class="session-card focusable" tabindex="0" data-go="overview" data-p=\'{"key":"' + k + '"}\'><div class="tag" style="color:' + c.color + '">SHRANJENO</div><h3>' + esc(c.name) + '</h3><p>' + esc(c.short) + '</p></div>';
+        return '<div class="session-card focusable" tabindex="0" data-go="overview" data-p=\'{"key":"' + k + '"}\'><div class="tag" style="color:' + c.color + '">SAVED</div><h3>' + esc(c.name) + '</h3><p>' + esc(c.short) + '</p></div>';
       }).join('') + '</div>' : '') +
       '</div>';
     if ($('#heroFig')) mountFigure($('#heroFig'), heroEx, { aspect: 1 });
@@ -409,12 +409,12 @@
   };
 
   var QUICK = [
-    { tag: 'MOČ', name: 'Celo telo', photo: 'kb_goblet_squat', sub: '45 min · vse glavne skupine', color: '#3ec46d', opts: { type: 'moc', focus: ['noge', 'prsa', 'hrbet', 'zadnjica', 'rame', 'trup'], min: 45 } },
-    { tag: 'MOČ', name: 'Noge & zadnjica', photo: 'kb_deadlift', sub: '40 min', color: '#f08a5d', opts: { type: 'moc', focus: ['noge', 'zadnjica'], min: 40 } },
-    { tag: 'MOČ', name: 'Zgornji del', photo: 'db_bench', sub: '40 min · prsa, hrbet, rame, roke', color: '#b6c99b', opts: { type: 'moc', focus: ['prsa', 'hrbet', 'rame', 'roke'], min: 40 } },
-    { tag: 'TRUP', name: 'Trebušne & hrbet', sub: '20 min', color: '#a99be8', opts: { type: 'moc', focus: ['trup'], min: 20 } },
-    { tag: 'KARDIO', name: 'Intervali kolo + veslač', photo: 'bike_hiit', sub: '30 min', color: '#5ad1b8', opts: { type: 'kardio', machine: 'both', intensity: 'hiit', min: 30 } },
-    { tag: 'KARDIO', name: 'Cona 2 – vzdržljivost', photo: 'row_steady', sub: '40 min · lahkotno', color: '#5ad1b8', opts: { type: 'kardio', machine: 'both', intensity: 'z2', min: 40 } }
+    { tag: 'STRENGTH', name: 'Full body', photo: 'kb_goblet_squat', sub: '45 min · all major muscle groups', color: '#3ec46d', opts: { type: 'moc', focus: ['noge', 'prsa', 'hrbet', 'zadnjica', 'rame', 'trup'], min: 45 } },
+    { tag: 'STRENGTH', name: 'Legs & glutes', photo: 'kb_deadlift', sub: '40 min', color: '#f08a5d', opts: { type: 'moc', focus: ['noge', 'zadnjica'], min: 40 } },
+    { tag: 'STRENGTH', name: 'Upper body', photo: 'db_bench', sub: '40 min · chest, back, shoulders, arms', color: '#b6c99b', opts: { type: 'moc', focus: ['prsa', 'hrbet', 'rame', 'roke'], min: 40 } },
+    { tag: 'CORE', name: 'Abs & back', sub: '20 min', color: '#a99be8', opts: { type: 'moc', focus: ['trup'], min: 20 } },
+    { tag: 'CARDIO', name: 'Bike + rower intervals', photo: 'bike_hiit', sub: '30 min', color: '#5ad1b8', opts: { type: 'kardio', machine: 'both', intensity: 'hiit', min: 30 } },
+    { tag: 'CARDIO', name: 'Zone 2 – endurance', photo: 'row_steady', sub: '40 min · easy', color: '#5ad1b8', opts: { type: 'kardio', machine: 'both', intensity: 'z2', min: 40 } }
   ];
 
   function weeksStreak() {
@@ -435,33 +435,33 @@
     var mins = Program.estimateMin(sess);
     var html = '<div class="screen"><div class="ov-head"><div><div class="chip on" style="display:inline-block;margin-bottom:.6rem">' + esc(sess.weekInfo.label) + '</div>' +
       '<h1>' + esc(sess.name) + '</h1><p>~' + mins + ' min · ' + esc(sess.weekInfo.note) + '</p></div><div class="spacer"></div>' +
-      (sess.custom ? '<button class="btn ghost focusable" id="saveTgl">' + (state.saved.indexOf(p.key) >= 0 ? '★ Shranjeno' : '☆ Shrani') + '</button>' : '') +
-      '<button class="btn focusable" data-go="preview" data-p=\'{"key":"' + p.key + '"}\'>📺 Predogled</button>' +
-      '<button class="btn primary focusable" data-autofocus data-go="player" data-p=\'{"key":"' + p.key + '"}\'>▶ Začni</button></div><div class="blocks">';
+      (sess.custom ? '<button class="btn ghost focusable" id="saveTgl">' + (state.saved.indexOf(p.key) >= 0 ? '★ Saved' : '☆ Save') + '</button>' : '') +
+      '<button class="btn focusable" data-go="preview" data-p=\'{"key":"' + p.key + '"}\'>📺 Preview</button>' +
+      '<button class="btn primary focusable" data-autofocus data-go="player" data-p=\'{"key":"' + p.key + '"}\'>▶ Start</button></div><div class="blocks">';
     sess.blocks.forEach(function (b, bi) {
       html += '<div class="block"><h3>' + esc(b.title) + '</h3>';
       b.items.forEach(function (it, ii) {
         var e = ex(it.id);
         var gl = Program.groupLetter(b.title, bi), tag = b.items.length > 1 && gl ? '<span class="lbl">' + gl + (ii + 1) + '</span>' : '';
-        var load = it.sug ? '<small>' + esc(loadTxt(e, it.sug.load)) + '</small>' : '<small>' + (it.cardio ? 'kardio' : 'drži') + '</small>';
+        var load = it.sug ? '<small>' + esc(loadTxt(e, it.sug.load)) + '</small>' : '<small>' + (it.cardio ? 'cardio' : 'hold') + '</small>';
         html += '<div class="ex-row focusable" tabindex="0" data-go="exercise" data-p=\'{"id":"' + it.id + '"}\'>' +
           '<div class="ex-thumb" data-thumb="' + it.id + '"></div><div><h4>' + tag + esc(e.name) + '</h4><div class="sub">' +
-          (it.swappedFrom ? '<span class="swap-note">⇄ namesto: ' + esc(ex(it.swappedFrom).name) + '</span> · ' : '') + esc(e.muscles) +
+          (it.swappedFrom ? '<span class="swap-note">⇄ swapped for: ' + esc(ex(it.swappedFrom).name) + '</span> · ' : '') + esc(e.muscles) +
           (it.sug && it.sug.why ? ' · <span style="color:var(--accent)">' + esc(it.sug.why) + '</span>' : '') + '</div></div>' +
           '<div class="rx">' + rx(it) + load + '</div></div>';
       });
       html += '</div>';
     });
-    if (sess.missing.length) html += '<div class="missing-note">Izpuščeno, ker ni ustrezne opreme: ' + sess.missing.map(function (id) { return esc(ex(id).name); }).join(', ') +
-      ' · <button class="btn sm ghost focusable" data-go="equipment">Uredi opremo</button></div>';
+    if (sess.missing.length) html += '<div class="missing-note">Skipped – missing equipment: ' + sess.missing.map(function (id) { return esc(ex(id).name); }).join(', ') +
+      ' · <button class="btn sm ghost focusable" data-go="equipment">Edit equipment</button></div>';
     root.innerHTML = html + '</div></div>';
     mountThumbs();
     if ($('#saveTgl')) $('#saveTgl').onclick = function () {
       var i = state.saved.indexOf(p.key);
       if (i >= 0) state.saved.splice(i, 1); else state.saved.push(p.key);
       Store.save();
-      this.textContent = i >= 0 ? '☆ Shrani' : '★ Shranjeno';
-      toast(i >= 0 ? 'Odstranjeno iz shranjenih' : 'Shranjeno – najdeš ga na domačem zaslonu');
+      this.textContent = i >= 0 ? '☆ Save' : '★ Saved';
+      toast(i >= 0 ? 'Removed from saved' : 'Saved – you’ll find it on the home screen');
     };
   };
 
@@ -471,24 +471,24 @@
     function chip(kind, val, label, on) {
       return '<button class="chip focusable' + (on ? ' on' : '') + '" data-fid="lib-' + kind + '-' + val + '" data-lib="' + kind + '" data-val="' + val + '">' + label + '</button>';
     }
-    var focusChips = chip('g', 'all', 'Vse skupine', g === 'all') +
+    var focusChips = chip('g', 'all', 'All groups', g === 'all') +
       Object.keys(Exercises.FOCUS).map(function (k) { return chip('g', k, Exercises.FOCUS[k].name, g === k); }).join('');
     var equipKeys = Object.keys(Exercises.EQUIP).filter(function (k) { return k === 'floor' || own.indexOf(k) >= 0; });
-    var equipChips = chip('f', 'mine', 'Moja oprema', f === 'mine') + chip('f', 'all', 'Vse vaje', f === 'all') +
+    var equipChips = chip('f', 'mine', 'My equipment', f === 'mine') + chip('f', 'all', 'All exercises', f === 'all') +
       equipKeys.map(function (k) { return chip('f', k, '<span class="chip-ico">' + equipIcon(k) + '</span>' + esc(Exercises.EQUIP[k].name), f === k); }).join('');
     var list = Exercises.LIST.filter(function (e) {
       return (f === 'all' || (f === 'mine' ? Exercises.available(e.id, own) : e.equip.indexOf(f) >= 0)) && (g === 'all' || e.groups.indexOf(g) >= 0);
     });
-    root.innerHTML = '<div class="screen"><div class="topbar"><h1>Knjižnica vaj</h1><span class="chip">' + pl(list.length, VAJ) + '</span><div class="spacer"></div>' +
-      '<button class="btn sm ghost focusable" data-go="equipment">Moja oprema →</button></div>' +
-      '<div class="filters"><span class="flabel">Fokus</span>' + focusChips + '</div>' +
-      '<div class="filters"><span class="flabel">Oprema</span>' + equipChips + '</div><div class="grid">' +
+    root.innerHTML = '<div class="screen"><div class="topbar"><h1>Library</h1><span class="chip">' + pl(list.length, VAJ) + '</span><div class="spacer"></div>' +
+      '<button class="btn sm ghost focusable" data-go="equipment">My equipment →</button></div>' +
+      '<div class="filters"><span class="flabel">Focus</span>' + focusChips + '</div>' +
+      '<div class="filters"><span class="flabel">Equipment</span>' + equipChips + '</div><div class="grid">' +
       (list.map(function (e) {
         var ok = Exercises.available(e.id, own);
         var need = e.equip.filter(function (k) { return k !== 'floor' && own.indexOf(k) < 0; }).map(function (k) { return Exercises.EQUIP[k].name; }).join(', ');
         return '<div class="lib-card focusable' + (ok ? '' : ' locked') + '" tabindex="0" data-go="exercise" data-p=\'{"id":"' + e.id + '"}\'><div class="thumb" data-thumb="' + e.id + '"></div>' +
-          '<div class="info"><h4>' + esc(e.name) + '</h4><div class="sub">' + (ok ? esc(e.muscles) : '🔒 Potrebuješ: ' + esc(need)) + '</div></div></div>';
-      }).join('') || '<div class="hint">Za to kombinacijo ni vaj.</div>') + '</div></div>';
+          '<div class="info"><h4>' + esc(e.name) + '</h4><div class="sub">' + (ok ? esc(e.muscles) : '🔒 Requires: ' + esc(need)) + '</div></div></div>';
+      }).join('') || '<div class="hint">No exercises match these filters.</div>') + '</div></div>';
     mountThumbs();
     $$('[data-lib]').forEach(function (b) {
       b.onclick = function () {
@@ -510,15 +510,15 @@
     el.className = 'player exd';
     el.innerHTML = '<div class="stage"><div class="fig" id="exFig"></div><div class="phase" id="exPhase"></div>' +
       '<div class="badge-top">' + e.equip.map(function (k) { return '<span class="chip"><span class="chip-ico">' + equipIcon(k) + '</span>' + esc(Exercises.EQUIP[k].name) + '</span>'; }).join('') + '</div>' +
-      (ph ? '<button class="pip focusable" id="exPip"><img src="' + ph + '" alt=""><span>Prava izvedba · povečaj</span></button><div class="photo-full" id="exPhoto" hidden><img src="' + ph + '" alt=""><span>' + esc(e.name) + '</span></div>' : '') +
+      (ph ? '<button class="pip focusable" id="exPip"><img src="' + ph + '" alt=""><span>Real form · enlarge</span></button><div class="photo-full" id="exPhoto" hidden><img src="' + ph + '" alt=""><span>' + esc(e.name) + '</span></div>' : '') +
       '</div><div class="side"><div class="kicker">' + esc(e.muscles) + '</div><h2>' + esc(e.name) + '</h2>' +
-      '<div class="why">Tempo <b>' + esc(e.tempo || '') + '</b>' + (h ? ' · zadnjič <b>' + esc(loadTxt(e, h.load)) + '</b> × ' + h.reps.join(', ') : '') + '</div>' +
-      '<div class="mus-block"><div class="mus-map">' + muscleMap(mus) + '</div><div class="mus-list"><div class="label">Delajo</div>' + musChips(mus, true) + '</div></div>' +
-      '<div class="label">Pravilna izvedba – po fazah</div><ol class="steps" id="exSteps">' + steps.map(function (s, k) { return '<li data-i="' + s.i + '"><b>' + (k + 1) + '</b>' + esc(s.l) + '</li>'; }).join('') + '</ol>' +
-      '<div class="label">Ključne točke</div><ul class="cues ok">' + e.cues.map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('') + '</ul>' +
-      '<div class="label">Pogoste napake</div><ul class="cues bad">' + (e.mistakes || []).map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('') + '</ul>' +
-      '<div class="controls"><button class="btn primary focusable" id="solo">▶ Treniraj to vajo</button><button class="btn focusable" id="spd">Hitrost 1×</button>' +
-      '<button class="btn focusable" id="gd">Kontrolne točke: vklop</button><button class="btn ghost focusable" id="bk">← Nazaj</button></div></div>';
+      '<div class="why">Tempo <b>' + esc(e.tempo || '') + '</b>' + (h ? ' · last time <b>' + esc(loadTxt(e, h.load)) + '</b> × ' + h.reps.join(', ') : '') + '</div>' +
+      '<div class="mus-block"><div class="mus-map">' + muscleMap(mus) + '</div><div class="mus-list"><div class="label">Muscles worked</div>' + musChips(mus, true) + '</div></div>' +
+      '<div class="label">Proper form – step by step</div><ol class="steps" id="exSteps">' + steps.map(function (s, k) { return '<li data-i="' + s.i + '"><b>' + (k + 1) + '</b>' + esc(s.l) + '</li>'; }).join('') + '</ol>' +
+      '<div class="label">Key cues</div><ul class="cues ok">' + e.cues.map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('') + '</ul>' +
+      '<div class="label">Common mistakes</div><ul class="cues bad">' + (e.mistakes || []).map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('') + '</ul>' +
+      '<div class="controls"><button class="btn primary focusable" id="solo">▶ Train this exercise</button><button class="btn focusable" id="spd">Speed 1×</button>' +
+      '<button class="btn focusable" id="gd">Form guides: on</button><button class="btn ghost focusable" id="bk">← Back</button></div></div>';
     document.body.appendChild(el);
     var speeds = [1, 0.5, 0.25], si = 0;
     var pl = mountFigure($('#exFig'), p.id, {
@@ -530,12 +530,12 @@
         $$('#exSteps li').forEach(function (li) { li.classList.toggle('on', li === cur); });
       }
     });
-    $('#spd').onclick = function () { si = (si + 1) % speeds.length; pl.speed = (e.speed || 1) * speeds[si]; this.textContent = 'Hitrost ' + speeds[si] + '×'; };
-    $('#gd').onclick = function () { pl.guides = pl.labels = !pl.guides; this.textContent = 'Kontrolne točke: ' + (pl.guides ? 'vklop' : 'izklop'); };
+    $('#spd').onclick = function () { si = (si + 1) % speeds.length; pl.speed = (e.speed || 1) * speeds[si]; this.textContent = 'Speed ' + speeds[si] + '×'; };
+    $('#gd').onclick = function () { pl.guides = pl.labels = !pl.guides; this.textContent = 'Form guides: ' + (pl.guides ? 'on' : 'off'); };
     $('#bk').onclick = back;
     $('#solo').onclick = function () { startCustom(Program.single(p.id), 'player'); };
     if (ph) {
-      $('#exPip').onclick = function () { var f = $('#exPhoto'); f.hidden = !f.hidden; this.querySelector('span').textContent = f.hidden ? 'Prava izvedba · povečaj' : 'Nazaj na animacijo'; };
+      $('#exPip').onclick = function () { var f = $('#exPhoto'); f.hidden = !f.hidden; this.querySelector('span').textContent = f.hidden ? 'Real form · enlarge' : 'Back to animation'; };
     }
     $('#solo').setAttribute('data-autofocus', '');
     setTimeout(function () { var sd = $('.exd .side'); if (sd) sd.scrollTop = 0; }, 30);
@@ -556,13 +556,13 @@
       if (!e) return '';
       return '<div class="hist-item"><div class="d">' + esc(h.date ? h.date.slice(0, 10) : '') + '</div><div style="flex:1"><b>' + esc(e.name) + '</b></div><div>' + esc(loadTxt(e, h.load)) + ' × ' + h.reps.join(' / ') + '</div></div>';
     }).join('');
-    root.innerHTML = '<div class="screen"><div class="topbar"><h1>Napredek</h1><div class="spacer"></div><button class="btn sm ghost focusable" data-autofocus data-go="settings">Varnostna kopija</button></div>' +
-      '<div class="hero"><div class="panel"><h3>Treningi na teden (12 tednov)</h3><div class="bars">' + bars + '</div><div class="hint">Cilj: ' + state.settings.days + ' na teden</div></div>' +
-      '<div class="panel"><h3>Zadnji treningi</h3><div class="hist">' + (log.slice(0, 6).map(function (l) {
+    root.innerHTML = '<div class="screen"><div class="topbar"><h1>Progress</h1><div class="spacer"></div><button class="btn sm ghost focusable" data-autofocus data-go="settings">Backup</button></div>' +
+      '<div class="hero"><div class="panel"><h3>Workouts per week (12 weeks)</h3><div class="bars">' + bars + '</div><div class="hint">Goal: ' + state.settings.days + ' per week</div></div>' +
+      '<div class="panel"><h3>Recent workouts</h3><div class="hist">' + (log.slice(0, 6).map(function (l) {
         var s = Program.get(state, l.session);
-        return '<div class="hist-item"><div class="d">' + new Date(l.date).toLocaleDateString('sl-SI') + '</div><div style="flex:1">' + esc(l.name || (s ? s.name : 'Trening')) + '</div><div>' + l.min + ' min · ' + l.sets.length + ' serij</div></div>';
-      }).join('') || '<div class="hint">Še ni zabeleženih treningov.</div>') + '</div></div></div>' +
-      '<div class="panel"><h3>Trenutne delovne teže (dvojna progresija)</h3><div class="hist">' + (prs || '<div class="hint">Po prvem treningu se tu pokažejo teže in ponovitve za vsako vajo.</div>') + '</div></div></div>';
+        return '<div class="hist-item"><div class="d">' + new Date(l.date).toLocaleDateString('en-GB') + '</div><div style="flex:1">' + esc(l.name || (s ? s.name : 'Workout')) + '</div><div>' + l.min + ' min · ' + l.sets.length + (l.sets.length === 1 ? ' set' : ' sets') + '</div></div>';
+      }).join('') || '<div class="hint">No workouts logged yet.</div>') + '</div></div></div>' +
+      '<div class="panel"><h3>Current working weights (double progression)</h3><div class="hist">' + (prs || '<div class="hint">After your first workout, weights and reps for each exercise show up here.</div>') + '</div></div></div>';
   };
 
   SCREENS.settings = function () {
@@ -570,26 +570,26 @@
     function opt(key, val, label) {
       return '<button class="chip focusable' + (s[key] === val ? ' on' : '') + '" data-set="' + key + '" data-val=\'' + JSON.stringify(val) + '\'>' + label + '</button>';
     }
-    var voiceInfo = Voice.v ? 'Glas: ' + Voice.v.name : 'Slovenski glas na tej napravi ni na voljo – uporabljam zvočne signale.';
-    root.innerHTML = '<div class="screen"><div class="topbar"><h1>Nastavitve</h1><div class="spacer"></div>' +
-      '<button class="btn sm ghost focusable who" data-go="profiles">' + avatar(state) + 'Zamenjaj osebo</button></div>' +
-      '<div class="panel"><h3>Profil</h3><div class="opt-row">' + avatar(state, true) + '<div style="flex:1"><b style="font-size:1.3rem">' + esc(state.name) + '</b><div class="hint">' +
-      (state.pin ? 'Zaklenjen s PIN-om' : 'Brez PIN-a') + ' · ' + pl(state.log.length, TRN) + '</div></div>' +
-      '<button class="btn focusable" data-go="profileEdit" data-p=\'{"id":"' + state.id + '"}\'>Uredi profil</button></div></div>' +
-      '<div class="panel"><h3>Moja oprema</h3><div class="opt-row"><div class="eq-strip">' + (state.settings.equipment || []).map(function (k) { return '<span class="eq-mini" title="' + esc(Exercises.EQUIP[k].name) + '">' + equipIcon(k) + '</span>'; }).join('') +
-      '</div><div class="spacer"></div><button class="btn focusable" data-go="equipment">' + pl((state.settings.equipment || []).length, NAP) + ' · ' + pl(unlocked(state.settings.equipment || []), VAJ) + ' · uredi →</button></div></div><div class="panel">' +
-      '<div class="opt-row"><div class="k">Treningov na teden</div>' + opt('days', 3, '3× – celo telo') + opt('days', 4, '4× – upper / lower') + '</div>' +
-      '<div class="opt-row"><div class="k">Nivo</div>' + opt('level', 'beg', 'Začetnik') + opt('level', 'mid', 'Srednji') + opt('level', 'adv', 'Napreden') + '</div>' +
-      '<div class="opt-row"><div class="k">Glasovna navodila</div>' + opt('voice', true, 'Vklopljeno') + opt('voice', false, 'Izklopljeno') + '<span class="hint">' + esc(voiceInfo) + '</span></div>' +
-      '<div class="opt-row"><div class="k">Zvočni signali</div>' + opt('beeps', true, 'Vklopljeno') + opt('beeps', false, 'Izklopljeno') + '</div>' +
-      '<div class="opt-row"><div class="k">Predogled – sekund na vajo</div>' + opt('previewSec', 10, '10 s') + opt('previewSec', 15, '15 s') + opt('previewSec', 25, '25 s') + '</div>' +
-      '<div class="opt-row"><div class="k">Začetek 4-tedenskega bloka</div><span class="chip">' + esc(s.startDate) + '</span><button class="btn sm focusable" id="newBlock">Začni nov blok danes</button></div>' +
-      '</div><div class="panel"><h3>Podatki</h3><div class="opt-row">' +
-      '<button class="btn focusable" id="exp">⬇ Izvozi varnostno kopijo</button>' +
-      '<label class="btn focusable" tabindex="0" id="impL">⬆ Uvozi<input type="file" id="imp" accept="application/json" hidden></label>' +
-      '<button class="btn ghost focusable" id="rst">Ponastavi moj napredek</button></div>' +
-      '<div class="hint">Podatki vseh oseb so shranjeni samo v tej napravi (brskalnik). Izvoz vsebuje vse profile – za prenos med telefonom in TV uporabi izvoz/uvoz.</div></div>' +
-      '<div class="panel"><h3>Upravljanje z daljincem</h3><div class="hint"><span class="kbd">← ↑ → ↓</span> premikanje · <span class="kbd">OK</span> izberi / serija opravljena · <span class="kbd">Nazaj</span> nazaj · <span class="kbd">▶❚❚</span> pavza</div></div></div>';
+    var voiceInfo = Voice.v ? 'Voice: ' + Voice.v.name : 'No English voice on this device – using beeps.';
+    root.innerHTML = '<div class="screen"><div class="topbar"><h1>Settings</h1><div class="spacer"></div>' +
+      '<button class="btn sm ghost focusable who" data-go="profiles">' + avatar(state) + 'Switch person</button></div>' +
+      '<div class="panel"><h3>Profile</h3><div class="opt-row">' + avatar(state, true) + '<div style="flex:1"><b style="font-size:1.3rem">' + esc(state.name) + '</b><div class="hint">' +
+      (state.pin ? 'PIN locked' : 'No PIN') + ' · ' + pl(state.log.length, TRN) + '</div></div>' +
+      '<button class="btn focusable" data-go="profileEdit" data-p=\'{"id":"' + state.id + '"}\'>Edit profile</button></div></div>' +
+      '<div class="panel"><h3>My equipment</h3><div class="opt-row"><div class="eq-strip">' + (state.settings.equipment || []).map(function (k) { return '<span class="eq-mini" title="' + esc(Exercises.EQUIP[k].name) + '">' + equipIcon(k) + '</span>'; }).join('') +
+      '</div><div class="spacer"></div><button class="btn focusable" data-go="equipment">' + pl((state.settings.equipment || []).length, NAP) + ' · ' + pl(unlocked(state.settings.equipment || []), VAJ) + ' · edit →</button></div></div><div class="panel">' +
+      '<div class="opt-row"><div class="k">Workouts per week</div>' + opt('days', 3, '3× – full body') + opt('days', 4, '4× – upper / lower') + '</div>' +
+      '<div class="opt-row"><div class="k">Level</div>' + opt('level', 'beg', 'Beginner') + opt('level', 'mid', 'Intermediate') + opt('level', 'adv', 'Advanced') + '</div>' +
+      '<div class="opt-row"><div class="k">Voice coaching</div>' + opt('voice', true, 'On') + opt('voice', false, 'Off') + '<span class="hint">' + esc(voiceInfo) + '</span></div>' +
+      '<div class="opt-row"><div class="k">Beeps</div>' + opt('beeps', true, 'On') + opt('beeps', false, 'Off') + '</div>' +
+      '<div class="opt-row"><div class="k">Preview – seconds per exercise</div>' + opt('previewSec', 10, '10 s') + opt('previewSec', 15, '15 s') + opt('previewSec', 25, '25 s') + '</div>' +
+      '<div class="opt-row"><div class="k">4-week block start</div><span class="chip">' + esc(s.startDate) + '</span><button class="btn sm focusable" id="newBlock">Start new block today</button></div>' +
+      '</div><div class="panel"><h3>Data</h3><div class="opt-row">' +
+      '<button class="btn focusable" id="exp">⬇ Export backup</button>' +
+      '<label class="btn focusable" tabindex="0" id="impL">⬆ Import<input type="file" id="imp" accept="application/json" hidden></label>' +
+      '<button class="btn ghost focusable" id="rst">Reset my progress</button></div>' +
+      '<div class="hint">Everyone’s data is stored only on this device (in the browser). The export includes all profiles – use export/import to move data between your phone and TV.</div></div>' +
+      '<div class="panel"><h3>Remote control</h3><div class="hint"><span class="kbd">← ↑ → ↓</span> move · <span class="kbd">OK</span> select / set done · <span class="kbd">Back</span> back · <span class="kbd">▶❚❚</span> pause</div></div></div>';
     $$('[data-set]').forEach(function (b) {
       b.onclick = function () {
         s[b.getAttribute('data-set')] = JSON.parse(b.getAttribute('data-val'));
@@ -597,15 +597,15 @@
         refresh();
       };
     });
-    $('#newBlock').onclick = function () { s.startDate = new Date().toISOString().slice(0, 10); Store.save(); toast('Nov blok se začne danes – teden 1'); refresh(); };
+    $('#newBlock').onclick = function () { s.startDate = new Date().toISOString().slice(0, 10); Store.save(); toast('New block starts today – Week 1'); refresh(); };
     $('#exp').onclick = function () { Store.exportJSON(); };
     $('#impL').onclick = function (e) { if (e.target.id !== 'imp') $('#imp').click(); };
     $('#imp').onchange = function () {
       var f = this.files[0]; if (!f) return;
-      f.text().then(function (t) { try { Store.importJSON(t); toast('Uvoženo – izberi osebo'); resetTo('profiles'); } catch (err) { toast('Napaka: ' + err.message); } });
+      f.text().then(function (t) { try { Store.importJSON(t); toast('Imported – choose a person'); resetTo('profiles'); } catch (err) { toast('Error: ' + err.message); } });
     };
     $('#rst').onclick = function () {
-      ask('Res izbrišem vso zgodovino in teže za ' + state.name + '?', 'Ponastavi', function () { Store.resetProgress(state); toast('Ponastavljeno'); resetTo('home'); });
+      ask('Delete all history and weights for ' + state.name + '?', 'Reset', function () { Store.resetProgress(state); toast('Progress reset'); resetTo('home'); });
     };
   };
 
@@ -620,12 +620,12 @@
     var el = document.createElement('div');
     el.className = 'player preview';
     el.innerHTML = '<div class="stage"><div class="fig" id="pvFig"></div><div class="phase" id="pvPhase"></div><div class="badge-top"><span class="chip on" id="pvCount"></span><span class="chip" id="pvBlock"></span></div>' +
-      '<div class="pip" id="pvPip" hidden><img alt=""><span>Prava izvedba</span></div></div>' +
+      '<div class="pip" id="pvPip" hidden><img alt=""><span>Real form</span></div></div>' +
       '<div class="side"><div class="kicker" id="pvMus"></div><h2 id="pvName"></h2><div class="prescription" id="pvRx"></div>' +
-      '<div class="mus-block"><div class="mus-map" id="pvMap"></div><div class="mus-list"><div class="label">Delajo</div><div id="pvChips"></div></div></div>' +
-      '<div class="label">Ključne točke</div><ul class="cues ok" id="pvCues"></ul><div class="countdown"><i id="pvBar"></i></div>' +
-      '<div class="controls"><button class="btn focusable" id="pvPrev">◀</button><button class="btn focusable" id="pvPause">Pavza</button><button class="btn focusable" id="pvNext">▶</button>' +
-      '<button class="btn primary focusable" id="pvStart" data-autofocus>Začni trening</button></div></div>';
+      '<div class="mus-block"><div class="mus-map" id="pvMap"></div><div class="mus-list"><div class="label">Muscles worked</div><div id="pvChips"></div></div></div>' +
+      '<div class="label">Key cues</div><ul class="cues ok" id="pvCues"></ul><div class="countdown"><i id="pvBar"></i></div>' +
+      '<div class="controls"><button class="btn focusable" id="pvPrev" aria-label="Previous">◀</button><button class="btn focusable" id="pvPause">Pause</button><button class="btn focusable" id="pvNext" aria-label="Next">▶</button>' +
+      '<button class="btn primary focusable" id="pvStart" data-autofocus>Start workout</button></div></div>';
     document.body.appendChild(el);
     keepAwake(true);
     var pl = new Figure.Player($('#pvFig'), { aspect: 1.45, labels: true, guides: true, onPhase: function (l) { $('#pvPhase').textContent = l || ' '; } });
@@ -639,7 +639,7 @@
       $('#pvBlock').textContent = items[idx].block;
       $('#pvMus').textContent = e.muscles;
       $('#pvName').textContent = e.name;
-      $('#pvRx').innerHTML = '<div><b>' + esc(rx(it)) + '</b><span>serije</span></div><div><b>' + esc(it.sug ? loadTxt(e, it.sug.load) : it.cardio ? 'kardio' : 'drži') + '</b><span>breme</span></div><div><b>' + esc(e.tempo || '') + '</b><span>tempo</span></div>';
+      $('#pvRx').innerHTML = '<div><b>' + esc(rx(it)) + '</b><span>sets</span></div><div><b>' + esc(it.sug ? loadTxt(e, it.sug.load) : it.cardio ? 'cardio' : 'hold') + '</b><span>load</span></div><div><b>' + esc(e.tempo || '') + '</b><span>tempo</span></div>';
       $('#pvCues').innerHTML = e.cues.map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('');
       $('#pvMap').innerHTML = muscleMap(e.anim.muscles);
       $('#pvChips').innerHTML = musChips(e.anim.muscles, true);
@@ -656,7 +656,7 @@
     cleanup.push(function () { clearInterval(timer); el.remove(); if ('speechSynthesis' in window) speechSynthesis.cancel(); });
     $('#pvPrev').onclick = function () { show(idx - 1); };
     $('#pvNext').onclick = function () { show(idx + 1); };
-    $('#pvPause').onclick = function () { paused = !paused; this.textContent = paused ? 'Nadaljuj' : 'Pavza'; if (paused) pl.stop(); else pl.start(); };
+    $('#pvPause').onclick = function () { paused = !paused; this.textContent = paused ? 'Resume' : 'Pause'; if (paused) pl.stop(); else pl.start(); };
     $('#pvStart').onclick = function () { go('player', { key: p.key }, true); };
     activeSession = {
       onKey: function (code) {
@@ -704,9 +704,9 @@
     el.innerHTML = '<div class="stage"><div class="fig" id="wFig"></div><div class="phase" id="wPhase"></div>' +
       '<div class="hud-top"><div class="hud-prog"><div class="segs" id="wSegs">' + blockTitles.map(function () { return '<i><b></b></i>'; }).join('') + '</div>' +
       '<div class="hud-meta" id="wMeta"></div></div>' +
-      '<div class="hud-clock"><small>' + (race ? 'RACE ČAS' : 'SKUPAJ') + '</small><b id="wClock">0:00</b></div></div>' +
+      '<div class="hud-clock"><small>' + (race ? 'RACE TIME' : 'TOTAL') + '</small><b id="wClock">0:00</b></div></div>' +
       '<div class="next-card" id="wNextCard"><div class="nc-thumb" id="wNextThumb"></div><div><small id="wNextLbl"></small><b id="wNextName"></b></div></div>' +
-      '<div class="pip" id="wPip" hidden><img alt=""><span>Prava izvedba</span></div>' +
+      '<div class="pip" id="wPip" hidden><img alt=""><span>Real form</span></div>' +
       '<div class="finish" id="wFinish" hidden></div></div>' +
       '<div class="side"><div class="kicker"><span id="wBlock"></span><span class="dots-set" id="wDots"></span></div>' +
       '<h2 id="wName"></h2><div class="why" id="wWhy"></div><div id="wMus"></div>' +
@@ -715,8 +715,8 @@
       '<div class="logger" id="wLog"></div>' +
       '<div class="controls"><button class="btn primary focusable" id="wDone" data-autofocus></button>' +
       '<button class="btn focusable" id="wMinus" hidden>−15 s</button><button class="btn focusable" id="wPlus" hidden>+15 s</button>' +
-      '<button class="btn focusable" id="wPause">Pavza</button><button class="btn ghost focusable" id="wSkip">Preskoči</button>' +
-      '<button class="btn ghost focusable" id="wExit">Končaj</button></div>' +
+      '<button class="btn focusable" id="wPause">Pause</button><button class="btn ghost focusable" id="wSkip">Skip</button>' +
+      '<button class="btn ghost focusable" id="wExit">End</button></div>' +
       (race ? '<div class="splits" id="wSplits"></div>' : '') + '</div>';
     document.body.appendChild(el);
     keepAwake(true);
@@ -745,9 +745,9 @@
 
     function renderNext() {
       var nx = st[i + 1];
-      if (!nx) { $('#wNextLbl').textContent = 'Zadnji del'; $('#wNextName').textContent = 'Še malo – zmoreš 💪'; nextPl.stop(); return; }
+      if (!nx) { $('#wNextLbl').textContent = 'Final stretch'; $('#wNextName').textContent = 'Almost there – you’ve got this 💪'; nextPl.stop(); return; }
       var ne = ex(nx.id);
-      $('#wNextLbl').textContent = 'Naslednje →' + (nx.kind === 'reps' && nx.sets > 1 ? ' serija ' + nx.set + '/' + nx.sets : '') + (nx.rest === 0 && phase === 'rest' ? '' : '');
+      $('#wNextLbl').textContent = 'Next →' + (nx.kind === 'reps' && nx.sets > 1 ? ' set ' + nx.set + '/' + nx.sets : '') + (nx.rest === 0 && phase === 'rest' ? '' : '');
       $('#wNextName').textContent = (nx.kind === 'reps' ? (nx.item.reps[0] === nx.item.reps[1] ? nx.item.reps[0] : nx.item.reps[0] + '–' + nx.item.reps[1]) + '× ' :
         nx.kind === 'dist' ? nx.dist + ' m ' : fmt(nx.sec) + ' ') + ne.name;
       nextPl.speed = ne.speed || 1; nextPl.load(ne.anim);
@@ -762,7 +762,7 @@
         sg.className = k < bi ? 'done' : k === bi ? 'cur' : '';
         sg.firstChild.style.width = (k < bi ? 100 : k === bi ? Math.round(posInBlock / inBlock.length * 100) : 0) + '%';
       });
-      $('#wMeta').textContent = 'Blok ' + (bi + 1) + '/' + blockTitles.length + ' · ' + Math.round(i / st.length * 100) + ' %';
+      $('#wMeta').textContent = 'Block ' + (bi + 1) + '/' + blockTitles.length + ' · ' + Math.round(i / st.length * 100) + ' %';
     }
 
     function enter(n) {
@@ -790,32 +790,32 @@
         cur.reps = prev ? prev.reps : (race ? it.reps[1] : sug.reps);
         cur.load = prev ? prev.load : sug.load;
         var target = it.reps[0] === it.reps[1] ? it.reps[0] : it.reps[0] + '–' + it.reps[1];
-        $('#wWhy').textContent = race ? 'Na čas – ' + target + ' ponovitev' + (s.perSide ? ' na stran' : '') : (sug.why || 'Cilj ' + target + ' ponovitev, RIR ' + sess.weekInfo.rir);
-        $('#wRx').innerHTML = chips([[target + (s.perSide ? '/str.' : ''), 'cilj'], [loadTxt(e, cur.load), 'breme'], [race ? 'na čas' : 'RIR ' + sess.weekInfo.rir, race ? 'način' : 'napor'], [e.tempo || '—', 'tempo']]);
-        var lg = stepper('reps', cur.reps, 1, 'ponovitev');
+        $('#wWhy').textContent = race ? 'For time – ' + target + ' reps' + (s.perSide ? ' per side' : '') : (sug.why || 'Target ' + target + ' reps, RIR ' + sess.weekInfo.rir);
+        $('#wRx').innerHTML = chips([[target + (s.perSide ? '/side' : ''), 'target'], [loadTxt(e, cur.load), 'load'], [race ? 'for time' : 'RIR ' + sess.weekInfo.rir, race ? 'mode' : 'effort'], [e.tempo || '—', 'tempo']]);
+        var lg = stepper('reps', cur.reps, 1, 'reps');
         if (e.unit === 'kg') lg += stepper('load', cur.load, e.id.indexOf('kb_') === 0 ? 4 : (e.inc || 2), 'kg');
-        if (e.unit === 'stopnja') lg += stepper('load', cur.load, 1, 'stopnja');
+        if (e.unit === 'stopnja') lg += stepper('load', cur.load, 1, 'level');
         $('#wLog').innerHTML = lg; $('#wLog').hidden = false;
-        $('#wDone').textContent = race ? '✓ Postaja končana' : '✓ Serija opravljena';
-        Voice.say(e.name + '. ' + (s.set === 1 ? e.cues[0] : 'Serija ' + s.set));
+        $('#wDone').textContent = race ? '✓ Station done' : '✓ Set done';
+        Voice.say(e.name + '. ' + (s.set === 1 ? e.cues[0] : 'Set ' + s.set));
       } else if (s.kind === 'dist') {
-        $('#wWhy').textContent = 'Cilj ' + s.dist + ' m – ko monitor pokaže razdaljo, pritisni OK';
-        $('#wRx').innerHTML = chips([[s.dist + ' m', 'razdalja'], ['~' + fmt(s.dist * (e.secPerM || 0.27)), 'ciljni čas'], [e.tempo || '—', 'tempo']]);
+        $('#wWhy').textContent = 'Target ' + s.dist + ' m – press OK when the monitor shows the distance';
+        $('#wRx').innerHTML = chips([[s.dist + ' m', 'distance'], ['~' + fmt(s.dist * (e.secPerM || 0.27)), 'target time'], [e.tempo || '—', 'tempo']]);
         $('#wLog').innerHTML = ''; $('#wLog').hidden = true;
-        $('#wDone').textContent = '✓ ' + s.dist + ' m končano';
-        Voice.say(e.name + '. ' + s.dist + ' metrov.');
+        $('#wDone').textContent = '✓ ' + s.dist + ' m done';
+        Voice.say(e.name + '. ' + s.dist + ' meters.');
       } else {
         remain = s.sec;
-        $('#wWhy').textContent = race && /^Postaja/.test(s.block) ? 'Postaja na čas – ' + fmt(s.sec) : s.sec >= 60 && !s.hard && !s.easy ? fmt(s.sec) + ' min' : (s.label || '');
-        var rx = [[fmt(s.sec), s.hard ? 'močno' : s.easy ? 'lahkotno' : 'trajanje']];
-        if (s.sets > 1) rx.push([s.set + '/' + s.sets, s.hard || s.easy ? 'interval' : 'serija']);
-        if (e.unit === 'stopnja' || e.unit === 'kg') rx.push([loadTxt(e, it.sug ? it.sug.load : (state.ex[s.id] || {}).load || e.load), 'breme']);
+        $('#wWhy').textContent = race && /^(Postaja|Station)/.test(s.block) ? 'Station for time – ' + fmt(s.sec) : s.sec >= 60 && !s.hard && !s.easy ? fmt(s.sec) + ' min' : (s.label || '');
+        var rx = [[fmt(s.sec), s.hard ? 'hard' : s.easy ? 'easy' : 'duration']];
+        if (s.sets > 1) rx.push([s.set + '/' + s.sets, s.hard || s.easy ? 'interval' : 'set']);
+        if (e.unit === 'stopnja' || e.unit === 'kg') rx.push([loadTxt(e, it.sug ? it.sug.load : (state.ex[s.id] || {}).load || e.load), 'load']);
         rx.push([e.tempo || '—', 'tempo']);
         $('#wRx').innerHTML = chips(rx);
         $('#wLog').innerHTML = ''; $('#wLog').hidden = true;
-        $('#wDone').textContent = race ? '✓ Postaja končana' : '⏭ Naprej';
-        if (s.hard) { Audio.beep(1200, 0.35); Voice.say('Močno!'); }
-        else if (s.easy) { Audio.beep(600, 0.3); Voice.say('Lahkotno.'); }
+        $('#wDone').textContent = race ? '✓ Station done' : '⏭ Next';
+        if (s.hard) { Audio.beep(1200, 0.35); Voice.say('Go hard!'); }
+        else if (s.easy) { Audio.beep(600, 0.3); Voice.say('Easy pace.'); }
         else Voice.say(e.name + '. ' + e.cues[0]);
       }
       bindSteppers();
@@ -838,7 +838,7 @@
     function completeWork() {
       var s = st[i];
       if (s.kind === 'reps') logged.push({ id: s.id, reps: cur.reps, load: cur.load });
-      splits.push({ name: s.block.replace(/^Postaja \d+ · /, ''), id: s.id, sec: elapsed || (s.sec - Math.max(0, remain)) || 0, station: /^Postaja|^Tek/.test(s.block) });
+      splits.push({ name: s.block.replace(/^(Postaja|Station) \d+ · /, ''), id: s.id, sec: elapsed || (s.sec - Math.max(0, remain)) || 0, station: /^(Postaja|Station|Tek|Run)\b/.test(s.block) });
       if (race) renderSplits();
       if (s.rest > 0 && i < st.length - 1) startRest(s.rest);
       else enter(i + 1);
@@ -849,24 +849,24 @@
       el.classList.add('resting');
       var nx = st[i + 1], ne = ex(nx.id);
       showAnim(nx.id);
-      $('#wName').textContent = 'Počitek';
+      $('#wName').textContent = 'Rest';
       $('#wMus').innerHTML = musChips(ne.anim.muscles);
       var np = photo(nx.id); $('#wPip').hidden = !np; if (np) $('#wPip img').src = np;
-      $('#wWhy').textContent = 'Pripravi se: ' + ne.name + (nx.kind === 'reps' ? ' · serija ' + nx.set + '/' + nx.sets : '');
+      $('#wWhy').textContent = 'Get ready: ' + ne.name + (nx.kind === 'reps' ? ' · set ' + nx.set + '/' + nx.sets : '');
       $('#wLog').hidden = true;
-      $('#wRx').innerHTML = chips([[fmt(sec), 'počitek'], [ne.name.split(' (')[0], 'naslednje']]);
-      $('#wDone').textContent = '⏭ Preskoči počitek';
+      $('#wRx').innerHTML = chips([[fmt(sec), 'rest'], [ne.name.split(' (')[0], 'up next']]);
+      $('#wDone').textContent = '⏭ Skip rest';
       $('#wMinus').hidden = $('#wPlus').hidden = false;
       $('#wSkip').hidden = true;
-      $('#wNextLbl').textContent = 'Med počitkom: tehnika naslednje vaje';
-      Voice.say('Počitek ' + sec + ' sekund. Naslednje: ' + ne.name);
+      $('#wNextLbl').textContent = 'While you rest: next exercise technique';
+      Voice.say('Rest ' + sec + ' seconds. Next up: ' + ne.name);
       draw();
     }
 
     function renderSplits() {
       var w = $('#wSplits'); if (!w) return;
       var rows = splits.filter(function (x) { return x.station; }).slice(-5);
-      w.innerHTML = '<div class="label">Vmesni časi</div>' + rows.map(function (r) { return '<div class="split"><span>' + esc(r.name) + '</span><b>' + fmt(r.sec) + '</b></div>'; }).join('');
+      w.innerHTML = '<div class="label">Splits</div>' + rows.map(function (r) { return '<div class="split"><span>' + esc(r.name) + '</span><b>' + fmt(r.sec) + '</b></div>'; }).join('');
     }
 
     // single place that paints the ring + clocks
@@ -875,24 +875,24 @@
       var s = st[i]; if (!s) return;
       var top = $('#wRingTop'), val = $('#wRingVal'), sub = $('#wRingSub');
       if (phase === 'rest') {
-        top.textContent = 'POČITEK'; val.textContent = fmt(remain); sub.textContent = 'od ' + fmt(restTotal);
+        top.textContent = 'REST'; val.textContent = fmt(remain); sub.textContent = 'of ' + fmt(restTotal);
         setRing('wRing', remain / restTotal);
         return;
       }
       if (s.kind === 'reps') {
         var tgt = s.item.reps[1], pr = Math.min(pacerReps(), tgt);
-        top.textContent = 'TEMPO ŠTEVEC'; val.textContent = pr; sub.textContent = '/ ' + tgt + ' · ' + fmt(elapsed);
+        top.textContent = 'REP PACER'; val.textContent = pr; sub.textContent = '/ ' + tgt + ' · ' + fmt(elapsed);
         setRing('wRing', pr / tgt);
-        if (pr >= tgt && !pacerHit) { pacerHit = true; Audio.beep(1320, 0.2); $('#wPhase').textContent = 'Cilj dosežen – OK za konec'; }
+        if (pr >= tgt && !pacerHit) { pacerHit = true; Audio.beep(1320, 0.2); $('#wPhase').textContent = 'Target hit – press OK to finish'; }
       } else if (s.kind === 'dist') {
         var est = s.dist * (ex(s.id).secPerM || 0.27);
-        top.textContent = s.dist + ' m'; val.textContent = fmt(elapsed); sub.textContent = 'cilj ~' + fmt(est);
+        top.textContent = s.dist + ' m'; val.textContent = fmt(elapsed); sub.textContent = 'target ~' + fmt(est);
         setRing('wRing', elapsed / est);
       } else {
-        top.textContent = s.hard ? 'MOČNO' : s.easy ? 'LAHKOTNO' : race ? 'POSTAJA' : 'ČAS';
+        top.textContent = s.hard ? 'HARD' : s.easy ? 'EASY' : race ? 'STATION' : 'TIME';
         val.textContent = fmt(remain);
         var e = ex(s.id);
-        sub.textContent = e.type === 'cardio' && !/^(bike|row|hx_)/.test(s.id) ? '≈ ' + pacerReps() + ' ponovitev' : 'od ' + fmt(s.sec);
+        sub.textContent = e.type === 'cardio' && !/^(bike|row|hx_)/.test(s.id) ? '≈ ' + pacerReps() + ' reps' : 'of ' + fmt(s.sec);
         setRing('wRing', remain / s.sec);
       }
     }
@@ -910,7 +910,7 @@
         if (s.kind === 'time') {
           remain -= 0.25;
           if (remain <= 3.01 && remain > 0 && Math.abs(remain - Math.round(remain)) < 0.01) Audio.beep(880, 0.12);
-          if (s.sec >= 60 && Math.abs(remain - s.sec / 2) < 0.01) Voice.say('Polovica.');
+          if (s.sec >= 60 && Math.abs(remain - s.sec / 2) < 0.01) Voice.say('Halfway.');
           if (remain <= 0) { Audio.beep(1320, 0.3); completeWork(); return; }
         }
       }
@@ -924,16 +924,16 @@
       if (logged.length || min >= 10) {
         Store.recordSession(state, { date: new Date().toISOString(), session: sess.key, name: sess.name, min: min, sec: Math.round(total), splits: race ? splits : undefined, sets: logged, items: itemsById });
       }
-      Voice.say('Odlično. Trening je končan.');
+      Voice.say('Great job. Workout complete.');
       pl.stop(); nextPl.stop();
       var vol = logged.reduce(function (a, l) { return a + (ex(l.id).unit === 'kg' ? l.reps * l.load : 0); }, 0);
       var reps = logged.reduce(function (a, l) { return a + l.reps; }, 0);
       var f = $('#wFinish');
       f.hidden = false;
-      f.innerHTML = '<div class="fin-card"><div class="kicker">' + (race ? 'HYROX ČAS' : 'TRENING KONČAN') + '</div><div class="fin-time">' + fmt(total) + '</div>' +
-        '<div class="fin-stats"><div><b>' + logged.length + '</b><span>serij</span></div><div><b>' + reps + '</b><span>ponovitev</span></div><div><b>' + Math.round(vol) + ' kg</b><span>volumen</span></div></div>' +
+      f.innerHTML = '<div class="fin-card"><div class="kicker">' + (race ? 'HYROX TIME' : 'WORKOUT COMPLETE') + '</div><div class="fin-time">' + fmt(total) + '</div>' +
+        '<div class="fin-stats"><div><b>' + logged.length + '</b><span>sets</span></div><div><b>' + reps + '</b><span>reps</span></div><div><b>' + Math.round(vol) + ' kg</b><span>volume</span></div></div>' +
         (race ? '<div class="splits fin-splits">' + splits.filter(function (x) { return x.station; }).map(function (r) { return '<div class="split"><span>' + esc(r.name) + '</span><b>' + fmt(r.sec) + '</b></div>'; }).join('') + '</div>' : '') +
-        '<button class="btn primary focusable" id="wHome">Domov</button></div>';
+        '<button class="btn primary focusable" id="wHome">Home</button></div>';
       $('.side', el).hidden = true;
       el.classList.add('done');
       $('#wHome').onclick = function () { resetTo('home'); };
@@ -950,18 +950,18 @@
     $('#wMinus').onclick = function () { remain = Math.max(1, remain - 15); restTotal = Math.max(restTotal - 15, remain); draw(); };
     $('#wPlus').onclick = function () { remain += 15; restTotal += 15; draw(); };
     $('#wPause').onclick = function () {
-      paused = !paused; this.textContent = paused ? 'Nadaljuj' : 'Pavza';
+      paused = !paused; this.textContent = paused ? 'Resume' : 'Pause';
       el.classList.toggle('paused', paused);
       if (paused) pl.stop(); else pl.start();
     };
-    $('#wExit').onclick = function () { ask('Končam trening in shranim opravljene serije?', 'Končaj', finish); };
+    $('#wExit').onclick = function () { ask('End workout and save completed sets?', 'End workout', finish); };
 
     activeSession = {
       onKey: function (code) {
         if (isKey(code, 'PLAY')) { $('#wPause').click(); return true; }
         return false;
       },
-      confirmExit: function (leave) { ask('Zapustim trening? Neshranjene serije se izgubijo.', 'Zapusti', leave); },
+      confirmExit: function (leave) { ask('Leave workout? Unsaved sets will be lost.', 'Leave', leave); },
       destroy: function () { clearInterval(iv); el.remove(); if ('speechSynthesis' in window) speechSynthesis.cancel(); }
     };
     enter(0);
@@ -971,13 +971,13 @@
   SCREENS.profiles = function () {
     var list = Store.list();
     var lastId = (Store.active() || {}).id;
-    root.innerHTML = '<div class="screen center">' + brandMark('big-brand') + '<h1 class="who-title">Kdo trenira?</h1><div class="profiles">' +
+    root.innerHTML = '<div class="screen center">' + brandMark('big-brand') + '<h1 class="who-title">Who’s training?</h1><div class="profiles">' +
       list.map(function (pr, i) {
         return '<button class="profile focusable" data-pid="' + pr.id + '"' + (pr.id === lastId || (!lastId && i === 0) ? ' data-autofocus' : '') + '>' + avatar(pr, true) +
           '<b>' + esc(pr.name) + '</b><span>' + (pr.pin ? '🔒 ' : '') + pl(pr.log.length, TRN) + '</span></button>';
       }).join('') +
-      '<button class="profile add focusable" data-go="profileEdit"><span class="avatar big">＋</span><b>Dodaj osebo</b><span>nov profil</span></button></div>' +
-      '<div class="hint">Vsaka oseba ima svoj program, teže, napredek in nastavitve.</div></div>';
+      '<button class="profile add focusable" data-go="profileEdit"><span class="avatar big">＋</span><b>Add person</b><span>new profile</span></button></div>' +
+      '<div class="hint">Everyone gets their own program, weights, progress and settings.</div></div>';
     $$('[data-pid]').forEach(function (b) {
       b.onclick = function () {
         var pr = Store.list().filter(function (x) { return x.id === b.getAttribute('data-pid'); })[0];
@@ -989,7 +989,7 @@
   function activate(pr) {
     state = Store.setActive(pr.id);
     resetTo('home');
-    toast('Živjo, ' + pr.name + '!');
+    toast('Hi, ' + pr.name + '!');
   }
 
   // on-screen keypad: works with the D-pad and with the remote's number keys
@@ -1017,12 +1017,12 @@
   SCREENS.pin = function (p) {
     var pr = Store.list().filter(function (x) { return x.id === p.id; })[0];
     var pin = '';
-    root.innerHTML = '<div class="screen center">' + avatar(pr, true) + '<h1>' + esc(pr.name) + '</h1><div class="hint">Vnesi PIN</div><div class="dots" id="dots"></div>' + keypad() +
-      (p.quick ? '<button class="btn ghost sm focusable" data-go="profiles">Nisi ' + esc(pr.name) + '? Izberi osebo</button>' : '') + '</div>';
+    root.innerHTML = '<div class="screen center">' + avatar(pr, true) + '<h1>' + esc(pr.name) + '</h1><div class="hint">Enter PIN</div><div class="dots" id="dots"></div>' + keypad() +
+      (p.quick ? '<button class="btn ghost sm focusable" data-go="profiles">Not ' + esc(pr.name) + '? Choose person</button>' : '') + '</div>';
     function draw() { $('#dots').innerHTML = [0, 1, 2, 3].map(function (i) { return '<i' + (i < pin.length ? ' class="on"' : '') + '></i>'; }).join(''); }
     function check() {
       if (Store.checkPin(pr, pin)) activate(pr);
-      else { toast('Napačen PIN'); pin = ''; draw(); }
+      else { toast('Wrong PIN'); pin = ''; draw(); }
     }
     bindKeypad(function (d) { if (pin.length < 4) { pin += d; draw(); if (pin.length === 4) setTimeout(check, 150); } },
       function () { pin = pin.slice(0, -1); draw(); }, check);
@@ -1047,24 +1047,24 @@
     function chip(key, val, label) {
       return '<button class="chip focusable' + (d[key] === val ? ' on' : '') + '" data-fid="pe-' + key + '-' + val + '" data-pe="' + key + '" data-val=\'' + JSON.stringify(val) + '\'>' + label + '</button>';
     }
-    root.innerHTML = '<div class="screen"><div class="topbar"><h1>' + (existing ? 'Uredi profil' : Store.list().length ? 'Nova oseba' : 'Dobrodošli – kdo bo treniral?') + '</h1></div>' +
-      (Store.list().length || existing ? '' : '<div class="hint">Vsak član gospodinjstva ima svoj profil: program, teže, napredek. Več oseb dodaš kasneje v Nastavitvah ali ob zagonu.</div>') +
+    root.innerHTML = '<div class="screen"><div class="topbar"><h1>' + (existing ? 'Edit profile' : Store.list().length ? 'New person' : 'Welcome – who’s training?') + '</h1></div>' +
+      (Store.list().length || existing ? '' : '<div class="hint">Everyone in your household gets their own profile: program, weights, progress. You can add more people later in Settings or at startup.</div>') +
       '<div class="panel">' +
-      '<div class="opt-row"><div class="k">Ime</div><input class="field focusable" id="pName" data-fid="pe-name" maxlength="20" placeholder="npr. Bojan" value="' + esc(d.name) + '"' + (existing ? '' : ' data-autofocus') + '></div>' +
-      '<div class="opt-row"><div class="k">Barva</div>' + Store.COLORS.map(function (c) {
+      '<div class="opt-row"><div class="k">Name</div><input class="field focusable" id="pName" data-fid="pe-name" maxlength="20" placeholder="e.g. Alex" value="' + esc(d.name) + '"' + (existing ? '' : ' data-autofocus') + '></div>' +
+      '<div class="opt-row"><div class="k">Color</div>' + Store.COLORS.map(function (c) {
         return '<button class="swatch focusable' + (d.color === c ? ' on' : '') + '" data-fid="pe-color-' + c + '" data-pe="color" data-val=\'"' + c + '"\' style="background:' + c + '"></button>';
       }).join('') + '</div>' +
-      '<div class="opt-row"><div class="k">Nivo</div>' + chip('level', 'beg', 'Začetnik') + chip('level', 'mid', 'Srednji') + chip('level', 'adv', 'Napreden') + '</div>' +
-      (d.more ? '' : '<div class="opt-row"><button class="btn sm ghost focusable" id="pMore" data-fid="pe-more">Več možnosti (treningi/teden, oprema, PIN) ▾</button></div>') +
-      (d.more ? '<div class="opt-row"><div class="k">Treningov na teden</div>' + chip('days', 3, '3× – celo telo') + chip('days', 4, '4× – upper / lower') + '</div>' +
-      '<div class="opt-row"><div class="k">Oprema</div><div class="eq-strip">' + d.equipment.slice(0, 9).map(function (k) { return '<span class="eq-mini" title="' + esc(Exercises.EQUIP[k].name) + '">' + equipIcon(k) + '</span>'; }).join('') +
-      '</div><button class="btn sm focusable" id="pEquip" data-fid="pe-equip">' + pl(d.equipment.length, NAP) + ' · uredi →</button></div>' +
-      '<div class="opt-row"><div class="k">PIN (neobvezno)</div><input class="field focusable" id="pPin" data-fid="pe-pin" type="password" inputmode="numeric" maxlength="4" placeholder="4 števke" value="' + esc(d.pin || '') + '">' +
-      (existing && existing.pin ? '<button class="chip focusable' + (d.clearPin ? ' on' : '') + '" data-fid="pe-clear" id="pClear">Odstrani PIN</button>' : '') +
-      '<span class="hint">Zaklene profil na skupnem TV-ju (zasebnost, ne varnost).</span></div>' : '') +
-      '</div><div class="nav-row"><button class="btn primary focusable" id="pSave">' + (existing ? 'Shrani' : 'Ustvari profil') + '</button>' +
-      (Store.list().length ? '<button class="btn ghost focusable" id="pCancel">Prekliči</button>' : '') +
-      (existing && Store.list().length > 1 ? '<button class="btn ghost focusable danger" id="pDel">Izbriši osebo</button>' : '') + '</div></div>';
+      '<div class="opt-row"><div class="k">Level</div>' + chip('level', 'beg', 'Beginner') + chip('level', 'mid', 'Intermediate') + chip('level', 'adv', 'Advanced') + '</div>' +
+      (d.more ? '' : '<div class="opt-row"><button class="btn sm ghost focusable" id="pMore" data-fid="pe-more">More options (workouts/week, equipment, PIN) ▾</button></div>') +
+      (d.more ? '<div class="opt-row"><div class="k">Workouts per week</div>' + chip('days', 3, '3× – full body') + chip('days', 4, '4× – upper / lower') + '</div>' +
+      '<div class="opt-row"><div class="k">Equipment</div><div class="eq-strip">' + d.equipment.slice(0, 9).map(function (k) { return '<span class="eq-mini" title="' + esc(Exercises.EQUIP[k].name) + '">' + equipIcon(k) + '</span>'; }).join('') +
+      '</div><button class="btn sm focusable" id="pEquip" data-fid="pe-equip">' + pl(d.equipment.length, NAP) + ' · edit →</button></div>' +
+      '<div class="opt-row"><div class="k">PIN (optional)</div><input class="field focusable" id="pPin" data-fid="pe-pin" type="password" inputmode="numeric" maxlength="4" placeholder="4 digits" value="' + esc(d.pin || '') + '">' +
+      (existing && existing.pin ? '<button class="chip focusable' + (d.clearPin ? ' on' : '') + '" data-fid="pe-clear" id="pClear">Remove PIN</button>' : '') +
+      '<span class="hint">Locks the profile on a shared TV (privacy, not security).</span></div>' : '') +
+      '</div><div class="nav-row"><button class="btn primary focusable" id="pSave">' + (existing ? 'Save' : 'Create profile') + '</button>' +
+      (Store.list().length ? '<button class="btn ghost focusable" id="pCancel">Cancel</button>' : '') +
+      (existing && Store.list().length > 1 ? '<button class="btn ghost focusable danger" id="pDel">Delete person</button>' : '') + '</div></div>';
     function readInputs() { d.name = $('#pName').value.trim(); if ($('#pPin')) d.pin = $('#pPin').value.trim() || null; }
     if ($('#pMore')) $('#pMore').onclick = function () { readInputs(); d.more = true; refresh(); var f = $('[data-fid="pe-days-3"]'); if (f) f.focus(); };
     $$('[data-pe]').forEach(function (b) {
@@ -1074,21 +1074,21 @@
     if ($('#pEquip')) $('#pEquip').onclick = function () { readInputs(); eqDraft = null; go('equipment', { draft: true }); };
     $('#pSave').onclick = function () {
       readInputs();
-      if (!d.name) { toast('Vpiši ime'); $('#pName').focus(); return; }
-      if (d.pin && !/^\d{4}$/.test(d.pin)) { toast('PIN mora imeti 4 števke'); $('#pPin').focus(); return; }
+      if (!d.name) { toast('Enter a name'); $('#pName').focus(); return; }
+      if (d.pin && !/^\d{4}$/.test(d.pin)) { toast('PIN must be 4 digits'); $('#pPin').focus(); return; }
       var pr = existing || Store.addProfile(Store.newProfile());
       pr.name = d.name; pr.color = d.color; pr.settings.level = d.level; pr.settings.days = d.days;
       pr.settings.equipment = d.equipment.slice();
       if (d.pin) Store.setPin(pr, d.pin); else if (d.clearPin) Store.setPin(pr, null);
       Store.save();
       pdraft = null;
-      if (existing && state && existing.id === state.id) { toast('Shranjeno'); back(); }
+      if (existing && state && existing.id === state.id) { toast('Saved'); back(); }
       else if (!existing) { eqDraft = null; activate(pr); }
       else activate(pr);
     };
     if ($('#pCancel')) $('#pCancel').onclick = function () { pdraft = null; back(); };
     if ($('#pDel')) $('#pDel').onclick = function () {
-      ask('Izbrišem profil ' + existing.name + ' in vso njegovo zgodovino?', 'Izbriši', function () {
+      ask('Delete ' + existing.name + '’s profile and all their history?', 'Delete', function () {
         Store.removeProfile(existing.id);
         pdraft = null; state = null;
         resetTo('profiles');
@@ -1101,9 +1101,9 @@
   function exCountFor(k) { return Exercises.LIST.filter(function (e) { return e.equip.indexOf(k) >= 0; }).length; }
   function unlocked(list) { return Exercises.LIST.filter(function (e) { return Exercises.available(e.id, list); }).length; }
   var EQ_PRESETS = [
-    { id: 'home', name: 'Domača telovadnica', list: function () { return Exercises.HOME_GYM.slice(); } },
-    { id: 'bw', name: 'Samo lastna teža', list: function () { return []; } },
-    { id: 'all', name: 'Polno opremljen fitnes', list: function () { return Object.keys(Exercises.EQUIP).filter(function (k) { return !Exercises.EQUIP[k].always; }); } }
+    { id: 'home', name: 'Home gym', list: function () { return Exercises.HOME_GYM.slice(); } },
+    { id: 'bw', name: 'Bodyweight only', list: function () { return []; } },
+    { id: 'all', name: 'Fully equipped gym', list: function () { return Object.keys(Exercises.EQUIP).filter(function (k) { return !Exercises.EQUIP[k].always; }); } }
   ];
 
   var eqDraft = null;
@@ -1114,12 +1114,12 @@
     }
     var list = eqDraft.list;
     var total = Exercises.LIST.length, un = unlocked(list);
-    var who = p.draft ? (pdraft.name || 'Nova oseba') : state.name;
-    var html = '<div class="screen eq-screen"><div class="eq-head"><div><div class="kicker">' + (p.onboard ? 'Korak 2 / 2 · ' : '') + 'Profil · ' + esc(who) + '</div>' +
-      '<h1>Moja oprema</h1><p>Izberi vse, kar imaš na voljo – doma ali v svoji telovadnici. Program, HYROX in sestavljalnik vzamejo samo to, kar izbereš, in manjkajoče vaje zamenjajo z enakovrednimi.</p></div>' +
-      '<div class="eq-score"><div class="eq-num"><b>' + list.length + '</b><span>' + pl(list.length, NAP).replace(/^\d+ /, '') + '</span></div><div class="eq-num"><b>' + un + '<small>/' + total + '</small></b><span>vaj odklenjenih</span></div>' +
+    var who = p.draft ? (pdraft.name || 'New person') : state.name;
+    var html = '<div class="screen eq-screen"><div class="eq-head"><div><div class="kicker">' + (p.onboard ? 'Step 2 of 2 · ' : '') + 'Profile · ' + esc(who) + '</div>' +
+      '<h1>My equipment</h1><p>Select everything you have access to – at home or at your gym. Your program, HYROX and the workout builder only use what you select, and swap missing exercises for equivalent ones.</p></div>' +
+      '<div class="eq-score"><div class="eq-num"><b>' + list.length + '</b><span>' + pl(list.length, NAP).replace(/^\d+ /, '') + '</span></div><div class="eq-num"><b>' + un + '<small>/' + total + '</small></b><span>exercises unlocked</span></div>' +
       '<div class="eq-bar"><i style="width:' + Math.round(un / total * 100) + '%"></i></div></div></div>' +
-      '<div class="filters"><span class="flabel">Hitra izbira</span>' + EQ_PRESETS.map(function (pr) {
+      '<div class="filters"><span class="flabel">Quick select</span>' + EQ_PRESETS.map(function (pr) {
         return '<button class="chip focusable" data-fid="eqp-' + pr.id + '" data-preset="' + pr.id + '">' + esc(pr.name) + '</button>';
       }).join('') + '</div>';
     Exercises.EQUIP_GROUPS.forEach(function (g) {
@@ -1133,9 +1133,9 @@
           '<div class="eq-meta">' + pl(exCountFor(k), VAJ) + '</div></button>';
       }).join('') + '</div></div>';
     });
-    html += '<div class="eq-foot"><div class="hint">Lastna teža je vedno vključena (' + pl(exCountFor('floor'), VAJ) + ').</div><div class="spacer"></div>' +
-      (p.onboard ? '' : '<button class="btn ghost focusable" id="eqCancel">Prekliči</button>') +
-      '<button class="btn primary focusable" id="eqSave" data-fid="eq-save">' + (p.onboard ? 'Začni trenirati →' : 'Shrani opremo') + '</button></div></div>';
+    html += '<div class="eq-foot"><div class="hint">Bodyweight is always included (' + pl(exCountFor('floor'), VAJ) + ').</div><div class="spacer"></div>' +
+      (p.onboard ? '' : '<button class="btn ghost focusable" id="eqCancel">Cancel</button>') +
+      '<button class="btn primary focusable" id="eqSave" data-fid="eq-save">' + (p.onboard ? 'Start training →' : 'Save equipment') + '</button></div></div>';
     root.innerHTML = html;
     $$('[data-eq]').forEach(function (b) {
       b.onclick = function () {
@@ -1155,7 +1155,7 @@
     $('#eqSave').onclick = function () {
       target.equipment = list.slice();
       eqDraft = null;
-      if (!p.draft) { Store.save(); toast('Oprema shranjena · ' + pl(unlocked(list), VAJ) + ' na voljo'); }
+      if (!p.draft) { Store.save(); toast('Equipment saved · ' + pl(unlocked(list), VAJ) + ' available'); }
       if (p.onboard) resetTo('home'); else back();
     };
   };
@@ -1176,28 +1176,28 @@
     function chip(key, val, label, on) {
       return '<button class="chip focusable' + (on ? ' on' : '') + '" data-fid="b-' + key + '-' + val + '" data-b="' + key + '" data-val="' + val + '">' + label + '</button>';
     }
-    var html = '<div class="screen"><div class="ov-head"><div><div class="chip on" style="display:inline-block;margin-bottom:.6rem">Po meri</div><h1>Sestavi trening</h1>' +
+    var html = '<div class="screen"><div class="ov-head"><div><div class="chip on" style="display:inline-block;margin-bottom:.6rem">Custom</div><h1>Build workout</h1>' +
       '<p>' + esc(src.name) + ' · ~' + mins + ' min</p></div><div class="spacer"></div>' +
-      '<button class="btn ghost focusable" id="bSave" data-fid="b-save">☆ Shrani</button>' +
-      '<button class="btn focusable" id="bPrev" data-fid="b-prev">📺 Predogled</button>' +
-      '<button class="btn primary focusable" id="bGo" data-fid="b-go">▶ Začni</button></div>' +
+      '<button class="btn ghost focusable" id="bSave" data-fid="b-save">☆ Save</button>' +
+      '<button class="btn focusable" id="bPrev" data-fid="b-prev">📺 Preview</button>' +
+      '<button class="btn primary focusable" id="bGo" data-fid="b-go">▶ Start</button></div>' +
       '<div class="panel builder">' +
-      '<div class="opt-row"><div class="k">Vrsta</div>' + chip('type', 'moc', 'Moč', o.type === 'moc') + chip('type', 'kardio', 'Kardio', o.type === 'kardio') + chip('type', 'mix', 'Moč + kardio', o.type === 'mix') + chip('type', 'hyrox', 'HYROX', o.type === 'hyrox') + '</div>';
+      '<div class="opt-row"><div class="k">Type</div>' + chip('type', 'moc', 'Strength', o.type === 'moc') + chip('type', 'kardio', 'Cardio', o.type === 'kardio') + chip('type', 'mix', 'Strength + cardio', o.type === 'mix') + chip('type', 'hyrox', 'HYROX', o.type === 'hyrox') + '</div>';
     if (o.type === 'hyrox') {
-      html += '<div class="opt-row"><div class="k">Format</div>' + chip('format', 'full', 'Celotna simulacija (8 postaj)', o.format === 'full') +
-        chip('format', 'half', 'Polovica (4 postaje)', (o.format || 'half') === 'half') + chip('format', 'stations', 'Trening postaj', o.format === 'stations') + '</div>' +
-        '<div class="hint">Nadomestki: tek → kolo · SkiErg → Kinesis poteg · sled push → kolo stoje (težak upor) · sled pull → Kinesis roka-čez-roko · wall balls → DB thruster · sandbag → KB izpadni koraki. Količina se prilagodi nivoju.</div>';
+      html += '<div class="opt-row"><div class="k">Format</div>' + chip('format', 'full', 'Full simulation (8 stations)', o.format === 'full') +
+        chip('format', 'half', 'Half (4 stations)', (o.format || 'half') === 'half') + chip('format', 'stations', 'Station training', o.format === 'stations') + '</div>' +
+        '<div class="hint">Substitutions: run → bike · SkiErg → Kinesis pull · sled push → standing bike (heavy resistance) · sled pull → Kinesis hand-over-hand · wall balls → DB thruster · sandbag → KB lunges. Volume scales to your level.</div>';
     } else if (o.type !== 'kardio') {
       var all = ALL_FOCUS.every(function (f) { return o.focus.indexOf(f) >= 0; });
-      html += '<div class="opt-row"><div class="k">Fokus <span class="hint">(več izbir)</span></div>' + chip('focus', 'all', 'Celo telo', all) +
+      html += '<div class="opt-row"><div class="k">Focus <span class="hint">(multi-select)</span></div>' + chip('focus', 'all', 'Full body', all) +
         ALL_FOCUS.map(function (f) { return chip('focus', f, Exercises.FOCUS[f].name, !all && o.focus.indexOf(f) >= 0); }).join('') + '</div>';
     } else {
       var mach = Program.cardioMachines(o.owned);
-      html += '<div class="opt-row"><div class="k">Naprava</div>' + (mach.length > 1 ? chip('machine', 'all', 'Kombinirano', !o.machine || o.machine === 'all' || o.machine === 'both') : '') +
+      html += '<div class="opt-row"><div class="k">Machine</div>' + (mach.length > 1 ? chip('machine', 'all', 'Mixed', !o.machine || o.machine === 'all' || o.machine === 'both') : '') +
         mach.map(function (k) { return chip('machine', k, '<span class="chip-ico">' + (k === 'floor' ? equipIcon('floor') : equipIcon(k)) + '</span>' + Program.MACHINES[k].name, o.machine === k); }).join('') + '</div>' +
-        '<div class="opt-row"><div class="k">Intenzivnost</div>' + chip('intensity', 'z2', 'Lahkotno – cona 2', o.intensity === 'z2') + chip('intensity', 'hiit', 'Intervali', o.intensity === 'hiit') + chip('intensity', 'mix', 'Mešano', o.intensity === 'mix') + '</div>';
+        '<div class="opt-row"><div class="k">Intensity</div>' + chip('intensity', 'z2', 'Easy – Zone 2', o.intensity === 'z2') + chip('intensity', 'hiit', 'Intervals', o.intensity === 'hiit') + chip('intensity', 'mix', 'Mixed', o.intensity === 'mix') + '</div>';
     }
-    if (o.type !== 'hyrox') html += '<div class="opt-row"><div class="k">Trajanje</div>' + [20, 30, 45, 60].map(function (m) { return chip('min', m, m + ' min', o.min === m); }).join('') + '</div>';
+    if (o.type !== 'hyrox') html += '<div class="opt-row"><div class="k">Duration</div>' + [20, 30, 45, 60].map(function (m) { return chip('min', m, m + ' min', o.min === m); }).join('') + '</div>';
     html += '</div><div class="blocks">';
     var row = 0;
     built.blocks.forEach(function (b, bi) {
@@ -1209,8 +1209,8 @@
         var canSwap = e.type !== 'mobility' && Program.alternatives(src, sid, o.owned).length;
         html += '<div class="ex-row b-row"><div class="ex-thumb" data-thumb="' + it.id + '"></div><div><h4>' + tag + esc(e.name) + '</h4><div class="sub">' + esc(e.muscles) + '</div></div>' +
           '<div class="rx">' + rx(it) + (it.sug ? '<small>' + esc(loadTxt(e, it.sug.load)) + '</small>' : '') + '</div>' +
-          '<div class="row-actions">' + (canSwap ? '<button class="btn sm focusable" data-fid="sw-' + r + '" data-swap="' + sid + '">⇄ Zamenjaj</button>' : '') +
-          '<button class="btn sm ghost focusable" data-fid="rm-' + r + '" data-rm="' + sid + '">✕</button></div></div>';
+          '<div class="row-actions">' + (canSwap ? '<button class="btn sm focusable" data-fid="sw-' + r + '" data-swap="' + sid + '">⇄ Swap</button>' : '') +
+          '<button class="btn sm ghost focusable" data-fid="rm-' + r + '" data-rm="' + sid + '" aria-label="Remove" title="Remove">✕</button></div></div>';
       });
       html += '</div>';
     });
@@ -1246,7 +1246,7 @@
     $$('[data-rm]').forEach(function (b) {
       b.onclick = function () {
         var n = 0; src.blocks.forEach(function (bl) { n += bl.items.length; });
-        if (n <= 1) { toast('Trening potrebuje vsaj eno vajo'); return; }
+        if (n <= 1) { toast('A workout needs at least one exercise'); return; }
         Program.removeItem(src, b.getAttribute('data-rm'));
         refresh();
       };
@@ -1257,7 +1257,7 @@
     $('#bSave').onclick = function () {
       var key = 'C_' + Date.now().toString(36);
       state.customs[key] = commit(); state.saved.push(key); Store.save();
-      toast('Shranjeno – najdeš ga na domačem zaslonu');
+      toast('Saved – you’ll find it on the home screen');
     };
   };
 
