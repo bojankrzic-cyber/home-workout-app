@@ -504,6 +504,9 @@
     done: ['Workout crushed', 'That’s how it’s done', 'Stronger than yesterday', 'Another one in the bank', 'Consistency wins'],
     _last: {}
   };
+  // recorded hype clips (tools/voice/clips_motivation.json): key = 'hype_' + slug of the phrase
+  function hypeKey(t) { return 'hype_' + String(t).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 40); }
+  function hypeVoice(t) { var k = hypeKey(t); if (Coach.on() && Coach.has(k)) Coach.play([k]); }   // never falls back to the device voice
   function hype(kind) {
     var list = HYPE[kind], last = HYPE._last[kind], pick;
     do { pick = list[Math.floor(Math.random() * list.length)]; } while (list.length > 1 && pick === last);
@@ -978,11 +981,17 @@
     // grace period (time to rack the weights) – no need to press "Set done" on the TV remote
     var AUTO_GRACE = 6, autoAt = 0;
     var bestBefore = JSON.parse(JSON.stringify(state.ex || {}));   // personal bests at session start
-    var prs = [], lastHype = '';
-    function setHype(t, strong) {
+    var prs = [], lastHype = '', lastMilestone = -1;
+    // each line stays up at least 4 s; a newer line waits (only the latest waiting one is shown)
+    var hypeSince = 0, hypeWait = 0;
+    function setHype(t, strong, now) {
       if (!t || t === lastHype) return;
-      lastHype = t;
-      var h = $('#wHype'); h.textContent = t;
+      clearTimeout(hypeWait);
+      var left = 4000 - (Date.now() - hypeSince);
+      if (!now && left > 0) { hypeWait = setTimeout(function () { setHype(t, strong, true); }, left); return; }
+      lastHype = t; hypeSince = Date.now();
+      var h = $('#wHype'); if (!h) return;
+      h.textContent = t;
       h.classList.remove('pop'); void h.offsetWidth; h.classList.add('pop'); h.classList.toggle('strong', !!strong);
     }
     function cheer(title, sub) {
@@ -1096,7 +1105,9 @@
       if (i >= st.length) return finish();
       var s = st[i], e = ex(s.id), it = s.item;
       phase = 'work'; elapsed = 0; pacerHit = false; autoAt = 0; lastHype = '';
-      setHype(lastWorkStep(n) && st.length > 3 ? hype('finalExercise') : n > 0 && s.sets > 1 && s.set === s.sets ? hype('lastSet') : s.set === 1 && s.sets > 1 ? hype('firstSet') : hype('start'), lastWorkStep(n));
+      var enterHype = lastWorkStep(n) && st.length > 3 ? hype('finalExercise') : n > 0 && s.sets > 1 && s.set === s.sets ? hype('lastSet') : s.set === 1 && s.sets > 1 ? hype('firstSet') : hype('start');
+      lastMilestone = -1; setHype(enterHype, lastWorkStep(n), true);
+      var hk = hypeKey(enterHype), spokenHype = Coach.has(hk) ? hk : null;   // e.g. 'Last set, make it count.' instead of 'Set four.'
       el.classList.remove('resting');
       if (Date.now() >= manualUntil) setView('form');
       showAnim(s.id, s.easy ? 0.7 : 1);
@@ -1125,7 +1136,7 @@
         if (e.unit === 'stopnja') lg += stepper('load', cur.load, 1, 'level');
         $('#wLog').innerHTML = lg; $('#wLog').hidden = false;
         $('#wDone').textContent = race ? '✓ Station done' : s.sets > 1 && s.set === s.sets ? '🏁 Last set done' : '✓ Done';
-        Voice.cue(e.name + '. ' + (s.set === 1 ? e.cues[0] : 'Set ' + s.set), ['ex_' + s.id, s.set === 1 ? 'cue_' + s.id : 'set_' + s.set]);
+        Voice.cue(e.name + '. ' + (s.set === 1 ? e.cues[0] : 'Set ' + s.set), ['ex_' + s.id, s.set === 1 ? 'cue_' + s.id : spokenHype || 'set_' + s.set]);
       } else if (s.kind === 'dist') {
         $('#wWhy').textContent = 'Target ' + s.dist + ' m – press OK when the monitor shows the distance';
         $('#wRx').innerHTML = chips([[s.dist + ' m', 'distance'], ['~' + fmt(s.dist * (e.secPerM || 0.27)), 'target time'], [e.tempo || '—', 'tempo']]);
@@ -1172,7 +1183,7 @@
       if (s.kind === 'reps') {
         logged.push({ id: s.id, reps: cur.reps, load: cur.load });
         var e0 = ex(s.id), pr0 = e0.unit === 'kg' && isPR(s.id, cur.reps, cur.load) && prs.indexOf(s.id) < 0;
-        if (pr0) prs.push(s.id);
+        if (pr0) { prs.push(s.id); hypeVoice('New personal best!'); }
         if (!race) cheer(pr0 ? '🏆 New personal best!' : hype('hit'),
           (s.sets > 1 ? 'Set ' + s.set + ' of ' + s.sets + ' · ' : '') + cur.reps + ' reps' + (e0.unit === 'kg' && cur.load ? ' × ' + cur.load + ' kg' : ''));
       } else if (!race && !s.easy && !s.hard && s.kind === 'time' && s.sec >= 30 && i < st.length - 1) cheer(hype('hit'), e0name(s));
@@ -1192,7 +1203,7 @@
       $('#wMus').innerHTML = musChips(ne.anim.muscles);
       var np = photo(nx.id); $('#wPip').hidden = !np; if (np) $('#wPip img').src = np;
       $('#wWhy').textContent = 'Get ready: ' + ne.name + (nx.kind === 'reps' ? ' · set ' + nx.set + '/' + nx.sets : '');
-      lastHype = ''; setHype(Math.round((i + 1) / st.length * 100) + '% done · ' + hype('rest'));
+      lastHype = ''; setHype(Math.round((i + 1) / st.length * 100) + '% done · ' + hype('rest'), false, true);
       $('#wLog').hidden = true;
       $('#wRx').innerHTML = chips([[fmt(sec), 'rest'], [ne.name.split(' (')[0], 'up next']]);
       $('#wDone').textContent = '⏭ Skip rest';
@@ -1228,14 +1239,14 @@
         var tgt = s.item.reps[1], pr = Math.min(pacerReps(), tgt);
         top.textContent = 'REP PACER'; val.textContent = pr; sub.textContent = '/ ' + tgt + ' · ' + fmt(elapsed);
         setRing('wRing', pr / tgt);
-        if (!pacerHit && tgt >= 6) {
-          if (pr === Math.floor(tgt / 2)) setHype(hype('half'));
-          else if (pr === tgt - 2) setHype(hype('twoLeft'), true);
-          else if (pr === tgt - 1) setHype(hype('lastRep'), true);
+        if (!pacerHit && tgt >= 6 && pr !== lastMilestone) {
+          lastMilestone = pr;
+          if (tgt >= 10 && pr === Math.floor(tgt / 2)) setHype(hype('half'));
+          else if (pr === tgt - 2) { var h2 = hype('twoLeft'); setHype(h2, true); hypeVoice(h2); }
         }
         if (pr >= tgt && !pacerHit) {
           pacerHit = true; Audio.beep(1320, 0.2);
-          if (!race) { $('#wDone').textContent = '💪 Nailed it'; setHype(hype('hit'), true); }
+          if (!race) { $('#wDone').textContent = '💪 Nailed it'; var hh = hype('hit'); setHype(hh, true); hypeVoice(hh); }
           if (autoNext()) autoAt = elapsed + AUTO_GRACE;
           $('#wPhase').textContent = autoAt ? 'Target hit – rack it, moving on' : 'Target hit – press OK to finish';
         }
@@ -1273,7 +1284,7 @@
           remain -= 0.25;
           if (remain <= 3.01 && remain > 0 && Math.abs(remain - Math.round(remain)) < 0.01) Audio.beep(880, 0.12);
           if (s.sec >= 60 && Math.abs(remain - s.sec / 2) < 0.01) { Voice.cue('Halfway.', ['half']); setHype(hype('half')); }
-          if (s.sec >= 30 && Math.abs(remain - 10) < 0.01) setHype(hype('tenLeft'), true);
+          if (s.sec >= 30 && Math.abs(remain - 10) < 0.01) { var ht = hype('tenLeft'); setHype(ht, true); hypeVoice(ht); }
           if (remain <= 0) { Audio.beep(1320, 0.3); completeWork(); return; }
         }
       }
