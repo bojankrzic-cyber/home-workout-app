@@ -56,7 +56,7 @@ Vzorci iz [Ladder](https://mobbin.com/screens/d1169c75-4219-4bf1-aa2c-f5eb8fc018
 - povzetek: čas, serije, ponovitve, volumen (kg), vmesni časi.
 
 ### Več oseb (profili)
-Ob zagonu izbereš, kdo trenira (kot pri Netflixu). Vsaka oseba ima **svoj program (3×/4×), nivo, teže, progresijo, zgodovino in shranjene treninge**. Neobvezni 4-mestni PIN zaklene profil na skupnem TV-ju (zasebnost, ne varnost – podatki so v brskalniku). Obstoječi podatki se ob nadgradnji samodejno prenesejo v profil "Jaz".
+**Hitra prijava:** naprava si zapomni, kdo je nazadnje treniral, in ob zagonu odpre neposredno njegov domači zaslon (če ima PIN, takoj tipkovnico s povezavo *Izberi osebo*). Zamenjava osebe je en klik zgoraj desno. Nov profil = ime + barva + nivo, ostalo (treningi/teden, oprema, PIN) je pod *Več možnosti* ali kasneje v Nastavitvah. Izbirnik *Kdo trenira?* deluje kot pri Netflixu. Vsaka oseba ima **svoj program (3×/4×), nivo, teže, progresijo, zgodovino in shranjene treninge**. Neobvezni 4-mestni PIN zaklene profil na skupnem TV-ju (zasebnost, ne varnost – podatki so v brskalniku). Obstoječi podatki se ob nadgradnji samodejno prenesejo v profil "Jaz".
 
 ### Trening po izbiri
 - **Sestavi trening**: vrsta (**Moč / Kardio / Moč + kardio**) × fokus (noge, zadnjica, prsa, hrbet, rame, roke, trup – več izbir ali "celo telo") × trajanje (20/30/45/60 min). Generator vzame samo tvojo opremo, najprej večsklepne vaje, pare v supersete in prilagodi število vaj času in tvojemu nivoju. Vsako vajo lahko **zamenjaš** (⇄) ali **odstraniš**, trening pa **shraniš** med priljubljene.

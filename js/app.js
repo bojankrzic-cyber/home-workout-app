@@ -1017,7 +1017,8 @@
   SCREENS.pin = function (p) {
     var pr = Store.list().filter(function (x) { return x.id === p.id; })[0];
     var pin = '';
-    root.innerHTML = '<div class="screen center">' + avatar(pr, true) + '<h1>' + esc(pr.name) + '</h1><div class="hint">Vnesi PIN</div><div class="dots" id="dots"></div>' + keypad() + '</div>';
+    root.innerHTML = '<div class="screen center">' + avatar(pr, true) + '<h1>' + esc(pr.name) + '</h1><div class="hint">Vnesi PIN</div><div class="dots" id="dots"></div>' + keypad() +
+      (p.quick ? '<button class="btn ghost sm focusable" data-go="profiles">Nisi ' + esc(pr.name) + '? Izberi osebo</button>' : '') + '</div>';
     function draw() { $('#dots').innerHTML = [0, 1, 2, 3].map(function (i) { return '<i' + (i < pin.length ? ' class="on"' : '') + '></i>'; }).join(''); }
     function check() {
       if (Store.checkPin(pr, pin)) activate(pr);
@@ -1038,7 +1039,7 @@
         color: existing ? existing.color : Store.COLORS[Store.list().length % Store.COLORS.length],
         level: existing ? existing.settings.level : 'mid',
         days: existing ? existing.settings.days : 3,
-        pin: null, clearPin: false,
+        pin: null, clearPin: false, more: !!existing,
         equipment: (existing ? existing.settings.equipment : (state ? state.settings.equipment : null) || Exercises.HOME_GYM).slice()
       };
     }
@@ -1054,21 +1055,23 @@
         return '<button class="swatch focusable' + (d.color === c ? ' on' : '') + '" data-fid="pe-color-' + c + '" data-pe="color" data-val=\'"' + c + '"\' style="background:' + c + '"></button>';
       }).join('') + '</div>' +
       '<div class="opt-row"><div class="k">Nivo</div>' + chip('level', 'beg', 'Začetnik') + chip('level', 'mid', 'Srednji') + chip('level', 'adv', 'Napreden') + '</div>' +
-      '<div class="opt-row"><div class="k">Treningov na teden</div>' + chip('days', 3, '3× – celo telo') + chip('days', 4, '4× – upper / lower') + '</div>' +
+      (d.more ? '' : '<div class="opt-row"><button class="btn sm ghost focusable" id="pMore" data-fid="pe-more">Več možnosti (treningi/teden, oprema, PIN) ▾</button></div>') +
+      (d.more ? '<div class="opt-row"><div class="k">Treningov na teden</div>' + chip('days', 3, '3× – celo telo') + chip('days', 4, '4× – upper / lower') + '</div>' +
       '<div class="opt-row"><div class="k">Oprema</div><div class="eq-strip">' + d.equipment.slice(0, 9).map(function (k) { return '<span class="eq-mini" title="' + esc(Exercises.EQUIP[k].name) + '">' + equipIcon(k) + '</span>'; }).join('') +
       '</div><button class="btn sm focusable" id="pEquip" data-fid="pe-equip">' + pl(d.equipment.length, NAP) + ' · uredi →</button></div>' +
       '<div class="opt-row"><div class="k">PIN (neobvezno)</div><input class="field focusable" id="pPin" data-fid="pe-pin" type="password" inputmode="numeric" maxlength="4" placeholder="4 števke" value="' + esc(d.pin || '') + '">' +
       (existing && existing.pin ? '<button class="chip focusable' + (d.clearPin ? ' on' : '') + '" data-fid="pe-clear" id="pClear">Odstrani PIN</button>' : '') +
-      '<span class="hint">Zaklene profil na skupnem TV-ju (zasebnost, ne varnost).</span></div>' +
+      '<span class="hint">Zaklene profil na skupnem TV-ju (zasebnost, ne varnost).</span></div>' : '') +
       '</div><div class="nav-row"><button class="btn primary focusable" id="pSave">' + (existing ? 'Shrani' : 'Ustvari profil') + '</button>' +
       (Store.list().length ? '<button class="btn ghost focusable" id="pCancel">Prekliči</button>' : '') +
       (existing && Store.list().length > 1 ? '<button class="btn ghost focusable danger" id="pDel">Izbriši osebo</button>' : '') + '</div></div>';
-    function readInputs() { d.name = $('#pName').value.trim(); var pv = $('#pPin').value.trim(); d.pin = pv || null; }
+    function readInputs() { d.name = $('#pName').value.trim(); if ($('#pPin')) d.pin = $('#pPin').value.trim() || null; }
+    if ($('#pMore')) $('#pMore').onclick = function () { readInputs(); d.more = true; refresh(); var f = $('[data-fid="pe-days-3"]'); if (f) f.focus(); };
     $$('[data-pe]').forEach(function (b) {
       b.onclick = function () { readInputs(); d[b.getAttribute('data-pe')] = JSON.parse(b.getAttribute('data-val')); refresh(); };
     });
     if ($('#pClear')) $('#pClear').onclick = function () { readInputs(); d.clearPin = !d.clearPin; refresh(); };
-    $('#pEquip').onclick = function () { readInputs(); eqDraft = null; go('equipment', { draft: true }); };
+    if ($('#pEquip')) $('#pEquip').onclick = function () { readInputs(); eqDraft = null; go('equipment', { draft: true }); };
     $('#pSave').onclick = function () {
       readInputs();
       if (!d.name) { toast('Vpiši ime'); $('#pName').focus(); return; }
@@ -1080,7 +1083,7 @@
       Store.save();
       pdraft = null;
       if (existing && state && existing.id === state.id) { toast('Shranjeno'); back(); }
-      else if (!existing) { state = Store.setActive(pr.id); eqDraft = null; resetTo('equipment', { onboard: true }); }
+      else if (!existing) { eqDraft = null; activate(pr); }
       else activate(pr);
     };
     if ($('#pCancel')) $('#pCancel').onclick = function () { pdraft = null; back(); };
@@ -1263,8 +1266,11 @@
     navigator.serviceWorker.register('sw.js').catch(function () {});
   }
   (function boot() {
-    var list = Store.list();
+    // Fast login: this device remembers who trained last – straight in (or straight to their PIN)
+    var list = Store.list(), last = Store.active();
     if (!list.length) go('profileEdit', {});
+    else if (last && !last.pin) { state = last; go('home'); }
+    else if (last) go('pin', { id: last.id, quick: true });
     else if (list.length === 1 && !list[0].pin) { state = Store.setActive(list[0].id); go('home'); }
     else go('profiles');
   })();
