@@ -693,3 +693,28 @@ h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -.015em; }
   .prod-row { grid-template-columns: 1fr; gap: .8rem; }
   .prod-card { grid-template-columns: 5.5rem 1fr; padding: .9rem; }
 }
+
+/* ===== Motivation: hype line, set celebration, finish ======================== */
+.hype-line { min-height: 1.5em; font-family: var(--font-sport); font-style: italic; font-weight: 600; font-size: 1.55rem; letter-spacing: .01em; color: var(--accent-2); line-height: 1.2; }
+.hype-line.strong { color: var(--accent); }
+.hype-line.pop { animation: hypePop .45s cubic-bezier(.2, 1.4, .4, 1); }
+@keyframes hypePop { from { opacity: 0; transform: translateY(8px) scale(.96); } to { opacity: 1; transform: none; } }
+.cheer { position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%); z-index: 9; text-align: center; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: .4rem; }
+.cheer b { font-family: var(--font-sport); font-style: italic; font-weight: 600; font-size: clamp(2.4rem, 6vw, 5rem); line-height: 1; color: #fff; text-shadow: 0 6px 40px rgba(62, 196, 109, .55), 0 2px 0 rgba(0, 0, 0, .4); white-space: nowrap; }
+.cheer span { font-weight: 600; font-size: 1.1rem; color: var(--accent); background: rgba(5, 10, 7, .75); padding: .3rem .9rem; border-radius: 999px; }
+.cheer.go { animation: cheerIn 1.9s ease forwards; }
+@keyframes cheerIn { 0% { opacity: 0; transform: translate(-50%, -40%) scale(.7); } 14% { opacity: 1; transform: translate(-50%, -50%) scale(1.06); } 22% { transform: translate(-50%, -50%) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -58%) scale(1); } }
+.cheer-burst, .fin-burst { position: absolute; left: 50%; top: 50%; width: 1px; height: 1px; pointer-events: none; }
+.cheer-burst::before, .cheer-burst::after, .fin-burst::before, .fin-burst::after { content: ''; position: absolute; left: -.3rem; top: -.3rem; width: .6rem; height: .6rem; border-radius: 50%;
+  box-shadow: 9rem -4rem 0 #3ec46d, -9rem -3rem 0 #5ad1b8, 7rem 5rem 0 #fcb900, -7rem 6rem 0 #f08a5d, 3rem -8rem 0 #a99be8, -3rem 8rem 0 #3ec46d, 11rem 1rem 0 #5ad1b8, -11rem 0 0 #fcb900, 5rem -7rem 0 #f08a5d, -5rem -7rem 0 #3ec46d;
+  animation: burst 1.2s ease-out forwards; opacity: 0; }
+.cheer-burst::after, .fin-burst::after { transform: rotate(35deg) scale(.7); animation-delay: .08s; }
+@keyframes burst { 0% { opacity: 1; transform: scale(.1); } 70% { opacity: 1; } 100% { opacity: 0; transform: scale(1.15); } }
+.fin-card { position: relative; }
+.fin-head { font-family: var(--font-sport); font-style: italic; font-weight: 600; font-size: clamp(1.8rem, 4vw, 2.8rem); line-height: 1.05; text-align: center; }
+.fin-proud { display: flex; flex-direction: column; gap: .3rem; align-items: center; color: var(--accent-2); font-weight: 600; text-align: center; }
+@media (max-width: 900px) {
+  .hype-line { font-size: 1.25rem; }
+  .cheer { top: 38%; width: 92%; }
+  .cheer b { white-space: normal; font-size: 2.6rem; }
+}
