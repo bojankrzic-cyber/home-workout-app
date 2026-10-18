@@ -213,9 +213,12 @@
   // Joint-friendly swaps: exercises that load a sore joint give way to a gentler option from the same pattern
   var LIMITS = {
     knee: ['box_jump', 'burpee_bj', 'db_bulgarian', 'kb_lunge', 'sandbag_lunge', 'bw_lunge', 'jump_rope', 'high_knees', 'treadmill_run', 'bb_squat', 'wall_ball', 'db_thruster', 'mountain_climber'],
-    back: ['bb_deadlift', 'bb_squat', 'kb_swing', 'back_ext', 'situp', 'hang_leg_raise', 'burpee_bj', 'sled_pull', 'k_sled_pull'],
-    shoulder: ['db_shoulder_press', 'kb_press', 'bb_bench', 'pullup', 'dead_hang', 'hang_leg_raise', 'hang_knee_raise', 'wall_ball', 'db_thruster', 'pushup', 'skierg', 'k_ski'],
-    wrist: ['pushup', 'plank', 'mountain_climber', 'burpee_bj', 'bb_bench']
+    back: ['bb_deadlift', 'bb_squat', 'kb_swing', 'back_ext', 'situp', 'hang_leg_raise', 'burpee_bj', 'sled_pull', 'k_sled_pull',
+      'abwheel_rollout', 'susp_fallout', 'ball_slam', 'ball_rot_slam', 'landmine_row'],
+    // landmine_press is deliberately NOT here: its arc is the shoulder-friendly vertical press
+    shoulder: ['db_shoulder_press', 'kb_press', 'bb_bench', 'pullup', 'dead_hang', 'hang_leg_raise', 'hang_knee_raise', 'wall_ball', 'db_thruster', 'pushup', 'skierg', 'k_ski',
+      'dips', 'susp_fallout', 'ball_slam'],
+    wrist: ['pushup', 'plank', 'mountain_climber', 'burpee_bj', 'bb_bench', 'dips', 'lsit', 'abwheel_rollout']
   };
   function avoided(state) {
     var out = {};
@@ -256,6 +259,8 @@
             o.time = 45; delete o.reps;
           } else if (o.cardio && o.cardio.rounds && /^bike_hiit|^row_hiit/.test(pick)) {
             o.cardio.work = pick === 'bike_hiit' ? 20 : 30; o.cardio.easy = pick === 'bike_hiit' ? 40 : 30;
+          } else if (o.cardio && o.cardio.rounds && Exercises.BY_ID[pick].iv) {
+            o.cardio.work = Exercises.BY_ID[pick].iv[0]; o.cardio.easy = Exercises.BY_ID[pick].iv[1];
           }
           if (o.reps && !o.dist && Exercises.BY_ID[pick].unit === 's') { o.time = 40; delete o.reps; }
         }
@@ -398,6 +403,16 @@
       b.items.forEach(function (it) { if (!PRESET[it.id] && !it.cardio) PRESET[it.id] = it; });
     });
   });
+  // exercises for extra equipment never appear in a template session – give them sensible defaults
+  var EXTRA_PRESET = {
+    susp_row: S('susp_row', 3, [8, 12], 90), susp_pushup: S('susp_pushup', 3, [8, 12], 90), susp_squat: S('susp_squat', 3, [10, 15], 75),
+    susp_fallout: S('susp_fallout', 3, [6, 10], 60), abwheel_rollout: S('abwheel_rollout', 3, [6, 10], 60),
+    ball_slam: S('ball_slam', 3, [10, 15], 60), ball_rot_slam: S('ball_rot_slam', 3, [6, 8], 60, { perSide: true }), rope_waves: T('rope_waves', 4, 30, 30),
+    roll_tspine: T('roll_tspine', 1, 60, 10), roll_quads: T('roll_quads', 1, 60, 10),
+    dips: S('dips', 3, [6, 10], 90), lsit: T('lsit', 3, 15, 45),
+    landmine_press: S('landmine_press', 3, [8, 10], 75, { perSide: true }), landmine_row: S('landmine_row', 3, [8, 10], 90)
+  };
+  Object.keys(EXTRA_PRESET).forEach(function (k) { if (!PRESET[k]) PRESET[k] = EXTRA_PRESET[k]; });
   function prescribe(id, sets) {
     var e = Exercises.BY_ID[id], base = PRESET[id];
     var o = base ? JSON.parse(JSON.stringify(base)) : (e.unit === 's' ? T(id, 2, 40, 45) : S(id, 3, e.compound ? [8, 10] : [10, 12], 60));
@@ -504,26 +519,36 @@
     treadmill: { z2: 'treadmill_run', hiit: 'treadmill_run', work: 30, easy: 60, name: 'Treadmill' },
     skierg: { z2: 'skierg', hiit: 'skierg', work: 30, easy: 30, name: 'SkiErg' },
     rope: { z2: 'jump_rope', hiit: 'jump_rope', work: 40, easy: 20, name: 'Jump Rope' },
-    floor: { z2: 'high_knees', hiit: 'high_knees', work: 30, easy: 30, name: 'Bodyweight' }
+    floor: { z2: 'high_knees', hiit: 'high_knees', work: 30, easy: 30, name: 'Bodyweight' },
+    airbike: { z2: 'airbike_z2', hiit: 'airbike_sprint', work: 20, easy: 40, name: 'Air bike' },
+    // conditioning tools: intervals only (no Zone 2 on ropes or slams)
+    ropes: { z2: null, hiit: 'rope_waves', work: 30, easy: 30, name: 'Battle ropes', hiitOnly: true },
+    slamball: { z2: null, hiit: 'ball_slam', work: 30, easy: 30, name: 'Slam ball', hiitOnly: true }
   };
   function cardioMachines(own) {
-    var m = ['bike', 'rower', 'treadmill', 'skierg', 'rope'].filter(function (k) { return own.indexOf(k) >= 0; });
+    var m = ['bike', 'rower', 'treadmill', 'skierg', 'rope', 'airbike', 'ropes', 'slamball'].filter(function (k) { return own.indexOf(k) >= 0; });
     return m.length ? m : ['floor'];
   }
 
   function cardioSession(opts, min) {
     var own = opts.owned || Exercises.HOME_GYM;
     var avail = cardioMachines(own);
-    var machines = opts.machine && opts.machine !== 'all' && avail.indexOf(opts.machine) >= 0 ? [opts.machine] : avail.slice(0, 2);
     var inten = opts.intensity || 'mix';
-    var blocks = [{ title: 'Warm-up', items: [C(MACHINES[machines[0]].z2, 5)] }];
+    // machines that can do steady work (warm-up, cooldown, Zone 2)
+    var steadyM = avail.filter(function (k) { return !MACHINES[k].hiitOnly; });
+    if (!steadyM.length) steadyM = ['floor'];
+    var machines = opts.machine && opts.machine !== 'all' && avail.indexOf(opts.machine) >= 0 ? [opts.machine] : (inten === 'z2' ? steadyM : avail).slice(0, 2);
+    function easyOf(k) { return MACHINES[k].hiitOnly ? MACHINES[steadyM[0]].z2 : MACHINES[k].z2; }
+    var blocks = [{ title: 'Warm-up', items: [C(easyOf(machines[0]), 5)] }];
     var main = Math.max(6, min - 9);
     var per = Math.round(main / machines.length);
     machines.forEach(function (mc) {
       var M = MACHINES[mc];
       var label = machines.length > 1 ? ' – ' + M.name : '';
       var rounds = Math.max(3, Math.round(per * 60 / (M.work + M.easy)));
-      if (inten === 'z2') blocks.push({ title: 'Zone 2' + label, items: [C(M.z2, per)] });
+      // ropes / slams are brutal on the grip and shoulders: cap the number of rounds
+      if (M.hiitOnly) blocks.push({ title: 'Intervals' + label, items: [I(M.hiit, Math.min(10, rounds), M.work, M.easy)] });
+      else if (inten === 'z2') blocks.push({ title: 'Zone 2' + label, items: [C(M.z2, per)] });
       else if (inten === 'hiit') blocks.push({ title: 'Intervals' + label, items: [I(M.hiit, rounds, M.work, M.easy)] });
       else {
         var half = Math.max(3, Math.round(per / 2));
@@ -531,9 +556,9 @@
         blocks.push({ title: 'Intervals' + label, items: [I(M.hiit, Math.max(3, Math.round((per - half) * 60 / (M.work + M.easy))), M.work, M.easy)] });
       }
     });
-    blocks.push({ title: 'Cooldown', items: [C(MACHINES[machines[machines.length - 1]].z2, 3)] });
+    blocks.push({ title: 'Cooldown', items: [C(easyOf(machines[machines.length - 1]), 3)] });
     blocks.push({ title: 'Stretch', items: [T('hamstring_bench', 1, 40, 10)] });
-    var iName = { z2: 'Zone 2', hiit: 'Intervals', mix: 'Zone 2 + Intervals' }[inten];
+    var iName = { z2: 'Zone 2', hiit: 'Intervals', mix: 'Zone 2 + Intervals' }[machines.every(function (k) { return MACHINES[k].hiitOnly; }) ? 'hiit' : inten];
     return { name: 'Cardio: ' + machines.map(function (k) { return MACHINES[k].name; }).join(' + ') + ' – ' + iName, short: min + ' min · custom', color: '#5ad1b8', custom: true, opts: opts, blocks: blocks };
   }
 
@@ -558,7 +583,10 @@
         if (it.id !== id) return it;
         if (it.cardio) {
           var c = JSON.parse(JSON.stringify(it)); c.id = newId;
-          if (c.cardio.rounds) { c.cardio.work = newId === 'bike_hiit' ? 20 : 30; c.cardio.easy = newId === 'bike_hiit' ? 40 : 30; }
+          if (c.cardio.rounds) {
+            var iv = Exercises.BY_ID[newId].iv;
+            c.cardio.work = iv ? iv[0] : newId === 'bike_hiit' ? 20 : 30; c.cardio.easy = iv ? iv[1] : newId === 'bike_hiit' ? 40 : 30;
+          }
           return c;
         }
         var n = prescribe(newId, it.sets);
@@ -579,7 +607,7 @@
   // Single exercise session from the library
   function single(id) {
     var e = Exercises.BY_ID[id];
-    var it = e.type === 'cardio' ? (e.id.indexOf('hiit') > 0 ? I(id, 8, e.id === 'bike_hiit' ? 20 : 30, e.id === 'bike_hiit' ? 40 : 30) : C(id, 10)) : prescribe(id, 3);
+    var it = e.type === 'cardio' ? (e.iv ? I(id, 8, e.iv[0], e.iv[1]) : e.id.indexOf('hiit') > 0 ? I(id, 8, e.id === 'bike_hiit' ? 20 : 30, e.id === 'bike_hiit' ? 40 : 30) : C(id, 10)) : prescribe(id, 3);
     if (!it.cardio) it.rest = it.time ? 30 : 90;
     return { name: e.name, short: 'Single exercise', color: '#3ec46d', custom: true, blocks: [{ title: 'Exercise', items: [it] }] };
   }

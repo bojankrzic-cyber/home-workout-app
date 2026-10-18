@@ -148,6 +148,12 @@
         circ(add(c, dir + 140, 4), 2.2, 'p-kb-shine' + far);
     }
     if (type === 'handle') return circ(h, 5, 'p-handle' + far);
+    // ab wheel: wheel rolls on the floor under the hands, handles through the hub
+    if (type === 'wheel') {
+      if (side === 'F') return '';
+      var wc = [(J.hN[0] + J.hF[0]) / 2, -9];
+      return circ(wc, 9, 'p-wheel') + circ(wc, 4, 'p-wheel-hub') + line(add(wc, J.extra.wspin || 0, 2), add(wc, (J.extra.wspin || 0) + 180, 7), 1.6, 'p-wheel-sp');
+    }
     // barbell seen from the side: the plate is what the eye reads
     if (type === 'plate') return circ(h, 22, 'p-bbplate' + far) + circ(h, 7, 'p-plate-in' + far) + circ(h, 3, 'p-metal-c');
     if (side === 'F') return '';
@@ -306,15 +312,127 @@
       s += line([fx + 76, -8], [fx + 76, 0], 7, 'p-wood');
       s += line([fx - 2, -14], [fx + 10, -40], 8, 'p-pad-l');
       return s;
+    },
+    // Suspension trainer anchor (ceiling beam / door top). x,y = anchor point; hang = strap length (icon only)
+    susp: function (o) {
+      var x = o.x, y = o.y, s = '';
+      s += rect(x - 34, y - 22, 68, 10, 'p-wall-l', 2);
+      s += line([x, y - 12], [x, y], 4, 'p-strap') + circ([x, y], 4, 'p-metal-c');
+      if (o.hang) {
+        // icon: two straps hanging from the anchor to their handles
+        [[-24, ' far'], [24, '']].forEach(function (sd) {
+          var end = [x + sd[0], y + o.hang];
+          s += line([x, y], end, 5, 'p-strap' + sd[1]);
+          s += line(along([x, y], end, 0.45), along([x, y], end, 0.55), 10, 'p-strap-b' + sd[1]);
+          s += line([end[0] - 6, end[1] - 10], [end[0] - 9, end[1] + 4], 2.5, 'p-strap' + sd[1]) + line([end[0] + 6, end[1] - 10], [end[0] + 9, end[1] + 4], 2.5, 'p-strap' + sd[1]);
+          s += line([end[0] - 12, end[1] + 6], [end[0] + 12, end[1] + 6], 9, 'p-grip');
+        });
+        s += circ([x, y], 6, 'p-metal-c');
+      }
+      return s;
+    },
+    // Dip station seen from the side: near bar at height y (far bar just behind), x0..x1 = bar span
+    dipbars: function (o) {
+      var s = '';
+      s += rect(o.x0 - 10, -6, o.x1 - o.x0 + 20, 6, 'p-metal-d', 3);
+      s += rect(o.x0 + 6, o.y, 8, -o.y - 4, 'p-rack') + rect(o.x1 - 14, o.y, 8, -o.y - 4, 'p-rack');
+      s += line([o.x0 + 4, o.y - 4], [o.x1 + 4, o.y - 4], 5, 'p-metal far');
+      s += line([o.x0, o.y], [o.x1, o.y], 6, 'p-metal');
+      s += circ([o.x0, o.y], 3.5, 'p-metal-c') + circ([o.x1, o.y], 3.5, 'p-metal-c');
+      return s;
+    },
+    // Landmine: floor pivot at x. With `end` (icons) the bar is drawn statically; in animations it follows the hands.
+    landmine: function (o) {
+      var s = '';
+      s += rect(o.x - 18, -5, 36, 5, 'p-metal-d', 2);
+      if (o.end) s += landmineBar(o, o.end);
+      s += rect(o.x - 6, -14, 12, 10, 'p-metal-d', 3) + circ([o.x, -9], 3.5, 'p-metal-c');
+      return s;
+    },
+    // Battle-rope anchor (floor post) at x
+    ropeanchor: function (o) {
+      return rect(o.x - 4, -26, 12, 26, 'p-rack', 2) + rect(o.x - 12, -5, 28, 5, 'p-metal-d', 2) + circ([o.x + 2, -12], 4, 'p-metal-c');
+    },
+    // Air (fan) bike: like the bike but with a big front fan and moving arm levers (drawn per frame)
+    airbike: function (o) {
+      var s = '';
+      var sad = [o.sx, o.sy], cr = [o.cx, o.cy], fan = [o.fx, o.fy];
+      s += rect(o.sx - 40, -6, o.fx - o.sx + 70, 6, 'p-metal-d', 3);
+      s += line([o.sx - 22, -4], [cr[0] - 4, cr[1] + 4], 9, 'p-bike');
+      s += line(cr, [o.sx - 6, o.sy + 8], 9, 'p-bike');
+      s += line(cr, fan, 9, 'p-bike');
+      s += line(fan, [o.fx + 26, -4], 9, 'p-bike');
+      s += line([o.px, o.py], [o.px + 6, o.py - 40], 8, 'p-bike');
+      s += circ(fan, o.fr, 'p-fan');
+      s += circ(fan, o.fr - 7, 'p-fan-in');
+      s += line([o.sx - 14, o.sy - 2], [o.sx + 10, o.sy - 2], 7, 'p-pad-l');
+      if (o.still) s += airParts(o, o.still);
+      return s;
     }
   };
+  function landmineBar(o, hand) {
+    var piv = [o.x, -9], a = ang(piv, hand);
+    var end = add(hand, a, o.ext || 10), pc = add(hand, a, o.plate || -22), r = o.pr || 19;
+    var s = line(piv, end, 4.5, 'p-metal');
+    var e1 = add(pc, a + 90, r), e2 = add(pc, a - 90, r);
+    s += poly([add(e1, a, 4), add(e2, a, 4), add(e2, a, -4), add(e1, a, -4)], 'p-bbplate');
+    s += line(add(pc, a, 5), add(pc, a, 9), 6, 'p-metal');
+    return s;
+  }
+  // Air bike arm lever grip for a crank angle: each lever moves opposite to the pedal on its side
+  function airGrip(o, crank, side) {
+    var sw = (side === 'F' ? -1 : 1) * o.sw * Math.sin(crank * RAD);
+    return add([o.px, o.py], o.pa + sw, o.pl);
+  }
+  function airParts(o, crank) {
+    var s = '', cr = [o.cx, o.cy], fan = [o.fx, o.fy];
+    for (var b = 0; b < 6; b++) {
+      var ba = crank * 2.2 + b * 60;
+      s += line(add(fan, ba, 6), add(fan, ba + 14, o.fr - 9), 3, 'p-fan-blade');
+    }
+    s += circ(fan, 5, 'p-metal-c');
+    ['F', 'N'].forEach(function (sd) {
+      var far = sd === 'F' ? ' far' : '';
+      var g = airGrip(o, crank, sd), ped = add(cr, crank + (sd === 'F' ? 180 : 0), 17);
+      s += line([o.px, o.py], g, 6, 'p-metal' + far) + line(g, add(g, 90, 9), 6, 'p-pad-l');
+      s += line(cr, ped, 5, 'p-metal' + far);
+      s += line([o.px, o.py], add([o.px, o.py], ang([o.px, o.py], ped), 14), 4, 'p-metal' + far);
+    });
+    s += circ(cr, 9, 'p-metal-c') + circ([o.px, o.py], 4, 'p-metal-c');
+    return s;
+  }
+  function slamSvg(c) {
+    return circ(c, 13, 'p-slam') + path('M' + P([c[0] - 13, c[1] + 2]) + ' Q' + P([c[0], c[1] - 5]) + ' ' + P([c[0] + 13, c[1] + 2]), 'p-slam-l', 1.4) +
+      path('M' + P([c[0] - 10, c[1] - 8]) + ' Q' + P([c[0], c[1] - 12]) + ' ' + P([c[0] + 10, c[1] - 8]), 'p-slam-l', 1.4) +
+      path('M' + P([c[0] - 10, c[1] + 9]) + ' Q' + P([c[0], c[1] + 12]) + ' ' + P([c[0] + 10, c[1] + 9]), 'p-slam-l', 1.4);
+  }
+  function rollerSvg(c, r) {
+    r = r || 8;
+    return circ(c, r, 'p-foam') + circ(c, r * 0.55, 'p-foam-in') + circ(c, r * 0.2, 'p-foam-c');
+  }
+  // battle rope from a hand to the floor anchor: a travelling wave that starts at the hand's own motion
+  function waveRope(h, A, u, amp, cls) {
+    var y0 = h[1] - amp * Math.sin(u * 2 * Math.PI), pts = [];
+    for (var i = 0; i <= 30; i++) {
+      var s = i / 30;
+      var x = lerp(h[0], A[0], s);
+      var y = lerp(y0, A[1], s) + 6 * Math.sin(s * Math.PI) + Math.pow(1 - s, 0.8) * amp * Math.sin((u - 1.6 * s) * 2 * Math.PI);
+      pts.push(P([x, y]));
+    }
+    return '<polyline points="' + pts.join(' ') + '" class="' + cls + '" stroke-width="4.5"/>';
+  }
 
   // ---- dynamic scenery drawn per frame -------------------------------------
   function dynamicProps(anim, J, phase) {
     var s = '';
     (anim.cables || []).forEach(function (c) {
       var to = c.to.map(function (k) { return J[k]; });
-      to.forEach(function (pt) { s += line(c.from, pt, c.w || 1.6, c.cls || 'p-cable'); });
+      (c.strap ? [1, 0] : to.map(function (_, i) { return i; })).forEach(function (i) {
+        var pt = to[i], fc = c.strap && i === 1 ? ' far' : '';
+        s += line(c.from, pt, c.w || 1.6, (c.cls || 'p-cable') + fc);
+        // suspension straps: length-adjust buckle on the strap
+        if (c.strap) s += line(along(c.from, pt, 0.5), along(c.from, pt, 0.57), 7, 'p-strap-b' + fc);
+      });
     });
     if (J.extra.mv !== undefined) {
       // moving floor marks show forward travel while the figure stays centred
@@ -338,8 +456,17 @@
       s += path('M' + P(hm2) + ' Q' + P(c1) + ' ' + P(apex) + ' Q' + P(c2) + ' ' + P(hm2), 'p-rope', 2.4);
     }
     if (J.extra.ball) s += ballSvg(J.extra.ball);
+    if (J.extra.sball) s += slamSvg(J.extra.sball);
+    if (J.extra.roll) s += rollerSvg(J.extra.roll);
+    if (J.extra.wave !== undefined) {
+      var ra = J.extra.ra, amp = J.extra.amp || 14;
+      s += waveRope(J.hF, [ra[0], ra[1] - 3], J.extra.wave + 0.5, amp, 'p-brope far');
+      s += waveRope(J.hN, ra, J.extra.wave, amp, 'p-brope');
+    }
     var sc = anim.scene || [];
     sc.forEach(function (o) {
+      if (o.type === 'landmine' && !o.end) s += landmineBar(o, o.grip === 'mid' ? [(J.hN[0] + J.hF[0]) / 2, (J.hN[1] + J.hF[1]) / 2] : J.hN);
+      if (o.type === 'airbike' && J.extra.crank !== undefined) s += airParts(o, J.extra.crank);
       if (o.type === 'rower') {
         var hm = [(J.hN[0] + J.hF[0]) / 2, (J.hN[1] + J.hF[1]) / 2];
         s += line([o.fx + 20, -44], hm, 2, 'p-chain');
@@ -593,7 +720,12 @@
     box: function (o) { return [o.x, -o.h, o.x + o.w, 0]; },
     target: function (o) { return [o.x - 16, o.y - 20, o.x + 14, 0]; },
     rack: function (o) { return [o.x - 40, -234, o.x + 40, 0]; },
-    anchor: function (o) { return [o.x - 6, o.y - 10, o.x + 8, 0]; }
+    anchor: function (o) { return [o.x - 6, o.y - 10, o.x + 8, 0]; },
+    susp: function (o) { return [o.x - 36, o.y - 24, o.x + 36, 0]; },
+    dipbars: function (o) { return [o.x0 - 12, o.y - 8, o.x1 + 12, 0]; },
+    landmine: function (o) { return [o.x - 20, -16, o.x + 20, 0]; },
+    ropeanchor: function (o) { return [o.x - 14, -28, o.x + 18, 0]; },
+    airbike: function (o) { return [o.sx - 42, o.py - o.pl - 6, o.fx + o.fr + 6, 0]; }
   };
 
   function computeBox(anim) {
@@ -731,6 +863,29 @@
       return path('M' + P([x - 40 * k, y - 20 * k]) + ' C' + P([x - 50 * k, y + 50 * k]) + ' ' + P([x + 50 * k, y + 50 * k]) + ' ' + P([x + 40 * k, y - 20 * k]), 'p-rope', 3 * k) +
         line([x - 40 * k, y - 20 * k], [x - 44 * k, y - 46 * k], 8 * k, 'p-handle-g') + line([x + 40 * k, y - 20 * k], [x + 44 * k, y - 46 * k], 8 * k, 'p-handle-g');
     },
+    wheel: function (x, y, k) {
+      k = k || 1;
+      return line([x - 52 * k, y], [x + 52 * k, y], 7 * k, 'p-metal') + rect(x - 60 * k, y - 7 * k, 26 * k, 14 * k, 'p-grip', 6 * k) + rect(x + 34 * k, y - 7 * k, 26 * k, 14 * k, 'p-grip', 6 * k) +
+        rect(x - 13 * k, y - 34 * k, 26 * k, 68 * k, 'p-wheel', 12 * k) + rect(x - 5 * k, y - 34 * k, 10 * k, 68 * k, 'p-wheel-hub', 4 * k);
+    },
+    slam: function (x, y, k) { return '<g transform="translate(' + x + ' ' + y + ') scale(' + (2.3 * (k || 1)) + ')">' + slamSvg([0, 0]) + '</g>'; },
+    roller: function (x, y, k) {
+      k = k || 1;
+      return rect(x - 50 * k, y - 16 * k, 100 * k, 32 * k, 'p-foam', 4 * k) + rect(x - 50 * k, y - 16 * k, 100 * k, 32 * k, 'p-foam-tex', 4 * k) +
+        '<ellipse cx="' + (x + 50 * k) + '" cy="' + y + '" rx="' + 9 * k + '" ry="' + 16 * k + '" class="p-foam"/>' +
+        '<ellipse cx="' + (x + 50 * k) + '" cy="' + y + '" rx="' + 5 * k + '" ry="' + 9 * k + '" class="p-foam-in"/>';
+    },
+    ropes: function (x, y, k) {
+      k = k || 1;
+      var o = '';
+      [[-10, ' far'], [8, '']].forEach(function (r) {
+        var pts = [];
+        for (var i = 0; i <= 24; i++) { var s2 = i / 24; pts.push(P([x - 52 * k + 96 * k * s2, y + r[0] * k + 14 * k * (1 - s2) * Math.sin((s2 * 2.2 + (r[1] ? 0.5 : 0)) * 2 * Math.PI)])); }
+        o += '<polyline points="' + pts.join(' ') + '" class="p-brope' + r[1] + '" stroke-width="' + 6 * k + '"/>';
+        o += line([x - 60 * k, y + r[0] * k], [x - 46 * k, y + r[0] * k], 9 * k, 'p-grip');
+      });
+      return o + rect(x + 42 * k, y - 22 * k, 12 * k, 40 * k, 'p-rack', 3 * k) + circ([x + 46 * k, y], 4 * k, 'p-metal-c');
+    },
     band: function (x, y, k) {
       k = k || 1;
       return '<ellipse cx="' + x + '" cy="' + y + '" rx="' + 46 * k + '" ry="' + 24 * k + '" class="p-band-loop" stroke-width="' + 7 * k + '"/>' +
@@ -748,6 +903,6 @@
 
   global.Figure = {
     L: L, solve: solve, sample: sample, totalDur: totalDur, viewBox: viewBox,
-    d: d, add: add, ik2: ik2, Player: Player, icon: icon, MUSCLE_NAME: MUSCLE_NAME
+    d: d, add: add, ik2: ik2, Player: Player, icon: icon, MUSCLE_NAME: MUSCLE_NAME, airGrip: airGrip
   };
 })(window);
