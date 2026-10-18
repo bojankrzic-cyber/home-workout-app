@@ -33,7 +33,7 @@
   --radius: 22px;
   --fs: clamp(14px, 1.15vw, 26px);
   --font: 'Rethink Sans', 'Inter', 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
-  --font-serif: 'Fraunces', 'Playfair Display', Georgia, serif;
+  --font-sport: 'Barlow Condensed', 'Arial Narrow', 'Rethink Sans', sans-serif;
   font-size: var(--fs);
 }
 
@@ -144,15 +144,14 @@ h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -.015em; }
 .screen::-webkit-scrollbar { display: none; }
 
 .topbar { display: flex; align-items: center; gap: 1.2rem; }
-.brand { display: inline-flex; align-items: center; gap: .55rem; line-height: 1; white-space: nowrap; }
-.brand .leaf { width: 1.9rem; height: 2.6rem; flex: none; filter: drop-shadow(0 4px 14px rgba(11, 167, 75, .35)); }
+.brand { display: inline-flex; align-items: center; line-height: 1; white-space: nowrap; }
 .brand .wm { display: flex; flex-direction: column; align-items: stretch; }
-.brand .wm-top { font-family: var(--font-serif); font-weight: 600; font-size: 1.75rem; letter-spacing: -.02em; color: var(--text); line-height: .95; font-variation-settings: 'opsz' 144; font-variant-ligatures: none; font-feature-settings: 'liga' 0, 'dlig' 0; }
-.brand .wm-by { display: flex; justify-content: space-between; font-weight: 500; font-size: .5rem; letter-spacing: .02em; color: var(--leaf); margin-top: .32rem; text-transform: uppercase; }
+.brand .wm-top { font-family: var(--font-sport); font-style: italic; font-weight: 600; font-size: 2rem; letter-spacing: .015em; color: var(--text); line-height: .9; transform: skewX(-2deg); }
+.brand .wm-top em { font-style: italic; color: var(--leaf); }
+.brand .wm-by { display: flex; justify-content: space-between; font-weight: 500; font-size: .5rem; color: var(--muted); margin-top: .3rem; text-transform: uppercase; padding-left: .12rem; }
 .brand .wm-by i { font-style: normal; }
-.big-brand .leaf { width: 3.2rem; height: 4.4rem; }
-.big-brand .wm-top { font-size: 3.1rem; }
-.big-brand .wm-by { font-size: .82rem; margin-top: .5rem; }
+.big-brand .wm-top { font-size: 4rem; }
+.big-brand .wm-by { font-size: .95rem; margin-top: .55rem; }
 .topbar .spacer { flex: 1; }
 .chip { padding: .45rem 1rem; border-radius: 999px; background: var(--card); color: var(--muted); font-size: .85rem; font-weight: 600; white-space: nowrap; }
 .chip.on { background: var(--accent); color: #0a0d10; }
@@ -236,7 +235,7 @@ h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -.015em; }
 .cues li::before { content: ''; position: absolute; left: 0; top: .45rem; width: .65rem; height: .65rem; border-radius: 50%; background: var(--accent); }
 .cues.bad li::before { background: var(--danger); }
 .side .label { color: var(--muted); font-weight: 600; font-size: .8rem; text-transform: uppercase; letter-spacing: .1em; }
-.timer { font-variant-numeric: tabular-nums; font-size: 4.2rem; font-weight: 700; letter-spacing: -.03em; line-height: 1; }
+.timer { font-family: var(--font-sport); font-style: italic; font-variant-numeric: tabular-nums; font-size: 4.2rem; font-weight: 700; letter-spacing: -.03em; line-height: 1; }
 .timer.rest { color: var(--accent-2); }
 .logger { display: flex; gap: .7rem; align-items: center; }
 .stepper { display: flex; align-items: center; background: var(--card); border-radius: 14px; overflow: hidden; }
@@ -351,7 +350,7 @@ h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -.015em; }
 .hud-meta { color: var(--muted); font-weight: 600; font-size: .85rem; letter-spacing: .04em; }
 .hud-clock { text-align: right; background: var(--glass); border: 1px solid rgba(255, 255, 255, .08); backdrop-filter: blur(12px); border-radius: 18px; padding: .55rem 1.1rem .65rem; }
 .hud-clock small { display: block; color: var(--muted); font-size: .65rem; font-weight: 600; letter-spacing: .16em; }
-.hud-clock b { font-size: 2.6rem; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -.03em; line-height: 1; }
+.hud-clock b { font-family: var(--font-sport); font-style: italic; font-size: 2.6rem; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -.03em; line-height: 1; }
 .race .hud-clock { border-color: rgba(252, 185, 0, .45); }
 .race .hud-clock small, .race .hud-clock b { color: var(--hyrox); }
 .next-card { position: absolute; left: 1.8rem; top: 5.6rem; display: flex; gap: .9rem; align-items: center; background: var(--glass); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, .08); border-radius: 18px; padding: .5rem 1.2rem .5rem .5rem; z-index: 2; max-width: 46%; }
@@ -376,7 +375,7 @@ h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -.015em; }
 .ring-fg { fill: none; stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset .25s linear; }
 .ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
 .ring-center small { color: var(--muted); font-weight: 600; font-size: .7rem; letter-spacing: .16em; }
-.ring-center b { font-size: 4.4rem; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -.04em; line-height: 1.02; }
+.ring-center b { font-family: var(--font-sport); font-style: italic; font-size: 4.4rem; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -.04em; line-height: 1.02; }
 .ring-center span { color: var(--muted); font-weight: 600; font-variant-numeric: tabular-nums; }
 .resting { --ring-a: #5ad1b8; --ring-b: #8fe3d0; }
 .resting .ring-center b { color: var(--accent-2); }
@@ -398,7 +397,7 @@ h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -.015em; }
 .fin-card { background: var(--glass); border: 1px solid rgba(255, 255, 255, .1); border-radius: 28px; padding: 2.4rem 3rem; text-align: center; display: flex; flex-direction: column; gap: 1.2rem; align-items: center; min-width: 26rem; }
 .fin-card .kicker { color: var(--accent); font-weight: 600; letter-spacing: .16em; }
 .race .fin-card .kicker { color: var(--hyrox); }
-.fin-time { font-size: 7rem; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -.04em; line-height: 1; }
+.fin-time { font-family: var(--font-sport); font-style: italic; font-size: 7rem; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -.04em; line-height: 1; }
 .fin-stats { display: flex; gap: 2.4rem; }
 .fin-stats b { display: block; font-size: 1.7rem; }
 .fin-stats span { color: var(--muted); font-size: .8rem; }

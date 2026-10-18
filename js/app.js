@@ -186,11 +186,10 @@
     go(screen || 'overview', { key: key });
   }
 
-  // Nature's Finest leaf (brand mark geometry) + lockup mirroring "nature's / FINEST / BY NUTRISSLIM"
-  var LEAF_PATH = 'M80.65,1.73c-.03,14.79-2.85,54.9-19.5,79.29-7.24,10.61-18.05,12.9-27.2,12.47-2.07-.1-4.1-.38-6.07-.85-1.39,5.65-2.93,11.65-2.94,17.34,0,.21-.18.39-.4.36-1.89-.21-4.42-2.01-6.88-1.81-.19.02-.35-.16-.31-.35,5.65-29.4,23.39-64.3,42.22-86.85C26.03,51.28,15.9,86.9,15.9,86.9c-5.66-3.86-11.11-7.72-13.88-16.11-2.5-7.57-.2-15.82,6.53-25.67C25.68,20.01,60.12,2.65,80.65,1.73Z';
-  var LEAF = '<svg class="leaf" viewBox="0 0 82 112" aria-hidden="true"><path d="' + LEAF_PATH + '" fill="var(--leaf)"/></svg>';
+  // Wordmark: condensed italic caps read as "sport" (scoreboards, kits); the brand line sits underneath
   function brandMark(cls) {
-    return '<div class="brand ' + (cls || '') + '">' + LEAF + '<div class="wm"><span class="wm-top">formshaper</span><span class="wm-by">' + 'by nature\u2019s finest'.split('').map(function (c) { return '<i>' + (c === ' ' ? '&nbsp;' : c) + '</i>'; }).join('') + '</span></div></div>';
+    return '<div class="brand ' + (cls || '') + '"><div class="wm"><span class="wm-top">FORM<em>SHAPER</em></span>' +
+      '<span class="wm-by">' + 'by nature\u2019s finest'.split('').map(function (c) { return '<i>' + (c === ' ' ? '&nbsp;' : c) + '</i>'; }).join('') + '</span></div></div>';
   }
 
   function avatar(p, big) {
@@ -240,7 +239,12 @@
   }
 
   // ---------------------------------------------------------------- photos + muscles
-  function photo(id) { return window.PHOTOS && PHOTOS.ex.indexOf(id) >= 0 ? 'img/ex/' + id + '.jpg' : null; }
+  // exercises that look identical on camera share one photo
+  var PHOTO_ALIAS = { hx_bike_run: 'bike_hiit' };
+  function photo(id) {
+    id = PHOTO_ALIAS[id] && !(window.PHOTOS && PHOTOS.ex.indexOf(id) >= 0) ? PHOTO_ALIAS[id] : id;
+    return window.PHOTOS && PHOTOS.ex.indexOf(id) >= 0 ? 'img/ex/' + id + '.jpg' : null;
+  }
   function photoBg(url) { return url ? ' style="background-image:linear-gradient(90deg, rgba(5,10,7,.92) 0%, rgba(5,10,7,.55) 55%, rgba(5,10,7,.15) 100%), url(' + url + ')"' : ''; }
   function cardBg(url) { return url ? ' style="background-image:linear-gradient(0deg, rgba(5,10,7,.95) 8%, rgba(5,10,7,.35) 70%), url(' + url + ')"' : ''; }
   // first exercise of a session (after the warm-up) that has a real photo

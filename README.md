@@ -1,6 +1,6 @@
 # Formshaper — by Nature's Finest
 
-Znak uporablja **originalni list Nature's Finest** (`#0ba74b`) in sestavo, ki sledi logotipu "nature's / FINEST / BY NUTRISSLIM": serif v malih črkah (Fraunces 600) "formshaper" → razprt napis "BY NATURE'S FINEST". UI: Rethink Sans (400–600, brez ultra-krepkih rezov), listno in temno zelena `#006837`.
+Logotip je besedni znak brez lista: **FORM**SHAPER v ozki poševni športni pisavi Barlow Condensed (»SHAPER« v zeleni barvi Nature's Finest `#0ba74b`), pod njim razprto »BY NATURE'S FINEST«. Ikona aplikacije je poševni monogram »F«. V isti pisavi so časovniki v predvajalniku (videz semaforja). Ostali UI: Rethink Sans 400–600.
 
 Osebni trener za domačo telovadnico, narejen **izključno za opremo, ki jo imaš**, in optimiziran za **TV zaslon (10-foot UI, upravljanje z daljincem)**.
 
