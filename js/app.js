@@ -486,6 +486,31 @@
     return '<svg viewBox="0 0 210 216" class="mmap">' + mapHalf(MAP_FRONT, mus, 0, 'FRONT') + mapHalf(MAP_BACK, mus, 106, 'BACK') + '</svg>';
   }
 
+  // ---------------------------------------------------------------- motivation ("hype") lines
+  // Short, coach-style lines for each moment of a set. Picked without repeating the last one.
+  var HYPE = {
+    start: ['Let’s go – own this one', 'Smooth reps, strong finish', 'Quality over speed', 'You’ve got this', 'Lock in. Breathe. Move.'],
+    firstSet: ['Set the tone', 'First set – find your groove', 'Dial in the form'],
+    lastSet: ['Last set – make it count', 'Final set. Leave nothing behind', 'One more set – finish strong'],
+    finalExercise: ['Final exercise – finish strong!', 'Last one of the day. Bring it home', 'Almost there – empty the tank'],
+    half: ['Halfway – keep the form', 'Halfway there, stay sharp', 'Good pace – keep it'],
+    twoLeft: ['Two more – finish strong!', 'Two left – stay tight', 'Push – two more'],
+    lastRep: ['Last rep – make it a good one!', 'Last one!', 'Final rep – own it'],
+    hit: ['Nailed it! 💪', 'Great set!', 'Strong set!', 'That’s how it’s done!', 'Beautiful reps!', 'Crushed it!'],
+    hard: ['All out – go!', 'Push the pace!', 'Drive, drive, drive!'],
+    easy: ['Recover – breathe easy', 'Easy spin, slow the breath', 'Shake it out'],
+    tenLeft: ['10 seconds – push!', 'Ten to go – dig deep', 'Finish strong – 10 seconds'],
+    rest: ['Breathe in through the nose, long exhale out', 'Shoulders down, sip some water', 'Shake out your arms and legs', 'Picture the next set – crisp and controlled', 'Recovery is part of the work', 'Slow your breathing – heart rate down'],
+    done: ['Workout crushed', 'That’s how it’s done', 'Stronger than yesterday', 'Another one in the bank', 'Consistency wins'],
+    _last: {}
+  };
+  function hype(kind) {
+    var list = HYPE[kind], last = HYPE._last[kind], pick;
+    do { pick = list[Math.floor(Math.random() * list.length)]; } while (list.length > 1 && pick === last);
+    HYPE._last[kind] = pick;
+    return pick;
+  }
+
   // ---------------------------------------------------------------- Nature's Finest product tips (js/products.js)
   function productCard(it, campaign, compact) {
     return '<a class="prod-card focusable' + (compact ? ' compact' : '') + '" href="' + esc(Products.link(it, campaign)) + '" target="_blank" rel="noopener">' +
@@ -952,6 +977,24 @@
     // hands-free sets: once the rep pacer reaches the target, the set completes itself after a short
     // grace period (time to rack the weights) – no need to press "Set done" on the TV remote
     var AUTO_GRACE = 6, autoAt = 0;
+    var bestBefore = JSON.parse(JSON.stringify(state.ex || {}));   // personal bests at session start
+    var prs = [], lastHype = '';
+    function setHype(t, strong) {
+      if (!t || t === lastHype) return;
+      lastHype = t;
+      var h = $('#wHype'); h.textContent = t;
+      h.classList.remove('pop'); void h.offsetWidth; h.classList.add('pop'); h.classList.toggle('strong', !!strong);
+    }
+    function cheer(title, sub) {
+      var c = $('#wCheer'); $('b', c).textContent = title; $('span', c).textContent = sub || '';
+      c.hidden = false; c.classList.remove('go'); void c.offsetWidth; c.classList.add('go');
+      clearTimeout(cheer.t); cheer.t = setTimeout(function () { c.hidden = true; }, 1900);
+    }
+    function isPR(id, reps, load) {
+      var b = bestBefore[id]; if (!b || !b.reps || !b.reps.length) return false;
+      return load > b.load || (load === b.load && reps > Math.max.apply(null, b.reps));
+    }
+    function lastWorkStep(k) { for (var x = k + 1; x < st.length; x++) if (st[x].id !== st[k].id) return false; return true; }
     function autoNext() { return state.settings.autoNext !== false && !race; }
     var itemsById = {};
     sess.blocks.forEach(function (b) { b.items.forEach(function (it) { itemsById[it.id] = it; }); });
@@ -968,10 +1011,11 @@
       '<div class="next-card" id="wNextCard"><div class="nc-thumb" id="wNextThumb"></div><div><small id="wNextLbl"></small><b id="wNextName"></b></div></div>' +
       '<div class="pip" id="wPip" hidden><img alt=""><span>Real form</span></div>' +
       '<div class="mini-time" id="wMini"><small></small><b></b></div>' +
+      '<div class="cheer" id="wCheer" hidden><div class="cheer-burst"></div><b></b><span></span></div>' +
       '<div class="finish" id="wFinish" hidden></div></div>' +
       '<div class="view-tabs" role="tablist"><button class="focusable" data-view="timer">Timer</button><button class="focusable" data-view="form">How to</button></div>' +
       '<div class="side"><div class="kicker"><span id="wBlock"></span><span class="dots-set" id="wDots"></span></div>' +
-      '<h2 id="wName"></h2><div class="why" id="wWhy"></div><div id="wMus"></div>' +
+      '<h2 id="wName"></h2><div class="hype-line" id="wHype"></div><div class="why" id="wWhy"></div><div id="wMus"></div>' +
       ring('wRing') +
       '<div class="chips-row" id="wRx"></div>' +
       '<div class="logger" id="wLog"></div>' +
@@ -1051,7 +1095,8 @@
       i = n;
       if (i >= st.length) return finish();
       var s = st[i], e = ex(s.id), it = s.item;
-      phase = 'work'; elapsed = 0; pacerHit = false; autoAt = 0;
+      phase = 'work'; elapsed = 0; pacerHit = false; autoAt = 0; lastHype = '';
+      setHype(lastWorkStep(n) && st.length > 3 ? hype('finalExercise') : n > 0 && s.sets > 1 && s.set === s.sets ? hype('lastSet') : s.set === 1 && s.sets > 1 ? hype('firstSet') : hype('start'), lastWorkStep(n));
       el.classList.remove('resting');
       if (Date.now() >= manualUntil) setView('form');
       showAnim(s.id, s.easy ? 0.7 : 1);
@@ -1079,7 +1124,7 @@
         if (e.unit === 'kg') lg += stepper('load', cur.load, e.id.indexOf('kb_') === 0 ? 4 : (e.inc || 2), 'kg');
         if (e.unit === 'stopnja') lg += stepper('load', cur.load, 1, 'level');
         $('#wLog').innerHTML = lg; $('#wLog').hidden = false;
-        $('#wDone').textContent = race ? '✓ Station done' : '✓ Set done';
+        $('#wDone').textContent = race ? '✓ Station done' : s.sets > 1 && s.set === s.sets ? '🏁 Last set done' : '✓ Done';
         Voice.cue(e.name + '. ' + (s.set === 1 ? e.cues[0] : 'Set ' + s.set), ['ex_' + s.id, s.set === 1 ? 'cue_' + s.id : 'set_' + s.set]);
       } else if (s.kind === 'dist') {
         $('#wWhy').textContent = 'Target ' + s.dist + ' m – press OK when the monitor shows the distance';
@@ -1101,8 +1146,8 @@
         $('#wRx').innerHTML = chips(rx);
         $('#wLog').innerHTML = ''; $('#wLog').hidden = true;
         $('#wDone').textContent = race ? '✓ Station done' : '⏭ Next';
-        if (s.hard) { Audio.beep(1200, 0.35); Voice.cue('Go hard!', ['hard']); }
-        else if (s.easy) { Audio.beep(600, 0.3); Voice.cue('Easy pace.', ['easy']); }
+        if (s.hard) { Audio.beep(1200, 0.35); Voice.cue('Go hard!', ['hard']); setHype(hype('hard'), true); }
+        else if (s.easy) { Audio.beep(600, 0.3); Voice.cue('Easy pace.', ['easy']); setHype(hype('easy')); }
         else Voice.cue(e.name + '. ' + e.cues[0], ['ex_' + s.id, 'cue_' + s.id]);
       }
       bindSteppers();
@@ -1124,13 +1169,20 @@
 
     function completeWork() {
       var s = st[i];
-      if (s.kind === 'reps') logged.push({ id: s.id, reps: cur.reps, load: cur.load });
+      if (s.kind === 'reps') {
+        logged.push({ id: s.id, reps: cur.reps, load: cur.load });
+        var e0 = ex(s.id), pr0 = e0.unit === 'kg' && isPR(s.id, cur.reps, cur.load) && prs.indexOf(s.id) < 0;
+        if (pr0) prs.push(s.id);
+        if (!race) cheer(pr0 ? '🏆 New personal best!' : hype('hit'),
+          (s.sets > 1 ? 'Set ' + s.set + ' of ' + s.sets + ' · ' : '') + cur.reps + ' reps' + (e0.unit === 'kg' && cur.load ? ' × ' + cur.load + ' kg' : ''));
+      } else if (!race && !s.easy && !s.hard && s.kind === 'time' && s.sec >= 30 && i < st.length - 1) cheer(hype('hit'), e0name(s));
       splits.push({ name: s.block.replace(/^(Postaja|Station) \d+ · /, ''), id: s.id, sec: elapsed || (s.sec - Math.max(0, remain)) || 0, station: /^(Postaja|Station|Tek|Run)\b/.test(s.block) });
       if (race) renderSplits();
       if (s.rest > 0 && i < st.length - 1) startRest(s.rest);
       else enter(i + 1);
     }
 
+    function e0name(s) { return ex(s.id).name.split(' (')[0]; }
     function startRest(sec) {
       phase = 'rest'; remain = sec; restTotal = sec;
       el.classList.add('resting');
@@ -1140,6 +1192,7 @@
       $('#wMus').innerHTML = musChips(ne.anim.muscles);
       var np = photo(nx.id); $('#wPip').hidden = !np; if (np) $('#wPip img').src = np;
       $('#wWhy').textContent = 'Get ready: ' + ne.name + (nx.kind === 'reps' ? ' · set ' + nx.set + '/' + nx.sets : '');
+      lastHype = ''; setHype(Math.round((i + 1) / st.length * 100) + '% done · ' + hype('rest'));
       $('#wLog').hidden = true;
       $('#wRx').innerHTML = chips([[fmt(sec), 'rest'], [ne.name.split(' (')[0], 'up next']]);
       $('#wDone').textContent = '⏭ Skip rest';
@@ -1175,15 +1228,21 @@
         var tgt = s.item.reps[1], pr = Math.min(pacerReps(), tgt);
         top.textContent = 'REP PACER'; val.textContent = pr; sub.textContent = '/ ' + tgt + ' · ' + fmt(elapsed);
         setRing('wRing', pr / tgt);
+        if (!pacerHit && tgt >= 6) {
+          if (pr === Math.floor(tgt / 2)) setHype(hype('half'));
+          else if (pr === tgt - 2) setHype(hype('twoLeft'), true);
+          else if (pr === tgt - 1) setHype(hype('lastRep'), true);
+        }
         if (pr >= tgt && !pacerHit) {
           pacerHit = true; Audio.beep(1320, 0.2);
+          if (!race) { $('#wDone').textContent = '💪 Nailed it'; setHype(hype('hit'), true); }
           if (autoNext()) autoAt = elapsed + AUTO_GRACE;
           $('#wPhase').textContent = autoAt ? 'Target hit – rack it, moving on' : 'Target hit – press OK to finish';
         }
         if (autoAt) {
           var left = Math.max(0, Math.ceil(autoAt - elapsed));
           sub.textContent = 'next in ' + left + ' s';
-          $('#wDone').textContent = '✓ Set done · auto ' + left + ' s';
+          $('#wDone').textContent = '💪 Nailed it · next in ' + left + ' s';
         }
       } else if (s.kind === 'dist') {
         var est = s.dist * (ex(s.id).secPerM || 0.27);
@@ -1213,7 +1272,8 @@
         if (s.kind === 'time') {
           remain -= 0.25;
           if (remain <= 3.01 && remain > 0 && Math.abs(remain - Math.round(remain)) < 0.01) Audio.beep(880, 0.12);
-          if (s.sec >= 60 && Math.abs(remain - s.sec / 2) < 0.01) Voice.cue('Halfway.', ['half']);
+          if (s.sec >= 60 && Math.abs(remain - s.sec / 2) < 0.01) { Voice.cue('Halfway.', ['half']); setHype(hype('half')); }
+          if (s.sec >= 30 && Math.abs(remain - 10) < 0.01) setHype(hype('tenLeft'), true);
           if (remain <= 0) { Audio.beep(1320, 0.3); completeWork(); return; }
         }
       }
@@ -1234,9 +1294,17 @@
       var reps = logged.reduce(function (a, l) { return a + l.reps; }, 0);
       var kg = state.settings.weight, met = race || sess.goal === 'hyrox' ? 8 : /cardio/i.test(sess.name) ? 7 : 5;
       var kcal = kg ? Math.round(met * kg * total / 3600) : 0;
+      clearTimeout(cheer.t); $('#wCheer').hidden = true;   // the finish card takes over
       var f = $('#wFinish');
       f.hidden = false;
-      f.innerHTML = '<div class="fin-card"><div class="kicker">' + (race ? 'RACE TIME' : 'WORKOUT COMPLETE') + '</div><div class="fin-time">' + fmt(total) + '</div>' +
+      var weekN = state.log.filter(function (l) { return (Date.now() - new Date(l.date)) < 7 * 864e5; }).length;
+      var plan = Program.PLANS[state.settings.days], wk = Me.weeksTo(state.settings);
+      var proud = [weekN + ' of ' + plan.order.length + ' workouts this week' + (weekN >= plan.order.length ? ' – weekly goal hit 🎯' : '')];
+      if (prs.length) proud.unshift('🏆 ' + prs.length + (prs.length === 1 ? ' personal best: ' : ' personal bests: ') + prs.map(function (id) { return ex(id).name.split(' (')[0]; }).join(', '));
+      if (wk != null && wk >= 0) proud.push(wk + (wk === 1 ? ' week' : ' weeks') + ' to your target date');
+      f.innerHTML = '<div class="fin-card"><div class="fin-burst"></div><div class="kicker">' + (race ? 'RACE TIME' : 'WORKOUT COMPLETE') + '</div>' +
+        (race ? '' : '<div class="fin-head">' + esc(hype('done')) + ', ' + esc(state.name) + '!</div>') + '<div class="fin-time">' + fmt(total) + '</div>' +
+        '<div class="fin-proud">' + proud.map(function (t) { return '<div>' + esc(t) + '</div>'; }).join('') + '</div>' +
         '<div class="fin-stats"><div><b>' + logged.length + '</b><span>sets</span></div><div><b>' + reps + '</b><span>reps</span></div><div><b>' + Math.round(vol) + ' kg</b><span>volume</span></div>' + (kcal ? '<div><b>~' + kcal + '</b><span>kcal</span></div>' : '') + '</div>' +
         (race ? '<div class="splits fin-splits">' + splits.filter(function (x) { return x.station; }).map(function (r) { return '<div class="split"><span>' + esc(r.name) + '</span><b>' + fmt(r.sec) + '</b></div>'; }).join('') + '</div>' : '') +
         (function () {
