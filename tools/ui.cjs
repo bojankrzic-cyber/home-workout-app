@@ -10,6 +10,12 @@ const path = require('path');
   page.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
   page.on('dialog', d => d.accept());
   await page.goto('file://' + path.resolve(__dirname, '../index.html'));
+  await page.evaluate(() => localStorage.clear());
+  await page.reload(); await page.waitForTimeout(300);
+  // first run: create a profile
+  await page.screenshot({ path: out + '/0-first-run.png' });
+  await page.keyboard.type('Bojan');
+  await page.click('#pSave');
   await page.waitForTimeout(600);
   await page.screenshot({ path: out + '/1-home.png' });
   // D-pad: focus is on "Začni trening"; go right to Predogled

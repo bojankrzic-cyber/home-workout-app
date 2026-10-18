@@ -5,7 +5,8 @@
 (function () {
   'use strict';
 
-  var state = Store.load();
+  Store.load();
+  var state = null; // active profile
   var root = document.getElementById('app');
   var stack = [];
   var players = [];
@@ -27,7 +28,7 @@
   var Audio = {
     ctx: null,
     beep: function (freq, dur) {
-      if (!state.settings.beeps) return;
+      if (!state || !state.settings.beeps) return;
       try {
         this.ctx = this.ctx || new (window.AudioContext || window.webkitAudioContext)();
         var o = this.ctx.createOscillator(), g = this.ctx.createGain();
@@ -51,7 +52,7 @@
       speechSynthesis.onvoiceschanged = pick;
     },
     say: function (text) {
-      if (!state.settings.voice || !this.v || !('speechSynthesis' in window)) return;
+      if (!state || !state.settings.voice || !this.v || !('speechSynthesis' in window)) return;
       try {
         speechSynthesis.cancel();
         var u = new SpeechSynthesisUtterance(text); u.voice = this.v; u.lang = this.v.lang; u.rate = 1.0;
@@ -106,7 +107,13 @@
   document.addEventListener('keydown', function (e) {
     var code = e.keyCode;
     var tag = (document.activeElement && document.activeElement.tagName) || '';
-    if (tag === 'INPUT' || tag === 'SELECT') { if (isKey(code, 'BACK') && code !== 8) back(); return; }
+    if (tag === 'INPUT' || tag === 'SELECT') {
+      // TV remotes: arrows up/down and OK leave the text field, so the form stays navigable
+      if (isKey(code, 'UP')) { move('UP'); e.preventDefault(); }
+      else if (isKey(code, 'DOWN') || code === 13) { move('DOWN'); e.preventDefault(); }
+      else if (isKey(code, 'BACK') && code !== 8) back();
+      return;
+    }
     if (activeSession && activeSession.onKey && activeSession.onKey(code, e)) { e.preventDefault(); return; }
     if (isKey(code, 'LEFT')) { move('LEFT'); e.preventDefault(); }
     else if (isKey(code, 'RIGHT')) { move('RIGHT'); e.preventDefault(); }
@@ -135,12 +142,20 @@
     keepAwake(false);
   }
 
-  function go(screen, params, replace) {
+  function go(screen, params, replace, fid) {
     if (!replace && stack.length) stack[stack.length - 1].focusIdx = focusables().indexOf(document.activeElement);
     if (replace) stack.pop();
     stack.push({ screen: screen, params: params || {} });
-    render();
+    render(false, fid);
   }
+  // re-render the current screen, keeping focus on the element with the same data-fid
+  function refresh(params) {
+    var a = document.activeElement;
+    var fid = a && a.getAttribute && a.getAttribute('data-fid');
+    var top = stack[stack.length - 1];
+    go(top.screen, params || top.params, true, fid);
+  }
+  function resetTo(screen, params) { stack = []; go(screen, params); }
   function back() {
     if (activeSession && activeSession.confirmExit && !activeSession.confirmExit()) return;
     if (stack.length <= 1) return;
@@ -148,15 +163,28 @@
     render(true);
   }
 
-  function render(restoring) {
+  function render(restoring, fid) {
     teardown();
     var top = stack[stack.length - 1];
     SCREENS[top.screen](top.params);
     var list = focusables();
+    var scope = $('.player') || root;
     var idx = restoring && top.focusIdx >= 0 ? top.focusIdx : 0;
-    var auto = $('[data-autofocus]', $('.player') || root);
+    var auto = (fid && $('[data-fid="' + fid + '"]', scope)) || $('[data-autofocus]', scope);
     var el = restoring ? list[idx] : (auto || list[0]);
-    if (el) el.focus({ preventScroll: false });
+    if (el) el.focus({ preventScroll: !!fid });
+  }
+
+  // store a generated / custom session in the profile and open it
+  function startCustom(src, screen) {
+    var key = 'C_' + Date.now().toString(36);
+    state.customs[key] = src;
+    Store.save();
+    go(screen || 'overview', { key: key });
+  }
+
+  function avatar(p, big) {
+    return '<span class="avatar' + (big ? ' big' : '') + '" style="background:' + p.color + '">' + esc((p.name || '?').trim().charAt(0).toUpperCase()) + '</span>';
   }
 
   // ---------------------------------------------------------------- figure helpers
@@ -233,9 +261,11 @@
     root.innerHTML =
       '<div class="screen">' +
       '<div class="topbar"><div class="brand">Home<b>Gym</b> Coach</div><span class="chip">' + esc(plan.name) + '</span><span class="chip on">' + esc(sess.weekInfo.label) + '</span><div class="spacer"></div>' +
+      '<button class="btn sm focusable" data-go="builder">＋ Sestavi trening</button>' +
       '<button class="btn sm ghost focusable" data-go="library">Knjižnica vaj</button>' +
       '<button class="btn sm ghost focusable" data-go="history">Napredek</button>' +
-      '<button class="btn sm ghost focusable" data-go="settings">Nastavitve</button></div>' +
+      '<button class="btn sm ghost focusable" data-go="settings">Nastavitve</button>' +
+      '<button class="btn sm ghost focusable who" data-go="profiles" title="Zamenjaj osebo">' + avatar(state) + esc(state.name) + '</button></div>' +
       '<div class="hero"><div class="hero-card"><div class="eyebrow">Današnji trening · ' + esc(sess.weekInfo.label) + '</div>' +
       '<h1>' + esc(sess.name) + '</h1>' +
       '<div class="meta"><div><b>~' + mins + ' min</b>trajanje</div><div><b>' + exCount + '</b>vaj</div><div><b>RIR ' + sess.weekInfo.rir + '</b>napor</div></div>' +
@@ -250,9 +280,32 @@
       '<div class="stat"><b>' + streak + '</b><span>zaporednih tednov</span></div></div></div></div>' +
       '<div class="section-title"><h2>Tvoj program</h2><span>' + plan.order.length + ' treningi v rotaciji · zamujen dan ne podre plana</span></div>' +
       '<div class="row">' + cards + '</div>' +
+      '<div class="section-title"><h2>Trening po izbiri</h2><span>izberi fokus ali vrsto – sestavi se samo iz tvoje opreme</span></div>' +
+      '<div class="row">' + QUICK.map(function (q, i) {
+        return '<div class="session-card focusable quick" tabindex="0" data-quick="' + i + '"><div class="tag" style="color:' + q.color + '">' + q.tag + '</div><h3>' + esc(q.name) + '</h3><p>' + esc(q.sub) + '</p></div>';
+      }).join('') + '<div class="session-card focusable quick" tabindex="0" data-go="builder"><div class="tag">PO MERI</div><h3>＋ Sestavi svoj trening</h3><p>moč / kardio / kombinirano · fokus · trajanje</p></div></div>' +
+      (state.saved.length ? '<div class="section-title"><h2>Moji shranjeni treningi</h2></div><div class="row">' + state.saved.filter(function (k) { return state.customs[k]; }).map(function (k) {
+        var c = state.customs[k];
+        return '<div class="session-card focusable" tabindex="0" data-go="overview" data-p=\'{"key":"' + k + '"}\'><div class="tag" style="color:' + c.color + '">SHRANJENO</div><h3>' + esc(c.name) + '</h3><p>' + esc(c.short) + '</p></div>';
+      }).join('') + '</div>' : '') +
       '</div>';
-    var hp = mountFigure($('#heroFig'), heroEx, { aspect: 1 });
+    mountFigure($('#heroFig'), heroEx, { aspect: 1 });
+    $$('[data-quick]').forEach(function (el) {
+      el.onclick = function () {
+        var o = Object.assign({ level: state.settings.level }, QUICK[+el.getAttribute('data-quick')].opts);
+        startCustom(Program.generate(o));
+      };
+    });
   };
+
+  var QUICK = [
+    { tag: 'MOČ', name: 'Celo telo', sub: '45 min · vse glavne skupine', color: '#c6ff3d', opts: { type: 'moc', focus: ['noge', 'prsa', 'hrbet', 'zadnjica', 'rame', 'trup'], min: 45 } },
+    { tag: 'MOČ', name: 'Noge & zadnjica', sub: '40 min', color: '#ffb547', opts: { type: 'moc', focus: ['noge', 'zadnjica'], min: 40 } },
+    { tag: 'MOČ', name: 'Zgornji del', sub: '40 min · prsa, hrbet, rame, roke', color: '#b48cff', opts: { type: 'moc', focus: ['prsa', 'hrbet', 'rame', 'roke'], min: 40 } },
+    { tag: 'TRUP', name: 'Trebušne & hrbet', sub: '20 min', color: '#4dffb8', opts: { type: 'moc', focus: ['trup'], min: 20 } },
+    { tag: 'KARDIO', name: 'Intervali kolo + veslač', sub: '30 min', color: '#38e1ff', opts: { type: 'kardio', machine: 'both', intensity: 'hiit', min: 30 } },
+    { tag: 'KARDIO', name: 'Cona 2 – vzdržljivost', sub: '40 min · lahkotno', color: '#38e1ff', opts: { type: 'kardio', machine: 'both', intensity: 'z2', min: 40 } }
+  ];
 
   function weeksStreak() {
     var n = 0, wk = 0;
@@ -272,13 +325,14 @@
     var mins = Program.estimateMin(sess);
     var html = '<div class="screen"><div class="ov-head"><div><div class="chip on" style="display:inline-block;margin-bottom:.6rem">' + esc(sess.weekInfo.label) + '</div>' +
       '<h1>' + esc(sess.name) + '</h1><p>~' + mins + ' min · ' + esc(sess.weekInfo.note) + '</p></div><div class="spacer"></div>' +
+      (sess.custom ? '<button class="btn ghost focusable" id="saveTgl">' + (state.saved.indexOf(p.key) >= 0 ? '★ Shranjeno' : '☆ Shrani') + '</button>' : '') +
       '<button class="btn focusable" data-go="preview" data-p=\'{"key":"' + p.key + '"}\'>📺 Predogled</button>' +
       '<button class="btn primary focusable" data-autofocus data-go="player" data-p=\'{"key":"' + p.key + '"}\'>▶ Začni</button></div><div class="blocks">';
     sess.blocks.forEach(function (b, bi) {
       html += '<div class="block"><h3>' + esc(b.title) + '</h3>';
       b.items.forEach(function (it, ii) {
         var e = ex(it.id);
-        var tag = b.items.length > 1 ? '<span class="lbl">' + Program.groupLetter(b.title, bi) + (ii + 1) + '</span>' : '';
+        var gl = Program.groupLetter(b.title, bi), tag = b.items.length > 1 && gl ? '<span class="lbl">' + gl + (ii + 1) + '</span>' : '';
         var load = it.sug ? '<small>' + esc(loadTxt(e, it.sug.load)) + '</small>' : '<small>' + (it.cardio ? 'kardio' : 'drži') + '</small>';
         html += '<div class="ex-row focusable" tabindex="0" data-go="exercise" data-p=\'{"id":"' + it.id + '"}\'>' +
           '<div class="ex-thumb" data-thumb="' + it.id + '"></div><div><h4>' + tag + esc(e.name) + '</h4><div class="sub">' + esc(e.muscles) +
@@ -289,24 +343,41 @@
     });
     root.innerHTML = html + '</div></div>';
     mountThumbs();
+    if ($('#saveTgl')) $('#saveTgl').onclick = function () {
+      var i = state.saved.indexOf(p.key);
+      if (i >= 0) state.saved.splice(i, 1); else state.saved.push(p.key);
+      Store.save();
+      this.textContent = i >= 0 ? '☆ Shrani' : '★ Shranjeno';
+      toast(i >= 0 ? 'Odstranjeno iz shranjenih' : 'Shranjeno – najdeš ga na domačem zaslonu');
+    };
   };
 
   SCREENS.library = function (p) {
-    var filter = p.f || 'all';
-    var chips = '<button class="chip focusable' + (filter === 'all' ? ' on' : '') + '" data-go="library" data-p=\'{"f":"all"}\'>Vse</button>' +
-      Object.keys(Exercises.EQUIP).map(function (k) {
-        return '<button class="chip focusable' + (filter === k ? ' on' : '') + '" data-go="library" data-p=\'{"f":"' + k + '"}\'>' + Exercises.EQUIP[k].icon + ' ' + esc(Exercises.EQUIP[k].name) + '</button>';
-      }).join('');
-    var list = Exercises.LIST.filter(function (e) { return filter === 'all' || e.equip.indexOf(filter) >= 0; });
+    var f = p.f || 'all', g = p.g || 'all';
+    function chip(kind, val, label, on) {
+      return '<button class="chip focusable' + (on ? ' on' : '') + '" data-fid="lib-' + kind + '-' + val + '" data-lib="' + kind + '" data-val="' + val + '">' + label + '</button>';
+    }
+    var focusChips = chip('g', 'all', 'Vse skupine', g === 'all') +
+      Object.keys(Exercises.FOCUS).map(function (k) { return chip('g', k, Exercises.FOCUS[k].icon + ' ' + Exercises.FOCUS[k].name, g === k); }).join('');
+    var equipChips = chip('f', 'all', 'Vsa oprema', f === 'all') +
+      Object.keys(Exercises.EQUIP).map(function (k) { return chip('f', k, Exercises.EQUIP[k].icon + ' ' + esc(Exercises.EQUIP[k].name), f === k); }).join('');
+    var list = Exercises.LIST.filter(function (e) {
+      return (f === 'all' || e.equip.indexOf(f) >= 0) && (g === 'all' || e.groups.indexOf(g) >= 0);
+    });
     root.innerHTML = '<div class="screen"><div class="topbar"><h1>Knjižnica vaj</h1><span class="chip">' + list.length + ' vaj</span></div>' +
-      '<div class="filters">' + chips + '</div><div class="grid">' +
-      list.map(function (e) {
+      '<div class="filters"><span class="flabel">Fokus</span>' + focusChips + '</div>' +
+      '<div class="filters"><span class="flabel">Oprema</span>' + equipChips + '</div><div class="grid">' +
+      (list.map(function (e) {
         return '<div class="lib-card focusable" tabindex="0" data-go="exercise" data-p=\'{"id":"' + e.id + '"}\'><div class="thumb" data-thumb="' + e.id + '"></div>' +
           '<div class="info"><h4>' + esc(e.name) + '</h4><div class="sub">' + esc(e.muscles) + '</div></div></div>';
-      }).join('') + '</div></div>';
+      }).join('') || '<div class="hint">Za to kombinacijo ni vaj.</div>') + '</div></div>';
     mountThumbs();
-    // keep library filter navigation from piling up the back stack
-    if (stack.length > 1 && stack[stack.length - 2].screen === 'library') stack.splice(stack.length - 2, 1);
+    $$('[data-lib]').forEach(function (b) {
+      b.onclick = function () {
+        var np = { f: f, g: g }; np[b.getAttribute('data-lib')] = b.getAttribute('data-val');
+        refresh(np);
+      };
+    });
   };
 
   SCREENS.exercise = function (p) {
@@ -320,13 +391,14 @@
       '<div class="muscles">Tempo: <b>' + esc(e.tempo || '') + '</b>' + (h ? ' · Zadnjič: <b>' + esc(loadTxt(e, h.load)) + '</b> × ' + h.reps.join(', ') : '') + '</div>' +
       '<div class="label">Izvedba</div><ul class="cues">' + e.cues.map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('') + '</ul>' +
       '<div class="label">Pogoste napake</div><ul class="cues bad">' + (e.mistakes || []).map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('') + '</ul>' +
-      '<div class="controls"><button class="btn focusable" id="spd">Hitrost: 1×</button><button class="btn focusable" id="pp">Pavza</button><button class="btn ghost focusable" id="bk">← Nazaj</button></div></div>';
+      '<div class="controls"><button class="btn primary focusable" id="solo">▶ Treniraj to vajo</button><button class="btn focusable" id="spd">Hitrost: 1×</button><button class="btn focusable" id="pp">Pavza</button><button class="btn ghost focusable" id="bk">← Nazaj</button></div></div>';
     document.body.appendChild(el);
     var speeds = [1, 0.5, 0.25], si = 0;
     var pl = mountFigure($('#exFig'), p.id, { aspect: 1.45, onPhase: function (l) { $('#exPhase').textContent = l || ' '; } });
     $('#spd').onclick = function () { si = (si + 1) % speeds.length; pl.speed = (e.speed || 1) * speeds[si]; this.textContent = 'Hitrost: ' + speeds[si] + '×'; };
     $('#pp').onclick = function () { this.textContent = pl.toggle() ? 'Pavza' : 'Predvajaj'; };
     $('#bk').onclick = back;
+    $('#solo').onclick = function () { startCustom(Program.single(p.id), 'player'); };
     $('#spd').setAttribute('data-autofocus', '');
   };
 
@@ -348,8 +420,8 @@
     root.innerHTML = '<div class="screen"><div class="topbar"><h1>Napredek</h1><div class="spacer"></div><button class="btn sm ghost focusable" data-autofocus data-go="settings">Varnostna kopija</button></div>' +
       '<div class="hero"><div class="panel"><h3>Treningi na teden (12 tednov)</h3><div class="bars">' + bars + '</div><div class="hint">Cilj: ' + state.settings.days + ' na teden</div></div>' +
       '<div class="panel"><h3>Zadnji treningi</h3><div class="hist">' + (log.slice(0, 6).map(function (l) {
-        var s = Program.SESSIONS[l.session];
-        return '<div class="hist-item"><div class="d">' + new Date(l.date).toLocaleDateString('sl-SI') + '</div><div style="flex:1">' + esc(s ? s.name : l.session) + '</div><div>' + l.min + ' min · ' + l.sets.length + ' serij</div></div>';
+        var s = Program.get(state, l.session);
+        return '<div class="hist-item"><div class="d">' + new Date(l.date).toLocaleDateString('sl-SI') + '</div><div style="flex:1">' + esc(l.name || (s ? s.name : 'Trening')) + '</div><div>' + l.min + ' min · ' + l.sets.length + ' serij</div></div>';
       }).join('') || '<div class="hint">Še ni zabeleženih treningov.</div>') + '</div></div></div>' +
       '<div class="panel"><h3>Trenutne delovne teže (dvojna progresija)</h3><div class="hist">' + (prs || '<div class="hint">Po prvem treningu se tu pokažejo teže in ponovitve za vsako vajo.</div>') + '</div></div></div>';
   };
@@ -360,7 +432,11 @@
       return '<button class="chip focusable' + (s[key] === val ? ' on' : '') + '" data-set="' + key + '" data-val=\'' + JSON.stringify(val) + '\'>' + label + '</button>';
     }
     var voiceInfo = Voice.v ? 'Glas: ' + Voice.v.name : 'Slovenski glas na tej napravi ni na voljo – uporabljam zvočne signale.';
-    root.innerHTML = '<div class="screen"><div class="topbar"><h1>Nastavitve</h1></div><div class="panel">' +
+    root.innerHTML = '<div class="screen"><div class="topbar"><h1>Nastavitve</h1><div class="spacer"></div>' +
+      '<button class="btn sm ghost focusable who" data-go="profiles">' + avatar(state) + 'Zamenjaj osebo</button></div>' +
+      '<div class="panel"><h3>Profil</h3><div class="opt-row">' + avatar(state, true) + '<div style="flex:1"><b style="font-size:1.3rem">' + esc(state.name) + '</b><div class="hint">' +
+      (state.pin ? 'Zaklenjen s PIN-om' : 'Brez PIN-a') + ' · ' + state.log.length + ' treningov</div></div>' +
+      '<button class="btn focusable" data-go="profileEdit" data-p=\'{"id":"' + state.id + '"}\'>Uredi profil</button></div></div><div class="panel">' +
       '<div class="opt-row"><div class="k">Treningov na teden</div>' + opt('days', 3, '3× – celo telo') + opt('days', 4, '4× – upper / lower') + '</div>' +
       '<div class="opt-row"><div class="k">Nivo</div>' + opt('level', 'beg', 'Začetnik') + opt('level', 'mid', 'Srednji') + opt('level', 'adv', 'Napreden') + '</div>' +
       '<div class="opt-row"><div class="k">Glasovna navodila</div>' + opt('voice', true, 'Vklopljeno') + opt('voice', false, 'Izklopljeno') + '<span class="hint">' + esc(voiceInfo) + '</span></div>' +
@@ -370,25 +446,25 @@
       '</div><div class="panel"><h3>Podatki</h3><div class="opt-row">' +
       '<button class="btn focusable" id="exp">⬇ Izvozi varnostno kopijo</button>' +
       '<label class="btn focusable" tabindex="0" id="impL">⬆ Uvozi<input type="file" id="imp" accept="application/json" hidden></label>' +
-      '<button class="btn ghost focusable" id="rst">Ponastavi vse</button></div>' +
-      '<div class="hint">Podatki so shranjeni samo v tej napravi (brskalnik). Za prenos med telefonom in TV uporabi izvoz/uvoz.</div></div>' +
+      '<button class="btn ghost focusable" id="rst">Ponastavi moj napredek</button></div>' +
+      '<div class="hint">Podatki vseh oseb so shranjeni samo v tej napravi (brskalnik). Izvoz vsebuje vse profile – za prenos med telefonom in TV uporabi izvoz/uvoz.</div></div>' +
       '<div class="panel"><h3>Upravljanje z daljincem</h3><div class="hint"><span class="kbd">← ↑ → ↓</span> premikanje · <span class="kbd">OK</span> izberi / serija opravljena · <span class="kbd">Nazaj</span> nazaj · <span class="kbd">▶❚❚</span> pavza</div></div></div>';
     $$('[data-set]').forEach(function (b) {
       b.onclick = function () {
         s[b.getAttribute('data-set')] = JSON.parse(b.getAttribute('data-val'));
-        Store.save(state);
-        go('settings', {}, true);
+        Store.save();
+        refresh();
       };
     });
-    $('#newBlock').onclick = function () { s.startDate = new Date().toISOString().slice(0, 10); Store.save(state); toast('Nov blok se začne danes – teden 1'); go('settings', {}, true); };
-    $('#exp').onclick = function () { Store.exportJSON(state); };
+    $('#newBlock').onclick = function () { s.startDate = new Date().toISOString().slice(0, 10); Store.save(); toast('Nov blok se začne danes – teden 1'); refresh(); };
+    $('#exp').onclick = function () { Store.exportJSON(); };
     $('#impL').onclick = function (e) { if (e.target.id !== 'imp') $('#imp').click(); };
     $('#imp').onchange = function () {
       var f = this.files[0]; if (!f) return;
-      f.text().then(function (t) { try { state = Store.importJSON(t); toast('Uvoženo'); go('home', {}, true); } catch (err) { toast('Napaka: ' + err.message); } });
+      f.text().then(function (t) { try { Store.importJSON(t); toast('Uvoženo – izberi osebo'); resetTo('profiles'); } catch (err) { toast('Napaka: ' + err.message); } });
     };
     $('#rst').onclick = function () {
-      if (confirm('Res izbrišem vso zgodovino in teže?')) { state = Store.reset(); Store.save(state); toast('Ponastavljeno'); go('home', {}, true); }
+      if (confirm('Res izbrišem vso zgodovino in teže za ' + state.name + '?')) { Store.resetProgress(state); toast('Ponastavljeno'); resetTo('home'); }
     };
   };
 
@@ -588,7 +664,7 @@
       clearInterval(iv);
       var min = Math.max(1, Math.round((Date.now() - startedAt) / 60000));
       if (logged.length || min >= 10) {
-        Store.recordSession(state, { date: new Date().toISOString(), session: sess.key, min: min, sets: logged, items: itemsById });
+        Store.recordSession(state, { date: new Date().toISOString(), session: sess.key, name: sess.name, min: min, sets: logged, items: itemsById });
       }
       Voice.say('Odlično. Trening je končan.');
       pl.stop();
@@ -621,9 +697,225 @@
     enter(0);
   };
 
+
+  // ---------------------------------------------------------------- profiles ("Kdo trenira?")
+  SCREENS.profiles = function () {
+    var list = Store.list();
+    var lastId = (Store.active() || {}).id;
+    root.innerHTML = '<div class="screen center"><div class="brand big-brand">Home<b>Gym</b> Coach</div><h1 class="who-title">Kdo trenira?</h1><div class="profiles">' +
+      list.map(function (pr, i) {
+        return '<button class="profile focusable" data-pid="' + pr.id + '"' + (pr.id === lastId || (!lastId && i === 0) ? ' data-autofocus' : '') + '>' + avatar(pr, true) +
+          '<b>' + esc(pr.name) + '</b><span>' + (pr.pin ? '🔒 ' : '') + pr.log.length + ' treningov</span></button>';
+      }).join('') +
+      '<button class="profile add focusable" data-go="profileEdit"><span class="avatar big">＋</span><b>Dodaj osebo</b><span>nov profil</span></button></div>' +
+      '<div class="hint">Vsaka oseba ima svoj program, teže, napredek in nastavitve.</div></div>';
+    $$('[data-pid]').forEach(function (b) {
+      b.onclick = function () {
+        var pr = Store.list().filter(function (x) { return x.id === b.getAttribute('data-pid'); })[0];
+        if (pr.pin) go('pin', { id: pr.id }); else activate(pr);
+      };
+    });
+  };
+
+  function activate(pr) {
+    state = Store.setActive(pr.id);
+    resetTo('home');
+    toast('Živjo, ' + pr.name + '!');
+  }
+
+  // on-screen keypad: works with the D-pad and with the remote's number keys
+  function keypad() {
+    var k = [1, 2, 3, 4, 5, 6, 7, 8, 9, '⌫', 0, '✓'];
+    return '<div class="keypad">' + k.map(function (x) { return '<button class="focusable" data-key="' + x + '"' + (x === 5 ? ' data-autofocus' : '') + '>' + x + '</button>'; }).join('') + '</div>';
+  }
+  function bindKeypad(onDigit, onDel, onOk) {
+    $$('[data-key]').forEach(function (b) {
+      b.onclick = function () {
+        var v = b.getAttribute('data-key');
+        if (v === '⌫') onDel(); else if (v === '✓') onOk(); else onDigit(v);
+      };
+    });
+    activeSession = {
+      onKey: function (code) {
+        if (code >= 48 && code <= 57) { onDigit(String(code - 48)); return true; }
+        if (code >= 96 && code <= 105) { onDigit(String(code - 96)); return true; }
+        return false;
+      },
+      destroy: function () {}
+    };
+  }
+
+  SCREENS.pin = function (p) {
+    var pr = Store.list().filter(function (x) { return x.id === p.id; })[0];
+    var pin = '';
+    root.innerHTML = '<div class="screen center">' + avatar(pr, true) + '<h1>' + esc(pr.name) + '</h1><div class="hint">Vnesi PIN</div><div class="dots" id="dots"></div>' + keypad() + '</div>';
+    function draw() { $('#dots').innerHTML = [0, 1, 2, 3].map(function (i) { return '<i' + (i < pin.length ? ' class="on"' : '') + '></i>'; }).join(''); }
+    function check() {
+      if (Store.checkPin(pr, pin)) activate(pr);
+      else { toast('Napačen PIN'); pin = ''; draw(); }
+    }
+    bindKeypad(function (d) { if (pin.length < 4) { pin += d; draw(); if (pin.length === 4) setTimeout(check, 150); } },
+      function () { pin = pin.slice(0, -1); draw(); }, check);
+    draw();
+  };
+
+  var pdraft = null;
+  SCREENS.profileEdit = function (p) {
+    var existing = p.id ? Store.list().filter(function (x) { return x.id === p.id; })[0] : null;
+    if (!pdraft || pdraft.for !== (p.id || 'new')) {
+      pdraft = {
+        for: p.id || 'new',
+        name: existing ? existing.name : '',
+        color: existing ? existing.color : Store.COLORS[Store.list().length % Store.COLORS.length],
+        level: existing ? existing.settings.level : 'mid',
+        days: existing ? existing.settings.days : 3,
+        pin: null, clearPin: false
+      };
+    }
+    var d = pdraft;
+    function chip(key, val, label) {
+      return '<button class="chip focusable' + (d[key] === val ? ' on' : '') + '" data-fid="pe-' + key + '-' + val + '" data-pe="' + key + '" data-val=\'' + JSON.stringify(val) + '\'>' + label + '</button>';
+    }
+    root.innerHTML = '<div class="screen"><div class="topbar"><h1>' + (existing ? 'Uredi profil' : 'Nova oseba') + '</h1></div><div class="panel">' +
+      '<div class="opt-row"><div class="k">Ime</div><input class="field focusable" id="pName" data-fid="pe-name" maxlength="20" placeholder="npr. Bojan" value="' + esc(d.name) + '"' + (existing ? '' : ' data-autofocus') + '></div>' +
+      '<div class="opt-row"><div class="k">Barva</div>' + Store.COLORS.map(function (c) {
+        return '<button class="swatch focusable' + (d.color === c ? ' on' : '') + '" data-fid="pe-color-' + c + '" data-pe="color" data-val=\'"' + c + '"\' style="background:' + c + '"></button>';
+      }).join('') + '</div>' +
+      '<div class="opt-row"><div class="k">Nivo</div>' + chip('level', 'beg', 'Začetnik') + chip('level', 'mid', 'Srednji') + chip('level', 'adv', 'Napreden') + '</div>' +
+      '<div class="opt-row"><div class="k">Treningov na teden</div>' + chip('days', 3, '3× – celo telo') + chip('days', 4, '4× – upper / lower') + '</div>' +
+      '<div class="opt-row"><div class="k">PIN (neobvezno)</div><input class="field focusable" id="pPin" data-fid="pe-pin" type="password" inputmode="numeric" maxlength="4" placeholder="4 števke" value="' + esc(d.pin || '') + '">' +
+      (existing && existing.pin ? '<button class="chip focusable' + (d.clearPin ? ' on' : '') + '" data-fid="pe-clear" id="pClear">Odstrani PIN</button>' : '') +
+      '<span class="hint">Zaklene profil na skupnem TV-ju (zasebnost, ne varnost).</span></div>' +
+      '</div><div class="nav-row"><button class="btn primary focusable" id="pSave">' + (existing ? 'Shrani' : 'Ustvari profil') + '</button>' +
+      (Store.list().length ? '<button class="btn ghost focusable" id="pCancel">Prekliči</button>' : '') +
+      (existing && Store.list().length > 1 ? '<button class="btn ghost focusable danger" id="pDel">Izbriši osebo</button>' : '') + '</div></div>';
+    function readInputs() { d.name = $('#pName').value.trim(); var pv = $('#pPin').value.trim(); d.pin = pv || null; }
+    $$('[data-pe]').forEach(function (b) {
+      b.onclick = function () { readInputs(); d[b.getAttribute('data-pe')] = JSON.parse(b.getAttribute('data-val')); refresh(); };
+    });
+    if ($('#pClear')) $('#pClear').onclick = function () { readInputs(); d.clearPin = !d.clearPin; refresh(); };
+    $('#pSave').onclick = function () {
+      readInputs();
+      if (!d.name) { toast('Vpiši ime'); $('#pName').focus(); return; }
+      if (d.pin && !/^\d{4}$/.test(d.pin)) { toast('PIN mora imeti 4 števke'); $('#pPin').focus(); return; }
+      var pr = existing || Store.addProfile(Store.newProfile());
+      pr.name = d.name; pr.color = d.color; pr.settings.level = d.level; pr.settings.days = d.days;
+      if (d.pin) Store.setPin(pr, d.pin); else if (d.clearPin) Store.setPin(pr, null);
+      Store.save();
+      pdraft = null;
+      if (existing && state && existing.id === state.id) { toast('Shranjeno'); back(); }
+      else activate(pr);
+    };
+    if ($('#pCancel')) $('#pCancel').onclick = function () { pdraft = null; back(); };
+    if ($('#pDel')) $('#pDel').onclick = function () {
+      if (!confirm('Izbrišem profil ' + existing.name + ' in vso njegovo zgodovino?')) return;
+      Store.removeProfile(existing.id);
+      pdraft = null; state = null;
+      resetTo('profiles');
+    };
+  };
+
+  // ---------------------------------------------------------------- session builder
+  var bdraft = null;
+  var ALL_FOCUS = ['noge', 'zadnjica', 'prsa', 'hrbet', 'rame', 'roke', 'trup'];
+  SCREENS.builder = function () {
+    if (!bdraft) bdraft = { opts: { type: 'moc', focus: ['noge', 'zadnjica'], min: 45, machine: 'both', intensity: 'mix' }, src: null, swap: {} };
+    var o = bdraft.opts;
+    o.level = state.settings.level;
+    if (!bdraft.src) bdraft.src = Program.generate(o);
+    var src = bdraft.src;
+    var built = Program.build(state, (function () { state.customs.__draft = src; return '__draft'; })());
+    delete state.customs.__draft;
+    var mins = Program.estimateMin(built);
+
+    function chip(key, val, label, on) {
+      return '<button class="chip focusable' + (on ? ' on' : '') + '" data-fid="b-' + key + '-' + val + '" data-b="' + key + '" data-val="' + val + '">' + label + '</button>';
+    }
+    var html = '<div class="screen"><div class="ov-head"><div><div class="chip on" style="display:inline-block;margin-bottom:.6rem">Po meri</div><h1>Sestavi trening</h1>' +
+      '<p>' + esc(src.name) + ' · ~' + mins + ' min</p></div><div class="spacer"></div>' +
+      '<button class="btn ghost focusable" id="bSave" data-fid="b-save">☆ Shrani</button>' +
+      '<button class="btn focusable" id="bPrev" data-fid="b-prev">📺 Predogled</button>' +
+      '<button class="btn primary focusable" id="bGo" data-fid="b-go">▶ Začni</button></div>' +
+      '<div class="panel builder">' +
+      '<div class="opt-row"><div class="k">Vrsta</div>' + chip('type', 'moc', '🏋️ Moč', o.type === 'moc') + chip('type', 'kardio', '❤️ Kardio', o.type === 'kardio') + chip('type', 'mix', '⚡ Moč + kardio', o.type === 'mix') + '</div>';
+    if (o.type !== 'kardio') {
+      var all = ALL_FOCUS.every(function (f) { return o.focus.indexOf(f) >= 0; });
+      html += '<div class="opt-row"><div class="k">Fokus <span class="hint">(več izbir)</span></div>' + chip('focus', 'all', 'Celo telo', all) +
+        ALL_FOCUS.map(function (f) { return chip('focus', f, Exercises.FOCUS[f].icon + ' ' + Exercises.FOCUS[f].name, !all && o.focus.indexOf(f) >= 0); }).join('') + '</div>';
+    } else {
+      html += '<div class="opt-row"><div class="k">Naprava</div>' + chip('machine', 'bike', '🚴 Kolo', o.machine === 'bike') + chip('machine', 'rower', '🚣 Veslač', o.machine === 'rower') + chip('machine', 'both', 'Oboje', o.machine === 'both') + '</div>' +
+        '<div class="opt-row"><div class="k">Intenzivnost</div>' + chip('intensity', 'z2', 'Lahkotno – cona 2', o.intensity === 'z2') + chip('intensity', 'hiit', 'Intervali', o.intensity === 'hiit') + chip('intensity', 'mix', 'Mešano', o.intensity === 'mix') + '</div>';
+    }
+    html += '<div class="opt-row"><div class="k">Trajanje</div>' + [20, 30, 45, 60].map(function (m) { return chip('min', m, m + ' min', o.min === m); }).join('') + '</div></div><div class="blocks">';
+    var row = 0;
+    built.blocks.forEach(function (b, bi) {
+      html += '<div class="block"><h3>' + esc(b.title) + '</h3>';
+      b.items.forEach(function (it, ii) {
+        var e = ex(it.id), r = row++;
+        var gl = Program.groupLetter(b.title, bi), tag = b.items.length > 1 && gl ? '<span class="lbl">' + gl + (ii + 1) + '</span>' : '';
+        var canSwap = e.type !== 'mobility' && Program.alternatives(src, it.id).length;
+        html += '<div class="ex-row b-row"><div class="ex-thumb" data-thumb="' + it.id + '"></div><div><h4>' + tag + esc(e.name) + '</h4><div class="sub">' + esc(e.muscles) + '</div></div>' +
+          '<div class="rx">' + rx(it) + (it.sug ? '<small>' + esc(loadTxt(e, it.sug.load)) + '</small>' : '') + '</div>' +
+          '<div class="row-actions">' + (canSwap ? '<button class="btn sm focusable" data-fid="sw-' + r + '" data-swap="' + it.id + '">⇄ Zamenjaj</button>' : '') +
+          '<button class="btn sm ghost focusable" data-fid="rm-' + r + '" data-rm="' + it.id + '">✕</button></div></div>';
+      });
+      html += '</div>';
+    });
+    root.innerHTML = html + '</div></div>';
+    mountThumbs();
+
+    $$('[data-b]').forEach(function (b) {
+      b.onclick = function () {
+        var k = b.getAttribute('data-b'), v = b.getAttribute('data-val');
+        if (k === 'focus') {
+          if (v === 'all') o.focus = ALL_FOCUS.slice();
+          else {
+            if (ALL_FOCUS.every(function (f) { return o.focus.indexOf(f) >= 0; })) o.focus = [];
+            var i = o.focus.indexOf(v);
+            if (i >= 0) o.focus.splice(i, 1); else o.focus.push(v);
+            if (!o.focus.length) o.focus = [v];
+          }
+        } else o[k] = k === 'min' ? +v : v;
+        bdraft.src = null; bdraft.swap = {};
+        refresh();
+      };
+    });
+    $$('[data-swap]').forEach(function (b) {
+      b.onclick = function () {
+        var id = b.getAttribute('data-swap'), alts = Program.alternatives(src, id);
+        if (!alts.length) return;
+        var fid = b.getAttribute('data-fid');
+        var n = bdraft.swap[fid] = (bdraft.swap[fid] || 0) + 1;
+        Program.replaceItem(src, id, alts[(n - 1) % alts.length]);
+        refresh();
+      };
+    });
+    $$('[data-rm]').forEach(function (b) {
+      b.onclick = function () {
+        var n = 0; src.blocks.forEach(function (bl) { n += bl.items.length; });
+        if (n <= 1) { toast('Trening potrebuje vsaj eno vajo'); return; }
+        Program.removeItem(src, b.getAttribute('data-rm'));
+        refresh();
+      };
+    });
+    function commit() { return JSON.parse(JSON.stringify(src)); }
+    $('#bGo').onclick = function () { startCustom(commit(), 'player'); };
+    $('#bPrev').onclick = function () { startCustom(commit(), 'preview'); };
+    $('#bSave').onclick = function () {
+      var key = 'C_' + Date.now().toString(36);
+      state.customs[key] = commit(); state.saved.push(key); Store.save();
+      toast('Shranjeno – najdeš ga na domačem zaslonu');
+    };
+  };
+
   // ---------------------------------------------------------------- boot
   if ('serviceWorker' in navigator && location.protocol === 'https:') {
     navigator.serviceWorker.register('sw.js').catch(function () {});
   }
-  go('home');
+  (function boot() {
+    var list = Store.list();
+    if (!list.length) go('profileEdit', {});
+    else if (list.length === 1 && !list[0].pin) { state = Store.setActive(list[0].id); go('home'); }
+    else go('profiles');
+  })();
 })();

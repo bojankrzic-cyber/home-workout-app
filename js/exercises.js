@@ -683,8 +683,39 @@
     }
   ];
 
-  var BY_ID = {};
-  LIST.forEach(function (e) { BY_ID[e.id] = e; });
+  // Focus groups per exercise — primary group first. Drives library filters and the session builder.
+  var FOCUS = {
+    noge: { name: 'Noge', icon: '🦵' },
+    zadnjica: { name: 'Zadnjica', icon: '🍑' },
+    prsa: { name: 'Prsa', icon: '🫁' },
+    hrbet: { name: 'Hrbet', icon: '🔙' },
+    rame: { name: 'Rame', icon: '🤷' },
+    roke: { name: 'Roke', icon: '💪' },
+    trup: { name: 'Trup', icon: '🎯' },
+    kardio: { name: 'Kardio', icon: '❤️' },
+    mobilnost: { name: 'Mobilnost', icon: '🧘' }
+  };
+  var GROUPS = {
+    bike_z2: ['kardio', 'noge'], bike_hiit: ['kardio', 'noge'], row_steady: ['kardio', 'hrbet'], row_hiit: ['kardio', 'hrbet'],
+    kb_swing: ['zadnjica', 'kardio', 'trup'], kb_goblet_squat: ['noge', 'zadnjica', 'trup'], kb_deadlift: ['zadnjica', 'noge', 'hrbet'], kb_press: ['rame', 'roke', 'trup'],
+    db_bench: ['prsa', 'roke', 'rame'], db_incline: ['prsa', 'rame', 'roke'], db_row: ['hrbet', 'roke'], db_rdl: ['zadnjica', 'noge', 'hrbet'],
+    db_bulgarian: ['noge', 'zadnjica'], db_shoulder_press: ['rame', 'roke'], db_curl: ['roke'], db_hip_thrust: ['zadnjica', 'noge'], db_stepup: ['noge', 'zadnjica'],
+    k_chest_press: ['prsa', 'roke', 'trup'], k_row: ['hrbet', 'roke'], k_pulldown: ['hrbet', 'roke'], k_face_pull: ['rame', 'hrbet'],
+    k_pushdown: ['roke'], k_pullthrough: ['zadnjica', 'noge'], k_woodchop: ['trup'],
+    pullup: ['hrbet', 'roke', 'trup'], hang_knee_raise: ['trup'], hang_leg_raise: ['trup'], dead_hang: ['mobilnost', 'hrbet'],
+    back_ext: ['hrbet', 'zadnjica'], situp: ['trup'], pushup: ['prsa', 'roke', 'trup'], plank: ['trup'], dead_bug: ['trup'], bird_dog: ['trup', 'hrbet'],
+    hip_flexor: ['mobilnost', 'noge'], hamstring_bench: ['mobilnost', 'noge']
+  };
+  // Multi-joint lifts go first in a generated session
+  var COMPOUND = ['kb_goblet_squat', 'kb_deadlift', 'db_rdl', 'db_bulgarian', 'db_hip_thrust', 'kb_swing', 'db_bench', 'db_incline', 'pullup',
+    'db_row', 'k_pulldown', 'db_shoulder_press', 'kb_press', 'k_chest_press', 'k_row', 'db_stepup', 'pushup', 'k_pullthrough', 'back_ext'];
 
-  global.Exercises = { LIST: LIST, BY_ID: BY_ID, EQUIP: EQUIP };
+  var BY_ID = {};
+  LIST.forEach(function (e) {
+    e.groups = GROUPS[e.id] || [];
+    e.compound = COMPOUND.indexOf(e.id) >= 0;
+    BY_ID[e.id] = e;
+  });
+
+  global.Exercises = { LIST: LIST, BY_ID: BY_ID, EQUIP: EQUIP, FOCUS: FOCUS, COMPOUND: COMPOUND };
 })(window);

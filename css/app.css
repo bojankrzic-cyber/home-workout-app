@@ -228,3 +228,42 @@ h1, h2, h3 { margin: 0; font-weight: 800; letter-spacing: -.02em; }
   .ex-row { grid-template-columns: 6rem 1fr; }
   .ex-row .rx { grid-column: 2; text-align: left; }
 }
+
+/* ===== Profiles ========================================================== */
+.avatar { display: inline-flex; align-items: center; justify-content: center; width: 1.9rem; height: 1.9rem; border-radius: 50%; color: #0a0d10; font-weight: 900; font-size: .95rem; background: var(--card-2); flex: none; }
+.avatar.big { width: 6.5rem; height: 6.5rem; font-size: 2.8rem; border-radius: 28px; }
+.who { gap: .55rem; padding-left: .5rem; }
+.screen.center { align-items: center; justify-content: center; text-align: center; gap: 1.4rem; }
+.big-brand { font-size: 1.6rem; color: var(--muted); }
+.who-title { font-size: 3rem; }
+.profiles { display: flex; gap: 2rem; flex-wrap: wrap; justify-content: center; margin: 1rem 0; }
+.profile { border: 0; background: transparent; display: flex; flex-direction: column; align-items: center; gap: .6rem; padding: 1.2rem; border-radius: 26px; min-width: 11rem; }
+.profile b { font-size: 1.3rem; }
+.profile span:not(.avatar) { color: var(--muted); font-size: .85rem; }
+.profile.add .avatar { background: var(--card-2); color: var(--muted); }
+.profile:focus { background: var(--card); }
+.dots { display: flex; gap: 1rem; margin: .5rem 0; }
+.dots i { width: 1.2rem; height: 1.2rem; border-radius: 50%; border: 2px solid var(--muted); }
+.dots i.on { background: var(--accent); border-color: var(--accent); }
+.keypad { display: grid; grid-template-columns: repeat(3, 5rem); gap: .8rem; }
+.keypad button { height: 4.2rem; border: 0; border-radius: 18px; background: var(--card); font-size: 1.6rem; font-weight: 800; }
+.field { background: var(--bg-2); border: 2px solid var(--line); border-radius: 14px; padding: .8rem 1.1rem; font: inherit; color: var(--text); font-size: 1.1rem; min-width: 18rem; }
+.field:focus { border-color: var(--accent); }
+.swatch { width: 2.6rem; height: 2.6rem; border-radius: 50%; border: 3px solid transparent; }
+.swatch.on { border-color: #fff; }
+.btn.danger { color: var(--danger); border-color: rgba(255, 93, 108, .4); }
+
+/* ===== Builder / filters ================================================== */
+.flabel { color: var(--muted); font-weight: 800; font-size: .75rem; text-transform: uppercase; letter-spacing: .12em; align-self: center; min-width: 5rem; }
+.builder .opt-row .k { min-width: 12rem; }
+.b-row { grid-template-columns: 9rem 1fr auto auto; }
+.row-actions { display: flex; gap: .5rem; }
+.session-card.quick h3 { font-size: 1.05rem; }
+.row { grid-auto-columns: minmax(13rem, 1fr); }
+@media (max-width: 900px) {
+  .b-row { grid-template-columns: 6rem 1fr; }
+  .row-actions { grid-column: 2; }
+  .who-title { font-size: 2rem; }
+  .avatar.big { width: 4.5rem; height: 4.5rem; font-size: 2rem; }
+  .field { min-width: 0; width: 100%; }
+}

@@ -161,8 +161,11 @@
   function unitLabel(u) { return { kg: 'kg', stopnja: 'stopnje', bw: '', min: 'min', s: 's' }[u] || ''; }
 
   // Build the concrete session for the current block week + level
+  function get(state, key) { return SESSIONS[key] || (state.customs || {})[key] || null; }
+
   function build(state, key) {
-    var src = SESSIONS[key];
+    var src = get(state, key);
+    if (!src) { key = nextSessionKey(state); src = SESSIONS[key]; }
     var week = blockWeek(state);
     var lvl = state.settings.level;
     var blocks = src.blocks.map(function (b) {
@@ -184,7 +187,7 @@
         })
       };
     });
-    return { key: key, name: src.name, short: src.short, color: src.color, week: week, weekInfo: WEEK_INFO[week], blocks: blocks };
+    return { key: key, name: src.name, short: src.short, color: src.color, custom: !!src.custom, week: week, weekInfo: WEEK_INFO[week], blocks: blocks };
   }
 
   // Flatten to an ordered list of steps (supersets interleaved by round)
@@ -208,7 +211,8 @@
           var last = ii === items.length - 1 || items.slice(ii + 1).every(function (n) { return (n.sets || 1) < s; });
           var restAfter = last ? (it.rest || 0) : (items.length > 1 ? 15 : it.rest);
           var ex = Exercises.BY_ID[it.id];
-          var lbl = items.length > 1 ? groupLetter(b.title, bi) + (ii + 1) : '';
+          var gl = groupLetter(b.title, bi);
+          var lbl = items.length > 1 && gl ? gl + (ii + 1) : '';
           var perSide = it.perSide || ex.perSide;
           if (it.time) {
             out.push({ kind: 'time', id: it.id, item: it, block: b.title, sec: perSide ? it.time * 2 : it.time, set: s, sets: it.sets, rest: restAfter, tag: lbl, label: it.time + ' s' + (perSide ? ' / stran' : '') });
@@ -224,7 +228,7 @@
   // "Superset B" -> "B"; otherwise derive from block position
   function groupLetter(title, bi) {
     var mm = /(Superset|Triset)\s+([A-Z])/.exec(title);
-    return mm ? mm[2] : String.fromCharCode(64 + Math.max(1, bi));
+    return mm ? mm[2] : '';
   }
 
   function estimateMin(session) {
@@ -236,9 +240,178 @@
     return Math.round(sec / 60);
   }
 
+
+  // ===================================================================== custom session builder
+  // Default prescription per exercise: first use in a template session, else by type.
+  var PRESET = {};
+  Object.keys(SESSIONS).forEach(function (k) {
+    SESSIONS[k].blocks.forEach(function (b) {
+      b.items.forEach(function (it) { if (!PRESET[it.id] && !it.cardio) PRESET[it.id] = it; });
+    });
+  });
+  function prescribe(id, sets) {
+    var e = Exercises.BY_ID[id], base = PRESET[id];
+    var o = base ? JSON.parse(JSON.stringify(base)) : (e.unit === 's' ? T(id, 2, 40, 45) : S(id, 3, e.compound ? [8, 10] : [10, 12], 60));
+    if (o.sets && sets) o.sets = sets;
+    delete o.rest;
+    return o;
+  }
+
+  var LOWER = ['noge', 'zadnjica'];
+
+  // opts = { type: 'moc'|'kardio'|'mix', focus: [group..], min: 20..60, machine: 'bike'|'rower'|'both', intensity: 'z2'|'hiit'|'mix', exclude: [id] }
+  function generate(opts) {
+    var min = opts.min || 45;
+    var focus = (opts.focus && opts.focus.length) ? opts.focus : ['noge', 'zadnjica', 'prsa', 'hrbet', 'rame', 'trup'];
+    var lower = focus.some(function (f) { return LOWER.indexOf(f) >= 0; });
+    if (opts.type === 'kardio') return cardioSession(opts, min);
+
+    var cardioMin = opts.type === 'mix' ? Math.max(6, Math.round(min * 0.3)) : 0;
+    var head = [{ title: 'Ogrevanje', items: [C(lower ? 'bike_z2' : 'row_steady', min <= 30 ? 4 : 5)] }];
+    var tail = [];
+    if (cardioMin) tail.push({ title: 'Kardio', items: [lower ? I('bike_hiit', cardioMin, 20, 40) : I('row_hiit', cardioMin, 30, 30)] });
+    tail.push({ title: 'Ohlajanje', items: lower ? [T('hip_flexor', 1, 40, 10), T('hamstring_bench', 1, 40, 10)] : [T('dead_hang', 1, 30, 10)] });
+
+    // add exercises in priority order while the estimated session still fits the chosen duration
+    var order = strengthOrder(focus, opts.exclude || []);
+    var sets = min <= 30 ? 2 : 3;
+    // beginners get one set less in build(), so budget with the sets they will actually do
+    var realSets = opts.level === 'beg' ? Math.max(2, sets - 1) : opts.level === 'adv' ? sets + 1 : sets;
+    var best = null;
+    for (var n = 1; n <= order.length; n++) {
+      var items = sortForSession(order.slice(0, n).map(function (id) { return prescribe(id, sets); }));
+      var cand = { blocks: head.concat(groupBlocks(items), tail) };
+      var probe = { blocks: head.concat(groupBlocks(items.map(function (it) { return Object.assign({}, it, { sets: realSets }); })), tail) };
+      if (best && estimateMin(probe) > min + 1) break;
+      best = cand;
+    }
+    return {
+      name: (opts.type === 'mix' ? 'Moč + kardio: ' : 'Moč: ') + focus.map(function (f) { return Exercises.FOCUS[f].name; }).join(', '),
+      short: min + ' min · po meri', color: '#ff6b9a', custom: true, opts: opts, blocks: best.blocks
+    };
+  }
+
+  // Round-robin over the chosen focus groups: exercises whose primary group matches first, compound before isolation.
+  function strengthOrder(focus, exclude) {
+    var pool = Exercises.LIST.filter(function (e) {
+      return (e.type === 'strength' || e.type === 'core') && e.groups[0] !== 'kardio' && exclude.indexOf(e.id) < 0;
+    });
+    function rank(e, f) {
+      var pos = e.groups.indexOf(f);
+      return (pos === 0 ? 0 : 10 + pos) + (e.compound ? 0 : 3) + (e.type === 'core' && f !== 'trup' ? 20 : 0);
+    }
+    var order = [], used = {};
+    for (var round = 0; round < 12; round++) {
+      var added = false;
+      focus.forEach(function (f) {
+        var c = pool.filter(function (e) { return !used[e.id] && e.groups.indexOf(f) >= 0; })
+          .sort(function (a, b) { return rank(a, f) - rank(b, f); })[0];
+        if (c) { used[c.id] = 1; order.push(c.id); added = true; }
+      });
+      if (!added) break;
+    }
+    return order;
+  }
+
+  // keep priority order, but core work goes to the end of the session
+  function sortForSession(items) {
+    var core = items.filter(function (it) { return Exercises.BY_ID[it.id].type === 'core'; });
+    return items.filter(function (it) { return Exercises.BY_ID[it.id].type !== 'core'; }).concat(core);
+  }
+
+  // Pair neighbours into supersets when they train different primary groups.
+  function groupBlocks(items) {
+    var out = [], i = 0, letter = 0;
+    items = items.map(function (it) { return Object.assign({}, it); });
+    while (i < items.length) {
+      var a = items[i], b = items[i + 1];
+      var ea = Exercises.BY_ID[a.id], eb = b && Exercises.BY_ID[b.id];
+      if (b && ea.groups[0] !== eb.groups[0]) {
+        var name = 'Superset ' + String.fromCharCode(65 + letter++);
+        a.rest = 0; b.rest = ea.compound || eb.compound ? 90 : 60;
+        out.push({ title: name, items: [a, b] }); i += 2;
+      } else {
+        a.rest = ea.compound ? 120 : 60;
+        out.push({ title: ea.type === 'core' ? 'Trup' : ea.compound ? 'Glavna vaja' : 'Dodatna vaja', items: [a] }); i += 1;
+      }
+    }
+    return out;
+  }
+
+  function cardioSession(opts, min) {
+    var m = opts.machine || 'both', inten = opts.intensity || 'mix';
+    var machines = m === 'both' ? ['bike', 'rower'] : [m];
+    var blocks = [{ title: 'Ogrevanje', items: [C(machines[0] === 'bike' ? 'bike_z2' : 'row_steady', 5)] }];
+    var main = Math.max(6, min - 9);
+    var per = Math.round(main / machines.length);
+    machines.forEach(function (mc, idx) {
+      var z2 = mc === 'bike' ? 'bike_z2' : 'row_steady';
+      var hiit = mc === 'bike' ? I('bike_hiit', per, 20, 40) : I('row_hiit', per, 30, 30);
+      var label = machines.length > 1 ? (mc === 'bike' ? ' – kolo' : ' – veslač') : '';
+      if (inten === 'z2') blocks.push({ title: 'Cona 2' + label, items: [C(z2, per)] });
+      else if (inten === 'hiit') blocks.push({ title: 'Intervali' + label, items: [hiit] });
+      else {
+        var half = Math.max(3, Math.round(per / 2));
+        blocks.push({ title: 'Cona 2' + label, items: [C(z2, half)] });
+        hiit.cardio.rounds = Math.max(3, per - half);
+        blocks.push({ title: 'Intervali' + label, items: [hiit] });
+      }
+    });
+    blocks.push({ title: 'Ohlajanje', items: [C(machines[machines.length - 1] === 'bike' ? 'bike_z2' : 'row_steady', 3)] });
+    blocks.push({ title: 'Raztezanje', items: [T('hamstring_bench', 1, 40, 10)] });
+    var mName = { bike: 'kolo', rower: 'veslač', both: 'kolo + veslač' }[m];
+    var iName = { z2: 'cona 2', hiit: 'intervali', mix: 'cona 2 + intervali' }[inten];
+    return { name: 'Kardio: ' + mName + ' – ' + iName, short: min + ' min · po meri', color: '#38e1ff', custom: true, opts: opts, blocks: blocks };
+  }
+
+  // Exercises that can replace `id` (share its primary group, same kind), excluding ones already in the session
+  var CARDIO_TWIN = { bike_z2: 'row_steady', row_steady: 'bike_z2', bike_hiit: 'row_hiit', row_hiit: 'bike_hiit' };
+  function alternatives(src, id) {
+    var e = Exercises.BY_ID[id];
+    if (CARDIO_TWIN[id]) return [CARDIO_TWIN[id]];
+    var inUse = {};
+    src.blocks.forEach(function (b) { b.items.forEach(function (it) { inUse[it.id] = 1; }); });
+    return Exercises.LIST.filter(function (x) {
+      return !inUse[x.id] && x.groups[0] === e.groups[0] && (x.type === 'cardio') === (e.type === 'cardio') && x.type !== 'mobility';
+    }).map(function (x) { return x.id; });
+  }
+
+  function replaceItem(src, id, newId) {
+    src.blocks.forEach(function (b) {
+      b.items = b.items.map(function (it) {
+        if (it.id !== id) return it;
+        if (it.cardio) {
+          var c = JSON.parse(JSON.stringify(it)); c.id = newId;
+          if (c.cardio.rounds) { c.cardio.work = newId === 'bike_hiit' ? 20 : 30; c.cardio.easy = newId === 'bike_hiit' ? 40 : 30; }
+          return c;
+        }
+        var n = prescribe(newId, it.sets);
+        n.rest = it.rest;
+        if (n.perSide === undefined && it.perSide && !Exercises.BY_ID[newId].perSide) delete n.perSide;
+        return n;
+      });
+    });
+  }
+
+  function removeItem(src, id) {
+    src.blocks.forEach(function (b) { b.items = b.items.filter(function (it) { return it.id !== id; }); });
+    src.blocks = src.blocks.filter(function (b) { return b.items.length; });
+    // a superset reduced to one exercise needs its own rest
+    src.blocks.forEach(function (b) { if (b.items.length === 1 && !b.items[0].cardio && !b.items[0].rest) b.items[0].rest = 90; });
+  }
+
+  // Single exercise session from the library
+  function single(id) {
+    var e = Exercises.BY_ID[id];
+    var it = e.type === 'cardio' ? (e.id.indexOf('hiit') > 0 ? I(id, 8, e.id === 'bike_hiit' ? 20 : 30, e.id === 'bike_hiit' ? 40 : 30) : C(id, 10)) : prescribe(id, 3);
+    if (!it.cardio) it.rest = it.time ? 30 : 90;
+    return { name: e.name, short: 'Posamezna vaja', color: '#c6ff3d', custom: true, blocks: [{ title: 'Vaja', items: [it] }] };
+  }
+
   global.Program = {
     SESSIONS: SESSIONS, PLANS: PLANS, WEEK_INFO: WEEK_INFO,
-    build: build, steps: steps, nextSessionKey: nextSessionKey, blockWeek: blockWeek,
+    get: get, build: build, steps: steps, generate: generate, alternatives: alternatives,
+    replaceItem: replaceItem, removeItem: removeItem, single: single, nextSessionKey: nextSessionKey, blockWeek: blockWeek,
     suggest: suggest, estimateMin: estimateMin, unitLabel: unitLabel, groupLetter: groupLetter
   };
 })(window);
