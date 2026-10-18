@@ -190,7 +190,7 @@
   var LEAF_PATH = 'M80.65,1.73c-.03,14.79-2.85,54.9-19.5,79.29-7.24,10.61-18.05,12.9-27.2,12.47-2.07-.1-4.1-.38-6.07-.85-1.39,5.65-2.93,11.65-2.94,17.34,0,.21-.18.39-.4.36-1.89-.21-4.42-2.01-6.88-1.81-.19.02-.35-.16-.31-.35,5.65-29.4,23.39-64.3,42.22-86.85C26.03,51.28,15.9,86.9,15.9,86.9c-5.66-3.86-11.11-7.72-13.88-16.11-2.5-7.57-.2-15.82,6.53-25.67C25.68,20.01,60.12,2.65,80.65,1.73Z';
   var LEAF = '<svg class="leaf" viewBox="0 0 82 112" aria-hidden="true"><path d="' + LEAF_PATH + '" fill="var(--leaf)"/></svg>';
   function brandMark(cls) {
-    return '<div class="brand ' + (cls || '') + '">' + LEAF + '<div class="wm"><span class="wm-top">finest</span><span class="wm-mid"><i>F</i><i>O</i><i>R</i><i>M</i></span><span class="wm-by">by nature\'s finest</span></div></div>';
+    return '<div class="brand ' + (cls || '') + '">' + LEAF + '<div class="wm"><span class="wm-top">formshaper</span><span class="wm-by">' + 'by nature\u2019s finest'.split('').map(function (c) { return '<i>' + (c === ' ' ? '&nbsp;' : c) + '</i>'; }).join('') + '</span></div></div>';
   }
 
   function avatar(p, big) {
@@ -210,12 +210,15 @@
   // static thumbnails, animate on focus / hover
   function mountThumbs() {
     $$('[data-thumb]').forEach(function (el) {
-      var p = mountFigure(el, el.getAttribute('data-thumb'), { aspect: el.clientWidth / Math.max(1, el.clientHeight) });
+      var id = el.getAttribute('data-thumb');
+      var p = mountFigure(el, id, { aspect: el.clientWidth / Math.max(1, el.clientHeight) });
       if (!p) return;
-      var e = ex(el.getAttribute('data-thumb'));
+      var e = ex(id);
       p.stop(); p.setTime(Figure.totalDur(e.anim) * 0.3);
+      // real photo by default; focusing the card flips to the live technique animation
+      if (photo(id)) { el.classList.add('ph-thumb'); el.insertAdjacentHTML('afterbegin', '<img class="thumb-photo" src="' + photo(id) + '" alt="" loading="lazy">'); }
       var host = el.closest('.focusable') || el;
-      var on = function () { p.start(); }, off = function () { p.stop(); };
+      var on = function () { el.classList.add('live'); p.start(); }, off = function () { el.classList.remove('live'); p.stop(); };
       host.addEventListener('focus', on); host.addEventListener('blur', off);
       host.addEventListener('mouseenter', on); host.addEventListener('mouseleave', off);
     });
@@ -236,6 +239,66 @@
     return 'lastna teža';
   }
 
+  // ---------------------------------------------------------------- photos + muscles
+  function photo(id) { return window.PHOTOS && PHOTOS.ex.indexOf(id) >= 0 ? 'img/ex/' + id + '.jpg' : null; }
+  function photoBg(url) { return url ? ' style="background-image:linear-gradient(90deg, rgba(5,10,7,.92) 0%, rgba(5,10,7,.55) 55%, rgba(5,10,7,.15) 100%), url(' + url + ')"' : ''; }
+  function cardBg(url) { return url ? ' style="background-image:linear-gradient(0deg, rgba(5,10,7,.95) 8%, rgba(5,10,7,.35) 70%), url(' + url + ')"' : ''; }
+  // first exercise of a session (after the warm-up) that has a real photo
+  function sessionPhoto(src) {
+    var ids = [];
+    src.blocks.forEach(function (b) { b.items.forEach(function (it) { ids.push(it.id); }); });
+    var main = ids.slice(1).concat(ids.slice(0, 1));
+    for (var i = 0; i < main.length; i++) if (photo(main[i])) return photo(main[i]);
+    return null;
+  }
+  var MUS_NAMES = Figure.MUSCLE_NAME;
+  function musChips(mus, legend) {
+    return '<div class="mus-chips">' + mus.p.map(function (m) { return '<span class="mchip p">' + esc(MUS_NAMES[m] || m) + '</span>'; }).join('') +
+      mus.s.map(function (m) { return '<span class="mchip s">' + esc(MUS_NAMES[m] || m) + '</span>'; }).join('') + '</div>' +
+      (legend ? '<div class="mus-legend"><span class="mchip p">glavne</span><span class="mchip s">pomožne</span></div>' : '');
+  }
+  // front + back anatomical map; muscles lit by role
+  var MAP_FRONT = {
+    delts: '<ellipse cx="30" cy="45" rx="7" ry="8"/><ellipse cx="70" cy="45" rx="7" ry="8"/>',
+    chest: '<path d="M38 44 Q49 41 49 47 L49 60 Q41 63 36 57 Q34 49 38 44Z"/><path d="M62 44 Q51 41 51 47 L51 60 Q59 63 64 57 Q66 49 62 44Z"/>',
+    biceps: '<ellipse cx="26" cy="64" rx="4.6" ry="10"/><ellipse cx="74" cy="64" rx="4.6" ry="10"/>',
+    forearms: '<ellipse cx="22.5" cy="88" rx="4" ry="11"/><ellipse cx="77.5" cy="88" rx="4" ry="11"/>',
+    abs: '<rect x="43" y="63" width="14" height="32" rx="5"/>',
+    obliques: '<ellipse cx="38" cy="80" rx="4" ry="11"/><ellipse cx="62" cy="80" rx="4" ry="11"/>',
+    hipflex: '<ellipse cx="43" cy="103" rx="4" ry="5"/><ellipse cx="57" cy="103" rx="4" ry="5"/>',
+    quads: '<ellipse cx="41.5" cy="128" rx="7.4" ry="19"/><ellipse cx="58.5" cy="128" rx="7.4" ry="19"/>',
+    calves: '<ellipse cx="41" cy="172" rx="4.4" ry="13"/><ellipse cx="59" cy="172" rx="4.4" ry="13"/>',
+    traps: '<path d="M43 35 L50 38 L57 35 L62 41 L38 41Z"/>'
+  };
+  var MAP_BACK = {
+    traps: '<path d="M50 34 L63 42 L50 62 L37 42Z"/>',
+    delts: '<ellipse cx="30" cy="45" rx="7" ry="8"/><ellipse cx="70" cy="45" rx="7" ry="8"/>',
+    lats: '<path d="M37 50 Q34 66 43 82 L48 66 L48 52Z"/><path d="M63 50 Q66 66 57 82 L52 66 L52 52Z"/>',
+    triceps: '<ellipse cx="26" cy="64" rx="4.6" ry="10"/><ellipse cx="74" cy="64" rx="4.6" ry="10"/>',
+    forearms: '<ellipse cx="22.5" cy="88" rx="4" ry="11"/><ellipse cx="77.5" cy="88" rx="4" ry="11"/>',
+    lowback: '<rect x="44" y="80" width="12" height="15" rx="4"/>',
+    glutes: '<ellipse cx="43" cy="106" rx="8" ry="8.5"/><ellipse cx="57" cy="106" rx="8" ry="8.5"/>',
+    hams: '<ellipse cx="42" cy="133" rx="6.6" ry="17"/><ellipse cx="58" cy="133" rx="6.6" ry="17"/>',
+    calves: '<ellipse cx="41.5" cy="170" rx="5.4" ry="13"/><ellipse cx="58.5" cy="170" rx="5.4" ry="13"/>'
+  };
+  var BODY = '<circle cx="50" cy="17" r="10"/><rect x="45" y="25" width="10" height="10" rx="3"/>' +
+    '<path d="M34 37 Q50 31 66 37 L69 60 Q66 92 62 100 L38 100 Q34 92 31 60Z"/>' +
+    '<rect x="21" y="38" width="11" height="40" rx="5.5"/><rect x="68" y="38" width="11" height="40" rx="5.5"/>' +
+    '<rect x="18.5" y="74" width="8.5" height="30" rx="4"/><rect x="73" y="74" width="8.5" height="30" rx="4"/>' +
+    '<rect x="34" y="96" width="15" height="58" rx="7"/><rect x="51" y="96" width="15" height="58" rx="7"/>' +
+    '<rect x="36" y="150" width="11" height="44" rx="5"/><rect x="53" y="150" width="11" height="44" rx="5"/>';
+  function mapHalf(defs, mus, x, label) {
+    var o = '<g transform="translate(' + x + ' 0)"><g class="mm-body">' + BODY + '</g>';
+    Object.keys(defs).forEach(function (m) {
+      var c = mus.p.indexOf(m) >= 0 ? 'mm p' : mus.s.indexOf(m) >= 0 ? 'mm s' : 'mm';
+      o += '<g class="' + c + '">' + defs[m] + '</g>';
+    });
+    return o + '<text x="50" y="210" class="mm-lbl">' + label + '</text></g>';
+  }
+  function muscleMap(mus) {
+    return '<svg viewBox="0 0 210 216" class="mmap">' + mapHalf(MAP_FRONT, mus, 0, 'SPREDAJ') + mapHalf(MAP_BACK, mus, 106, 'ZADAJ') + '</svg>';
+  }
+
   // ---------------------------------------------------------------- screens
   var SCREENS = {};
 
@@ -246,6 +309,7 @@
     var mins = Program.estimateMin(sess);
     var exCount = 0; sess.blocks.forEach(function (b) { exCount += b.items.length; });
     var heroEx = sess.blocks[1].items[0].id;
+    var heroPhoto = sessionPhoto(sess) || photo('kb_goblet_squat');
 
     // week strip
     var now = new Date(), monday = new Date(now); monday.setDate(now.getDate() - ((now.getDay() + 6) % 7)); monday.setHours(0, 0, 0, 0);
@@ -265,7 +329,8 @@
 
     var cards = plan.order.map(function (k) {
       var s = Program.SESSIONS[k];
-      return '<div class="session-card focusable' + (k === nextKey ? ' next' : '') + '" tabindex="0" data-go="overview" data-p=\'{"key":"' + k + '"}\'>' +
+      var cp = sessionPhoto(s);
+      return '<div class="session-card focusable' + (cp ? ' photo-card' : '') + (k === nextKey ? ' next' : '') + '" tabindex="0" data-go="overview" data-p=\'{"key":"' + k + '"}\'' + cardBg(cp) + '>' +
         '<div class="tag" style="color:' + s.color + '">' + (k === nextKey ? 'NASLEDNJI' : 'TRENING ' + (plan.order.indexOf(k) + 1)) + '</div>' +
         '<h3>' + esc(s.name) + '</h3><p>' + esc(s.short) + '</p></div>';
     }).join('');
@@ -278,14 +343,14 @@
       '<button class="btn sm ghost focusable" data-go="history">Napredek</button>' +
       '<button class="btn sm ghost focusable" data-go="settings">Nastavitve</button>' +
       '<button class="btn sm ghost focusable who" data-go="profiles" title="Zamenjaj osebo">' + avatar(state) + esc(state.name) + '</button></div>' +
-      '<div class="hero"><div class="hero-card"><div class="eyebrow">Današnji trening · ' + esc(sess.weekInfo.label) + '</div>' +
+      '<div class="hero"><div class="hero-card' + (heroPhoto ? ' has-photo' : '') + '"' + photoBg(heroPhoto) + '><div class="eyebrow">Današnji trening · ' + esc(sess.weekInfo.label) + '</div>' +
       '<h1>' + esc(sess.name) + '</h1>' +
       '<div class="meta"><div><b>~' + mins + ' min</b>trajanje</div><div><b>' + exCount + '</b>vaj</div><div><b>RIR ' + sess.weekInfo.rir + '</b>napor</div></div>' +
       '<div class="hint">' + esc(sess.weekInfo.note) + '</div>' +
       '<div class="actions"><button class="btn primary focusable" data-autofocus data-go="player" data-p=\'{"key":"' + nextKey + '"}\'>▶ Začni trening</button>' +
       '<button class="btn focusable" data-go="preview" data-p=\'{"key":"' + nextKey + '"}\'>📺 Predogled vaj</button>' +
       '<button class="btn ghost focusable" data-go="overview" data-p=\'{"key":"' + nextKey + '"}\'>Podrobnosti</button></div>' +
-      '<div class="hero-fig" id="heroFig"></div></div>' +
+      (heroPhoto ? '' : '<div class="hero-fig" id="heroFig"></div>') + '</div>' +
       '<div class="week"><h3>Ta teden · ' + weekDone + ' / ' + plan.order.length + ' treningov</h3><div class="days">' + daysHtml + '</div>' +
       '<div class="stats"><div class="stat"><b>' + state.log.length + '</b><span>treningov skupaj</span></div>' +
       '<div class="stat"><b>' + Math.round(totalMin / 60) + ' h</b><span>skupni čas</span></div>' +
@@ -294,19 +359,20 @@
       '<div class="row">' + cards + '</div>' +
       '<div class="section-title"><h2>Trening po izbiri</h2><span>izberi fokus ali vrsto – sestavi se samo iz tvoje opreme</span></div>' +
       '<div class="row">' + QUICK.map(function (q, i) {
-        return '<div class="session-card focusable quick" tabindex="0" data-quick="' + i + '"><div class="tag" style="color:' + q.color + '">' + q.tag + '</div><h3>' + esc(q.name) + '</h3><p>' + esc(q.sub) + '</p></div>';
+        var qp = q.photo && photo(q.photo);
+        return '<div class="session-card focusable quick' + (qp ? ' photo-card' : '') + '" tabindex="0" data-quick="' + i + '"' + cardBg(qp) + '><div class="tag" style="color:' + q.color + '">' + q.tag + '</div><h3>' + esc(q.name) + '</h3><p>' + esc(q.sub) + '</p></div>';
       }).join('') + '<div class="session-card focusable quick" tabindex="0" data-go="builder"><div class="tag">PO MERI</div><h3>＋ Sestavi svoj trening</h3><p>moč / kardio / kombinirano · fokus · trajanje</p></div></div>' +
       '<div class="section-title"><h2>🏁 HYROX</h2><span>simulacija tekme na tvoji opremi – na čas, z vmesnimi časi</span></div>' +
       '<div class="row">' + Program.HX_KEYS.map(function (k) {
         var hs = Program.SESSIONS[k];
-        return '<div class="session-card hx focusable" tabindex="0" data-go="overview" data-p=\'{"key":"' + k + '"}\'><div class="tag">' + (hs.race ? 'NA ČAS' : 'TRENING') + '</div><h3>' + esc(hs.name) + '</h3><p>' + esc(hs.short) + '</p></div>';
+        return '<div class="session-card hx focusable photo-card" tabindex="0" data-go="overview" data-p=\'{"key":"' + k + '"}\'' + cardBg(photo(['kb_swing', 'row_hiit', 'kb_deadlift'][Program.HX_KEYS.indexOf(k)])) + '><div class="tag">' + (hs.race ? 'NA ČAS' : 'TRENING') + '</div><h3>' + esc(hs.name) + '</h3><p>' + esc(hs.short) + '</p></div>';
       }).join('') + '</div>' +
       (state.saved.length ? '<div class="section-title"><h2>Moji shranjeni treningi</h2></div><div class="row">' + state.saved.filter(function (k) { return state.customs[k]; }).map(function (k) {
         var c = state.customs[k];
         return '<div class="session-card focusable" tabindex="0" data-go="overview" data-p=\'{"key":"' + k + '"}\'><div class="tag" style="color:' + c.color + '">SHRANJENO</div><h3>' + esc(c.name) + '</h3><p>' + esc(c.short) + '</p></div>';
       }).join('') + '</div>' : '') +
       '</div>';
-    mountFigure($('#heroFig'), heroEx, { aspect: 1 });
+    if ($('#heroFig')) mountFigure($('#heroFig'), heroEx, { aspect: 1 });
     $$('[data-quick]').forEach(function (el) {
       el.onclick = function () {
         var o = Object.assign({ level: state.settings.level, owned: Program.owned(state) }, QUICK[+el.getAttribute('data-quick')].opts);
@@ -316,12 +382,12 @@
   };
 
   var QUICK = [
-    { tag: 'MOČ', name: 'Celo telo', sub: '45 min · vse glavne skupine', color: '#3ec46d', opts: { type: 'moc', focus: ['noge', 'prsa', 'hrbet', 'zadnjica', 'rame', 'trup'], min: 45 } },
-    { tag: 'MOČ', name: 'Noge & zadnjica', sub: '40 min', color: '#f08a5d', opts: { type: 'moc', focus: ['noge', 'zadnjica'], min: 40 } },
-    { tag: 'MOČ', name: 'Zgornji del', sub: '40 min · prsa, hrbet, rame, roke', color: '#b6c99b', opts: { type: 'moc', focus: ['prsa', 'hrbet', 'rame', 'roke'], min: 40 } },
+    { tag: 'MOČ', name: 'Celo telo', photo: 'kb_goblet_squat', sub: '45 min · vse glavne skupine', color: '#3ec46d', opts: { type: 'moc', focus: ['noge', 'prsa', 'hrbet', 'zadnjica', 'rame', 'trup'], min: 45 } },
+    { tag: 'MOČ', name: 'Noge & zadnjica', photo: 'kb_deadlift', sub: '40 min', color: '#f08a5d', opts: { type: 'moc', focus: ['noge', 'zadnjica'], min: 40 } },
+    { tag: 'MOČ', name: 'Zgornji del', photo: 'db_bench', sub: '40 min · prsa, hrbet, rame, roke', color: '#b6c99b', opts: { type: 'moc', focus: ['prsa', 'hrbet', 'rame', 'roke'], min: 40 } },
     { tag: 'TRUP', name: 'Trebušne & hrbet', sub: '20 min', color: '#a99be8', opts: { type: 'moc', focus: ['trup'], min: 20 } },
-    { tag: 'KARDIO', name: 'Intervali kolo + veslač', sub: '30 min', color: '#5ad1b8', opts: { type: 'kardio', machine: 'both', intensity: 'hiit', min: 30 } },
-    { tag: 'KARDIO', name: 'Cona 2 – vzdržljivost', sub: '40 min · lahkotno', color: '#5ad1b8', opts: { type: 'kardio', machine: 'both', intensity: 'z2', min: 40 } }
+    { tag: 'KARDIO', name: 'Intervali kolo + veslač', photo: 'bike_hiit', sub: '30 min', color: '#5ad1b8', opts: { type: 'kardio', machine: 'both', intensity: 'hiit', min: 30 } },
+    { tag: 'KARDIO', name: 'Cona 2 – vzdržljivost', photo: 'row_steady', sub: '40 min · lahkotno', color: '#5ad1b8', opts: { type: 'kardio', machine: 'both', intensity: 'z2', min: 40 } }
   ];
 
   function weeksStreak() {
@@ -408,23 +474,44 @@
   SCREENS.exercise = function (p) {
     var e = ex(p.id);
     var h = state.ex[p.id];
+    var ph = photo(p.id);
+    var mus = e.anim.muscles;
+    var steps = [];
+    (e.anim.frames || []).forEach(function (f, i) { if (f.l && steps.every(function (s) { return s.l !== f.l; })) steps.push({ l: f.l, i: i }); });
+    if (!steps.length && e.anim.label) steps.push({ l: e.anim.label, i: 0 });
     var el = document.createElement('div');
-    el.className = 'player';
+    el.className = 'player exd';
     el.innerHTML = '<div class="stage"><div class="fig" id="exFig"></div><div class="phase" id="exPhase"></div>' +
-      '<div class="badge-top">' + e.equip.map(function (k) { return '<span class="chip"><span class="chip-ico">' + equipIcon(k) + '</span>' + esc(Exercises.EQUIP[k].name) + '</span>'; }).join('') + '</div></div>' +
-      '<div class="side"><div class="kicker">' + esc(e.muscles) + '</div><h2>' + esc(e.name) + '</h2>' +
-      '<div class="muscles">Tempo: <b>' + esc(e.tempo || '') + '</b>' + (h ? ' · Zadnjič: <b>' + esc(loadTxt(e, h.load)) + '</b> × ' + h.reps.join(', ') : '') + '</div>' +
-      '<div class="label">Izvedba</div><ul class="cues">' + e.cues.map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('') + '</ul>' +
+      '<div class="badge-top">' + e.equip.map(function (k) { return '<span class="chip"><span class="chip-ico">' + equipIcon(k) + '</span>' + esc(Exercises.EQUIP[k].name) + '</span>'; }).join('') + '</div>' +
+      (ph ? '<button class="pip focusable" id="exPip"><img src="' + ph + '" alt=""><span>Prava izvedba · povečaj</span></button><div class="photo-full" id="exPhoto" hidden><img src="' + ph + '" alt=""><span>' + esc(e.name) + '</span></div>' : '') +
+      '</div><div class="side"><div class="kicker">' + esc(e.muscles) + '</div><h2>' + esc(e.name) + '</h2>' +
+      '<div class="why">Tempo <b>' + esc(e.tempo || '') + '</b>' + (h ? ' · zadnjič <b>' + esc(loadTxt(e, h.load)) + '</b> × ' + h.reps.join(', ') : '') + '</div>' +
+      '<div class="mus-block"><div class="mus-map">' + muscleMap(mus) + '</div><div class="mus-list"><div class="label">Delajo</div>' + musChips(mus, true) + '</div></div>' +
+      '<div class="label">Pravilna izvedba – po fazah</div><ol class="steps" id="exSteps">' + steps.map(function (s, k) { return '<li data-i="' + s.i + '"><b>' + (k + 1) + '</b>' + esc(s.l) + '</li>'; }).join('') + '</ol>' +
+      '<div class="label">Ključne točke</div><ul class="cues ok">' + e.cues.map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('') + '</ul>' +
       '<div class="label">Pogoste napake</div><ul class="cues bad">' + (e.mistakes || []).map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('') + '</ul>' +
-      '<div class="controls"><button class="btn primary focusable" id="solo">▶ Treniraj to vajo</button><button class="btn focusable" id="spd">Hitrost: 1×</button><button class="btn focusable" id="pp">Pavza</button><button class="btn ghost focusable" id="bk">← Nazaj</button></div></div>';
+      '<div class="controls"><button class="btn primary focusable" id="solo">▶ Treniraj to vajo</button><button class="btn focusable" id="spd">Hitrost 1×</button>' +
+      '<button class="btn focusable" id="gd">Kontrolne točke: vklop</button><button class="btn ghost focusable" id="bk">← Nazaj</button></div></div>';
     document.body.appendChild(el);
     var speeds = [1, 0.5, 0.25], si = 0;
-    var pl = mountFigure($('#exFig'), p.id, { aspect: 1.45, onPhase: function (l) { $('#exPhase').textContent = l || ' '; } });
-    $('#spd').onclick = function () { si = (si + 1) % speeds.length; pl.speed = (e.speed || 1) * speeds[si]; this.textContent = 'Hitrost: ' + speeds[si] + '×'; };
-    $('#pp').onclick = function () { this.textContent = pl.toggle() ? 'Pavza' : 'Predvajaj'; };
+    var pl = mountFigure($('#exFig'), p.id, {
+      aspect: 1.45, labels: true, guides: true,
+      onPhase: function (l, idx) {
+        $('#exPhase').textContent = l || ' ';
+        var cur = null;
+        $$('#exSteps li').forEach(function (li) { if (+li.getAttribute('data-i') <= idx) cur = li; });
+        $$('#exSteps li').forEach(function (li) { li.classList.toggle('on', li === cur); });
+      }
+    });
+    $('#spd').onclick = function () { si = (si + 1) % speeds.length; pl.speed = (e.speed || 1) * speeds[si]; this.textContent = 'Hitrost ' + speeds[si] + '×'; };
+    $('#gd').onclick = function () { pl.guides = pl.labels = !pl.guides; this.textContent = 'Kontrolne točke: ' + (pl.guides ? 'vklop' : 'izklop'); };
     $('#bk').onclick = back;
     $('#solo').onclick = function () { startCustom(Program.single(p.id), 'player'); };
-    $('#spd').setAttribute('data-autofocus', '');
+    if (ph) {
+      $('#exPip').onclick = function () { var f = $('#exPhoto'); f.hidden = !f.hidden; this.querySelector('span').textContent = f.hidden ? 'Prava izvedba · povečaj' : 'Nazaj na animacijo'; };
+    }
+    $('#solo').setAttribute('data-autofocus', '');
+    setTimeout(function () { var sd = $('.exd .side'); if (sd) sd.scrollTop = 0; }, 30);
   };
 
   SCREENS.history = function () {
@@ -505,14 +592,16 @@
 
     var el = document.createElement('div');
     el.className = 'player preview';
-    el.innerHTML = '<div class="stage"><div class="fig" id="pvFig"></div><div class="phase" id="pvPhase"></div><div class="badge-top"><span class="chip on" id="pvCount"></span><span class="chip" id="pvBlock"></span></div></div>' +
+    el.innerHTML = '<div class="stage"><div class="fig" id="pvFig"></div><div class="phase" id="pvPhase"></div><div class="badge-top"><span class="chip on" id="pvCount"></span><span class="chip" id="pvBlock"></span></div>' +
+      '<div class="pip" id="pvPip" hidden><img alt=""><span>Prava izvedba</span></div></div>' +
       '<div class="side"><div class="kicker" id="pvMus"></div><h2 id="pvName"></h2><div class="prescription" id="pvRx"></div>' +
-      '<div class="label">Izvedba</div><ul class="cues" id="pvCues"></ul><div class="countdown"><i id="pvBar"></i></div>' +
+      '<div class="mus-block"><div class="mus-map" id="pvMap"></div><div class="mus-list"><div class="label">Delajo</div><div id="pvChips"></div></div></div>' +
+      '<div class="label">Ključne točke</div><ul class="cues ok" id="pvCues"></ul><div class="countdown"><i id="pvBar"></i></div>' +
       '<div class="controls"><button class="btn focusable" id="pvPrev">◀</button><button class="btn focusable" id="pvPause">Pavza</button><button class="btn focusable" id="pvNext">▶</button>' +
       '<button class="btn primary focusable" id="pvStart" data-autofocus>Začni trening</button></div></div>';
     document.body.appendChild(el);
     keepAwake(true);
-    var pl = new Figure.Player($('#pvFig'), { aspect: 1.45, onPhase: function (l) { $('#pvPhase').textContent = l || ' '; } });
+    var pl = new Figure.Player($('#pvFig'), { aspect: 1.45, labels: true, guides: true, onPhase: function (l) { $('#pvPhase').textContent = l || ' '; } });
     players.push(pl);
 
     function show(i) {
@@ -525,6 +614,9 @@
       $('#pvName').textContent = e.name;
       $('#pvRx').innerHTML = '<div><b>' + esc(rx(it)) + '</b><span>serije</span></div><div><b>' + esc(it.sug ? loadTxt(e, it.sug.load) : it.cardio ? 'kardio' : 'drži') + '</b><span>breme</span></div><div><b>' + esc(e.tempo || '') + '</b><span>tempo</span></div>';
       $('#pvCues').innerHTML = e.cues.map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('');
+      $('#pvMap').innerHTML = muscleMap(e.anim.muscles);
+      $('#pvChips').innerHTML = musChips(e.anim.muscles, true);
+      var pp = photo(it.id); $('#pvPip').hidden = !pp; if (pp) $('#pvPip img').src = pp;
       t0 = Date.now();
       Voice.say(e.name + '. ' + e.cues[0]);
     }
@@ -587,9 +679,10 @@
       '<div class="hud-meta" id="wMeta"></div></div>' +
       '<div class="hud-clock"><small>' + (race ? 'RACE ČAS' : 'SKUPAJ') + '</small><b id="wClock">0:00</b></div></div>' +
       '<div class="next-card" id="wNextCard"><div class="nc-thumb" id="wNextThumb"></div><div><small id="wNextLbl"></small><b id="wNextName"></b></div></div>' +
+      '<div class="pip" id="wPip" hidden><img alt=""><span>Prava izvedba</span></div>' +
       '<div class="finish" id="wFinish" hidden></div></div>' +
       '<div class="side"><div class="kicker"><span id="wBlock"></span><span class="dots-set" id="wDots"></span></div>' +
-      '<h2 id="wName"></h2><div class="why" id="wWhy"></div>' +
+      '<h2 id="wName"></h2><div class="why" id="wWhy"></div><div id="wMus"></div>' +
       ring('wRing') +
       '<div class="chips-row" id="wRx"></div>' +
       '<div class="logger" id="wLog"></div>' +
@@ -600,7 +693,7 @@
       (race ? '<div class="splits" id="wSplits"></div>' : '') + '</div>';
     document.body.appendChild(el);
     keepAwake(true);
-    var pl = new Figure.Player($('#wFig'), { aspect: 1.45, onPhase: function (l) { $('#wPhase').textContent = l || ' '; } });
+    var pl = new Figure.Player($('#wFig'), { aspect: 1.45, labels: true, onPhase: function (l) { $('#wPhase').textContent = l || ' '; } });
     players.push(pl);
     var nextPl = new Figure.Player($('#wNextThumb'), { aspect: 1.2 });
     players.push(nextPl);
@@ -656,6 +749,9 @@
       $('#wBlock').textContent = s.block + (s.tag ? ' · ' + s.tag : '');
       $('#wDots').innerHTML = s.sets > 1 ? Array.apply(null, Array(s.sets)).map(function (_, k) { return '<i' + (k < s.set - 1 ? ' class="done"' : k === s.set - 1 ? ' class="cur"' : '') + '></i>'; }).join('') : '';
       $('#wName').textContent = e.name;
+      $('#wMus').innerHTML = musChips(e.anim.muscles);
+      var pp = photo(s.id), pip = $('#wPip');
+      pip.hidden = !pp; if (pp) pip.querySelector('img').src = pp;
       $('#wMinus').hidden = $('#wPlus').hidden = true;
       $('#wSkip').hidden = false;
       el.classList.toggle('hard', !!s.hard);
@@ -727,6 +823,8 @@
       var nx = st[i + 1], ne = ex(nx.id);
       showAnim(nx.id);
       $('#wName').textContent = 'Počitek';
+      $('#wMus').innerHTML = musChips(ne.anim.muscles);
+      var np = photo(nx.id); $('#wPip').hidden = !np; if (np) $('#wPip img').src = np;
       $('#wWhy').textContent = 'Pripravi se: ' + ne.name + (nx.kind === 'reps' ? ' · serija ' + nx.set + '/' + nx.sets : '');
       $('#wLog').hidden = true;
       $('#wRx').innerHTML = chips([[fmt(sec), 'počitek'], [ne.name.split(' (')[0], 'naslednje']]);

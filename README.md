@@ -1,6 +1,6 @@
-# Finest Form — by Nature's Finest
+# Formshaper — by Nature's Finest
 
-*Finest* = znamka, *Form* = pravilna tehnika (animacije) in "v vrhunski formi". Znak uporablja **originalni list Nature's Finest** (`#0ba74b`) in enako sestavo kot logotip "nature's / FINEST / BY NUTRISSLIM": krepak serif v malih črkah (Fraunces) → razprt "F O R M" → "BY NATURE'S FINEST". UI barve: listno zelena, temno zelena `#006837`, Rethink Sans.
+Znak uporablja **originalni list Nature's Finest** (`#0ba74b`) in sestavo, ki sledi logotipu "nature's / FINEST / BY NUTRISSLIM": serif v malih črkah (Fraunces 600) "formshaper" → razprt napis "BY NATURE'S FINEST". UI: Rethink Sans (400–600, brez ultra-krepkih rezov), listno in temno zelena `#006837`.
 
 Osebni trener za domačo telovadnico, narejen **izključno za opremo, ki jo imaš**, in optimiziran za **TV zaslon (10-foot UI, upravljanje z daljincem)**.
 
@@ -16,6 +16,13 @@ Osebni trener za domačo telovadnico, narejen **izključno za opremo, ki jo ima�
 | Stena (drog + dvig nog) | zgibi, dvig kolen/nog v visenju, visenje |
 
 **63 vaj, vsaka z animacijo** (2D skeletna animacija s pravilnim zaporedjem gibanja, faznimi napisi "Spuščaj 3 s / Pavza / Potisni", poudarjenimi delovnimi mišicami, navodili in pogostimi napakami).
+
+### Kako je prikazana pravilna izvedba
+- **Človeška figura** (koža, oblačila, obraz, lasje, čevlji, mišični trebuhi) namesto paličnega moža. Mišice, ki delajo, **zasvetijo**: glavne močno in utripajo, pomožne mehko.
+- **Oznake mišic** na figuri (npr. "Kvadriceps", "Zadnjica") in **kontrolne točke**: koti kolena/kolka/komolca v živo in linija hrbtenice pri zgibih v kolkih.
+- **Zemljevid mišic** spredaj/zadaj z glavnimi in pomožnimi mišicami za vseh 63 vaj.
+- **Faze giba** (npr. 1 Spuščaj 3 s → 2 Pavza spodaj → 3 Potisni gor) se med animacijo osvetljujejo v živo; pod njimi ključne točke in pogoste napake.
+- **Fotografije pravih oseb** (generirane, preverjene glede pravilne izvedbe): kartice v knjižnici (fokus z daljincem preklopi na animacijo), domači zaslon, sličica "Prava izvedba" v predvajalniku, predogledu in podrobnostih (povečava čez cel zaslon). Kjer fotografije še ni, ostane animacija. Prompti za manjkajoče so v `tools/photo_prompts.json`; po dodajanju slik v `img/ex/` zaženi `python3 tools/build_photos.py`.
 
 ### Oprema po profilu
 Vsaka oseba v profilu izbere svojo opremo (zaslon *Moja oprema*: ilustracije, število odklenjenih vaj, hitre izbire *Domača telovadnica / Samo lastna teža / Polno opremljen fitnes*). Na voljo je 17 naprav – tvojih 8 in dodatne: **tekalna steza, SkiErg, olimpijska palica + stojalo, sandbag, wall ball, plyo škatla, elastike, sani, kolebnica**.
@@ -140,6 +147,8 @@ NODE_PATH=$(npm root -g) node tools/ui.cjs ./out                   # UI smoke te
 NODE_PATH=$(npm root -g) node tools/profiles.cjs ./out             # profili, PIN, sestavljalnik, knjižnica
 NODE_PATH=$(npm root -g) node tools/hyrox.cjs ./out                # HYROX, race ura, vmesni časi, HUD predvajalnika
 NODE_PATH=$(npm root -g) node tools/equipment.cjs ./out            # oprema po profilu, zamenjave, HYROX z realno opremo
+NODE_PATH=$(npm root -g) node tools/visual.cjs ./out               # posnetki glavnih zaslonov za vizualni pregled
+NODE_PATH=$(npm root -g) node tools/snap.cjs c.png kb_swing "&h=520&labels=1"   # animacija z oznakami mišic in koti
 ```
 
 Nova vaja = en objekt v `js/exercises.js` (+ vnos v `js/program.js`, če naj bo v programu).

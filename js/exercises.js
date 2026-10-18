@@ -1258,8 +1258,49 @@
     jump_rope: 'intervals', high_knees: 'intervals', mountain_climber: 'intervals'
   };
 
+  // Working muscles per exercise: [primary, secondary]. Drives the glowing muscles on the figure,
+  // the on-figure labels and the front/back muscle map.
+  var MUSCLES = {
+    bike_z2: [['quads'], ['glutes', 'calves', 'hams']], bike_hiit: [['quads', 'glutes'], ['calves', 'hams']], hx_bike_run: [['quads'], ['glutes', 'calves']],
+    bike_sled: [['quads', 'glutes'], ['calves', 'hams']],
+    row_steady: [['lats', 'quads'], ['glutes', 'hams', 'biceps', 'traps']], row_hiit: [['lats', 'quads', 'glutes'], ['hams', 'biceps', 'traps']],
+    kb_swing: [['glutes', 'hams'], ['lowback', 'abs', 'forearms']], kb_goblet_squat: [['quads', 'glutes'], ['abs', 'lowback']],
+    kb_deadlift: [['glutes', 'hams'], ['lowback', 'quads', 'forearms']], kb_press: [['delts', 'triceps'], ['abs', 'traps']],
+    db_bench: [['chest', 'triceps'], ['delts']], db_incline: [['chest', 'delts'], ['triceps']], db_row: [['lats', 'traps'], ['biceps', 'forearms']],
+    db_rdl: [['hams', 'glutes'], ['lowback', 'forearms']], db_bulgarian: [['quads', 'glutes'], ['hams', 'abs']], db_shoulder_press: [['delts', 'triceps'], ['traps']],
+    db_curl: [['biceps'], ['forearms']], db_hip_thrust: [['glutes'], ['hams', 'quads']], db_stepup: [['quads', 'glutes'], ['calves', 'hams']],
+    k_chest_press: [['chest', 'triceps'], ['delts', 'abs']], k_row: [['lats', 'traps'], ['biceps', 'delts']], k_pulldown: [['lats'], ['biceps', 'traps']],
+    k_face_pull: [['delts', 'traps'], ['biceps']], k_pushdown: [['triceps'], ['forearms']], k_pullthrough: [['glutes', 'hams'], ['lowback']],
+    k_woodchop: [['obliques', 'abs'], ['delts', 'glutes']], pullup: [['lats', 'biceps'], ['traps', 'forearms', 'abs']],
+    hang_knee_raise: [['abs', 'hipflex'], ['obliques', 'forearms']], hang_leg_raise: [['abs', 'hipflex'], ['obliques', 'forearms']], dead_hang: [['forearms', 'lats'], ['delts']],
+    back_ext: [['lowback', 'glutes'], ['hams']], situp: [['abs'], ['hipflex', 'obliques']], pushup: [['chest', 'triceps'], ['delts', 'abs']],
+    plank: [['abs'], ['obliques', 'delts', 'glutes']], dead_bug: [['abs'], ['obliques', 'hipflex']], bird_dog: [['lowback', 'glutes'], ['abs', 'delts']],
+    hip_flexor: [['hipflex'], ['quads']], hamstring_bench: [['hams'], ['calves', 'lowback']],
+    k_ski: [['lats', 'triceps'], ['abs', 'glutes']], k_sled_pull: [['lats', 'biceps'], ['traps', 'glutes', 'forearms']], burpee_bj: [['quads', 'chest'], ['glutes', 'triceps', 'abs']],
+    kb_farmers: [['forearms', 'traps'], ['abs', 'glutes']], kb_lunge: [['quads', 'glutes'], ['hams', 'abs']], db_thruster: [['quads', 'delts'], ['glutes', 'triceps']],
+    treadmill_run: [['quads', 'calves'], ['glutes', 'hams']], skierg: [['lats', 'triceps'], ['abs', 'glutes']], sled_push: [['quads', 'glutes'], ['calves', 'abs']],
+    sled_pull: [['lats', 'biceps'], ['traps', 'glutes', 'forearms']], wall_ball: [['quads', 'delts'], ['glutes', 'triceps']], sandbag_lunge: [['quads', 'glutes'], ['traps', 'abs']],
+    bb_squat: [['quads', 'glutes'], ['lowback', 'abs', 'hams']], bb_deadlift: [['glutes', 'hams', 'lowback'], ['traps', 'forearms', 'quads']], bb_bench: [['chest', 'triceps'], ['delts']],
+    box_jump: [['quads', 'glutes'], ['calves']], jump_rope: [['calves'], ['quads', 'delts']], band_row: [['lats', 'traps'], ['biceps']], band_pushdown: [['triceps'], ['forearms']],
+    db_farmers: [['forearms', 'traps'], ['abs', 'glutes']], bw_squat: [['quads', 'glutes'], ['abs']], bw_lunge: [['quads', 'glutes'], ['hams']], glute_bridge: [['glutes'], ['hams']],
+    mountain_climber: [['abs', 'hipflex'], ['delts', 'quads']], high_knees: [['hipflex', 'calves'], ['quads', 'abs']]
+  };
+  // which joint checkpoints teach the movement best
+  function guidesFor(e, mus) {
+    var all = mus[0].concat(mus[1]), g = [];
+    var hinge = /rdl|deadlift|swing|pullthrough|back_ext|good|row\b|db_row|bird/.test(e.id);
+    if (hinge || mus[0].indexOf('lowback') >= 0) g.push('spine');
+    if (/squat|lunge|bulgarian|stepup|thruster|wall_ball|box|sled_push/.test(e.id)) g.push('knee');
+    if (hinge || /thrust|bridge|squat/.test(e.id)) g.push('hip');
+    if (!g.length && (all.indexOf('triceps') >= 0 || all.indexOf('biceps') >= 0 || all.indexOf('chest') >= 0)) g.push('elbow');
+    return g;
+  }
+
   var BY_ID = {};
   LIST.forEach(function (e) {
+    var mu = MUSCLES[e.id] || [[], []];
+    e.anim.muscles = { p: mu[0], s: mu[1] };
+    e.anim.guides = guidesFor(e, mu);
     e.groups = GROUPS[e.id] || [];
     e.compound = COMPOUND.indexOf(e.id) >= 0;
     BY_ID[e.id] = e;

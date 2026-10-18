@@ -6,6 +6,7 @@
 <script src="../js/figure.js"></script><script src="../js/exercises.js"></script>
 <script>
 var q = new URLSearchParams(location.search), only = q.get('ids');
+if (q.get('h')) document.write('<style>.cell{height:' + q.get('h') + 'px}</style>');
 var s = document.getElementById('s');
 Exercises.LIST.filter(function(e){return !only || only.split(',').indexOf(e.id)>=0;}).forEach(function(e){
   var n=document.createElement('div');n.className='name';n.textContent=e.id;s.appendChild(n);
@@ -15,6 +16,6 @@ Exercises.LIST.filter(function(e){return !only || only.split(',').indexOf(e.id)>
   while(times.length<4)times.push(times[times.length-1]+0.3);
   if(times.length>4)times=[times[0],times[1],times[2],times[Math.floor(times.length*0.75)]];
   times.forEach(function(t){var c=document.createElement('div');c.className='cell';s.appendChild(c);
-    var p=new Figure.Player(c,{aspect:1.5});p.load(e.anim);p.stop();p.speed=1;p.setTime(t);});
+    var p=new Figure.Player(c,{aspect:1.5,labels:q.get('labels')==='1',guides:q.get('labels')==='1'});p.load(e.anim);p.stop();p.speed=1;p.setTime(t);});
 });
 </script></body></html>

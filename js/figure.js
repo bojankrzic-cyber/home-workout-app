@@ -363,44 +363,189 @@
   }
 
   // ---- figure drawing ------------------------------------------------------
-  var W = { torso: 21, upper: 11, fore: 9, thigh: 16, shin: 12 };
+  // Anatomical mannequin: tapered limbs, clothing, face/hair, shoes, and muscle bellies
+  // that light up when they are the working muscles (primary = bright, secondary = soft).
+  var R = { thigh: [10.2, 6.8], shin: [6.8, 4.4], upper: [6.4, 4.8], fore: [5, 3.6], torso: [11.6, 13.6], neck: [5, 4.6] };
 
-  function limbCls(seg, side, focus) {
-    var base = side === 'F' ? 'b far' : 'b';
-    return focus && focus.indexOf(seg) >= 0 ? base + ' hot' : base;
+  function capsule(a, b, r1, r2, cls) {
+    var an = ang(a, b), n1 = d(an + 90), n2 = d(an - 90);
+    var p1 = [a[0] + n1[0] * r1, a[1] + n1[1] * r1], p2 = [b[0] + n1[0] * r2, b[1] + n1[1] * r2];
+    var p3 = [b[0] + n2[0] * r2, b[1] + n2[1] * r2], p4 = [a[0] + n2[0] * r1, a[1] + n2[1] * r1];
+    return '<path d="M' + P(p1) + ' L' + P(p2) + ' A' + r2 + ' ' + r2 + ' 0 0 1 ' + P(p3) + ' L' + P(p4) + ' A' + r1 + ' ' + r1 + ' 0 0 1 ' + P(p1) + 'Z" class="' + cls + '"/>';
+  }
+  function ellipse(c, rx, ry, segAng, cls) {
+    return '<ellipse cx="' + f1(c[0]) + '" cy="' + f1(c[1]) + '" rx="' + f1(rx) + '" ry="' + f1(ry) + '" transform="rotate(' + f1(90 - segAng) + ' ' + f1(c[0]) + ' ' + f1(c[1]) + ')" class="' + cls + '"/>';
+  }
+  function along(a, b, frac, normalAng, off) {
+    var p = [a[0] + (b[0] - a[0]) * frac, a[1] + (b[1] - a[1]) * frac];
+    return off ? add(p, normalAng, off) : p;
   }
 
-  function drawLeg(J, s, focus) {
-    var o = '';
-    o += line(J.hip, J['k' + s], W.thigh, limbCls('thigh', s, focus));
-    o += line(J['k' + s], J['f' + s], W.shin, limbCls('shin', s, focus));
-    o += poly([J['f' + s], J['toe' + s], J['heel' + s]], 'b foot' + (s === 'F' ? ' far' : ''));
-    o += line(J['heel' + s], J['toe' + s], 6, 'b foot' + (s === 'F' ? ' far' : ''));
+  // muscle id -> geometry on the solved skeleton (centre, radii, rotation)
+  function muscleShapes(J, s) {
+    var hip = J.hip, sho = J.sho, k = J['k' + s], f = J['f' + s], e = J['e' + s], h = J['h' + s];
+    var aT = ang(hip, sho), aTh = ang(hip, k), aSh = ang(k, f), aU = ang(sho, e), aF = ang(e, h);
+    var lTh = dist(hip, k), lSh = dist(k, f), lU = dist(sho, e), lF = dist(e, h);
+    var tAnt = aT - 90, tPost = aT + 90;
+    return {
+      quads: [along(hip, k, 0.5, aTh + 90, 3.4), lTh * 0.36, 4.3, aTh],
+      hipflex: [along(hip, k, 0.16, aTh + 90, 4.4), 6.5, 3, aTh],
+      hams: [along(hip, k, 0.52, aTh - 90, 3.2), lTh * 0.34, 3.9, aTh],
+      glutes: [add(add(hip, tPost, 5.6), aTh, 2.5), 8.6, 7.4, aT],
+      calves: [along(k, f, 0.3, aSh - 90, 2.6), lSh * 0.25, 3.5, aSh],
+      chest: [along(hip, sho, 0.8, tAnt, 6.6), 9, 4.8, aT],
+      abs: [along(hip, sho, 0.42, tAnt, 7.2), 12, 3.6, aT],
+      obliques: [along(hip, sho, 0.4, tAnt, 2), 10.5, 5.6, aT],
+      lats: [along(hip, sho, 0.66, tPost, 6.2), 13, 4.8, aT],
+      traps: [along(hip, sho, 0.96, tPost, 5.4), 7, 4.2, aT],
+      lowback: [along(hip, sho, 0.26, tPost, 7.2), 10, 3.4, aT],
+      delts: [along(sho, e, 0.12, aU, 0), 6.6, 6, aU],
+      biceps: [along(sho, e, 0.52, aU + 90, 2.4), lU * 0.3, 3.3, aU],
+      triceps: [along(sho, e, 0.5, aU - 90, 2.5), lU * 0.32, 3.5, aU],
+      forearms: [along(e, h, 0.32, aF, 0), lF * 0.3, 3.3, aF]
+    };
+  }
+  var MUSCLE_SEG = {
+    quads: 'leg', hipflex: 'leg', hams: 'leg', calves: 'leg', glutes: 'hip',
+    chest: 'torso', abs: 'torso', obliques: 'torso', lats: 'torso', traps: 'torso', lowback: 'torso',
+    delts: 'arm', biceps: 'arm', triceps: 'arm', forearms: 'arm'
+  };
+  // subtle skin definition on exposed muscles (shorts/top cover the rest)
+  var DEFINITION = { leg: ['calves'], arm: ['delts', 'biceps', 'triceps', 'forearms'] };
+
+  function musclesOf(anim) {
+    if (anim.muscles) return anim.muscles;
+    return { p: [], s: [] };
+  }
+  function mClass(id, mus, far) {
+    var c = mus.p.indexOf(id) >= 0 ? 'm p' : mus.s.indexOf(id) >= 0 ? 'm s' : '';
+    return c ? c + (far ? ' far' : '') : '';
+  }
+  function drawMuscles(J, s, group, mus, far) {
+    var sh = muscleShapes(J, s), o = '';
+    Object.keys(sh).forEach(function (id) {
+      if (MUSCLE_SEG[id] !== group) return;
+      var c = mClass(id, mus, far);
+      if (!c) return;
+      var g = sh[id];
+      o += ellipse(g[0], g[1], g[2], g[3], c);
+    });
     return o;
   }
-  function drawArm(J, s, focus) {
+  function drawDefinition(J, s, group, far) {
+    var sh = muscleShapes(J, s), o = '';
+    (DEFINITION[group] || []).forEach(function (id) { var g = sh[id]; o += ellipse(g[0], g[1] * 0.9, g[2] * 0.7, g[3], 'mdef' + (far ? ' far' : '')); });
+    return o;
+  }
+
+  function drawLeg(J, s, mus) {
+    var far = s === 'F', fc = far ? ' far' : '';
+    var k = J['k' + s], f = J['f' + s], o = '';
+    o += capsule(J.hip, k, R.thigh[0], R.thigh[1], 'skin' + fc);
+    o += capsule(k, f, R.shin[0], R.shin[1], 'skin' + fc);
+    o += drawDefinition(J, s, 'leg', far);
+    // shorts
+    o += capsule(J.hip, along(J.hip, k, 0.5), R.thigh[0] + 0.8, R.thigh[0] * 0.86, 'cloth' + fc);
+    o += drawMuscles(J, s, 'leg', mus, far);
+    // shoe
+    o += poly([add(f, J.ang['l' + s][2] + 180, 2), J['toe' + s], J['heel' + s]], 'shoe' + fc);
+    o += line(J['heel' + s], J['toe' + s], 5, 'shoe' + fc) + line(J['heel' + s], J['toe' + s], 1.8, 'sole' + fc);
+    return o;
+  }
+  function drawArm(J, s, mus) {
+    var far = s === 'F', fc = far ? ' far' : '';
+    var e = J['e' + s], h = J['h' + s], o = '';
+    o += capsule(J.sho, e, R.upper[0], R.upper[1], 'skin' + fc);
+    o += capsule(e, h, R.fore[0], R.fore[1], 'skin' + fc);
+    o += drawDefinition(J, s, 'arm', far);
+    o += drawMuscles(J, s, 'arm', mus, far);
+    o += circ(h, 4.2, 'skin hand' + fc);
+    return o;
+  }
+  function drawHead(J) {
+    var up = ang(J.neck, J.head), face = up - 90, back = up + 90, o = '';
+    o += circ(add(add(J.head, back, 1.6), up, 1.2), 11, 'hair');
+    o += circ(add(J.head, face, 0.8), 9.8, 'skin face');
+    var nb = add(J.head, face, 9.4);
+    o += poly([add(nb, up, 2.6), add(add(J.head, face, 12.6), up, -0.6), add(nb, up, -1.6)], 'skin face');
+    o += circ(add(J.head, back, 1.4), 2.2, 'ear');
+    return o;
+  }
+  function drawTorso(J, mus) {
     var o = '';
-    o += line(J.sho, J['e' + s], W.upper, limbCls('upper', s, focus));
-    o += line(J['e' + s], J['h' + s], W.fore, limbCls('fore', s, focus));
-    o += circ(J['h' + s], 5, 'b hand' + (s === 'F' ? ' far' : ''));
+    o += capsule(J.hip, J.sho, R.torso[0], R.torso[1], 'cloth top');
+    o += drawMuscles(J, 'N', 'torso', mus, false);
     return o;
   }
 
   function drawFigure(J, anim) {
-    var focus = anim.focus || [];
+    var mus = musclesOf(anim);
     var hold = anim.hold || {};
     var o = '';
     if (hold.F) o += heldProp(hold.F, J, 'F');
-    o += drawArm(J, 'F', focus);
-    o += drawLeg(J, 'F', focus);
-    // glutes / pelvis
-    o += circ(J.hip, 11, limbCls('glute', 'N', focus).replace('b', 'b pelvis'));
-    o += line(J.hip, J.sho, W.torso, limbCls('torso', 'N', focus));
-    o += line(J.sho, J.neck, 9, 'b');
-    o += circ(J.head, L.headR, 'b head');
-    o += drawLeg(J, 'N', focus);
-    o += drawArm(J, 'N', focus);
+    o += drawArm(J, 'F', mus);
+    o += drawLeg(J, 'F', mus);
+    o += capsule(J.sho, J.neck, R.neck[0], R.neck[1], 'skin');
+    o += drawHead(J);
+    o += circ(J.hip, 10.5, 'cloth');
+    o += drawMuscles(J, 'N', 'hip', mus, false);
+    o += drawTorso(J, mus);
+    o += drawLeg(J, 'N', mus);
+    o += drawArm(J, 'N', mus);
     if (hold.N) o += heldProp(hold.N, J, 'N');
+    return o;
+  }
+
+  // ---- teaching overlays: muscle labels + joint angle checkpoints -------------
+  var MUSCLE_NAME = {
+    quads: 'Kvadriceps', hams: 'Zadnja loža', glutes: 'Zadnjica', calves: 'Meča', hipflex: 'Upogibalke kolka',
+    abs: 'Trebušne', obliques: 'Poševne trebušne', lowback: 'Spodnji hrbet', chest: 'Prsne', lats: 'Široka hrbtna',
+    traps: 'Trapez', delts: 'Rame', biceps: 'Biceps', triceps: 'Triceps', forearms: 'Podlaket'
+  };
+  function labelSvg(pt, txt, dir) {
+    var w = txt.length * 4.6 + 12;
+    var end = add(pt, dir, 34);
+    var x = end[0] - (Math.sin(dir * RAD) < 0 ? w : 0);
+    return line(pt, end, 1, 'lbl-line') + circ(pt, 2, 'lbl-dot') +
+      '<rect x="' + f1(x) + '" y="' + f1(end[1] - 7) + '" width="' + f1(w) + '" height="14" rx="7" class="lbl-bg"/>' +
+      '<text x="' + f1(x + w / 2) + '" y="' + f1(end[1] + 3.2) + '" class="lbl-txt">' + txt + '</text>';
+  }
+  function drawLabels(J, anim) {
+    var mus = musclesOf(anim), sh = muscleShapes(J, 'N'), o = '';
+    var used = [];
+    mus.p.slice(0, 3).forEach(function (id, i) {
+      var g = sh[id]; if (!g) return;
+      var c = g[0];
+      var out = c[0] >= J.hip[0] ? 70 + i * 22 : -70 - i * 22;
+      if (used.some(function (u) { return Math.abs(u - c[1]) < 14; })) out += out > 0 ? 30 : -30;
+      used.push(c[1]);
+      o += labelSvg(c, MUSCLE_NAME[id] || id, out);
+    });
+    return o;
+  }
+  function jointAngle(a, j, b) {
+    var a1 = Math.atan2(a[1] - j[1], a[0] - j[0]), a2 = Math.atan2(b[1] - j[1], b[0] - j[0]);
+    var dd = Math.abs(a1 - a2) * 180 / Math.PI;
+    return dd > 180 ? 360 - dd : dd;
+  }
+  function arcSvg(a, j, b, deg) {
+    var r = 15;
+    var u1 = Math.atan2(a[1] - j[1], a[0] - j[0]), u2 = Math.atan2(b[1] - j[1], b[0] - j[0]);
+    var p1 = [j[0] + Math.cos(u1) * r, j[1] + Math.sin(u1) * r], p2 = [j[0] + Math.cos(u2) * r, j[1] + Math.sin(u2) * r];
+    var diff = u2 - u1; while (diff > Math.PI) diff -= 2 * Math.PI; while (diff < -Math.PI) diff += 2 * Math.PI;
+    var mid = u1 + diff / 2, tp = [j[0] + Math.cos(mid) * (r + 12), j[1] + Math.sin(mid) * (r + 12)];
+    return '<path d="M' + P(p1) + ' A' + r + ' ' + r + ' 0 0 ' + (diff > 0 ? 1 : 0) + ' ' + P(p2) + '" class="g-arc"/>' +
+      '<text x="' + f1(tp[0]) + '" y="' + f1(tp[1] + 3) + '" class="g-txt">' + Math.round(deg) + '°</text>';
+  }
+  function drawGuides(J, anim) {
+    var g = anim.guides || [], o = '';
+    if (g.indexOf('spine') >= 0) {
+      var top = add(J.sho, ang(J.hip, J.sho), 14), bot = add(J.hip, ang(J.sho, J.hip), 10);
+      o += line(bot, top, 1.4, 'g-spine');
+    }
+    if (g.indexOf('knee') >= 0) o += arcSvg(J.hip, J.kN, J.fN, jointAngle(J.hip, J.kN, J.fN));
+    if (g.indexOf('hip') >= 0) o += arcSvg(J.sho, J.hip, J.kN, jointAngle(J.sho, J.hip, J.kN));
+    if (g.indexOf('elbow') >= 0) o += arcSvg(J.sho, J.eN, J.hN, jointAngle(J.sho, J.eN, J.hN));
     return o;
   }
 
@@ -468,10 +613,10 @@
     return bx;
   }
 
-  function viewBox(anim, aspect) {
+  function viewBox(anim, aspect, extra) {
     var b = computeBox(anim);
     var pad = 16;
-    var x0 = b[0] - pad, x1 = b[2] + pad, y0 = b[1] - pad, y1 = 0 + 18;
+    var x0 = b[0] - pad - (extra || 0), x1 = b[2] + pad + (extra || 0), y0 = b[1] - pad, y1 = 0 + 18;
     var w = x1 - x0, h = y1 - y0;
     if (w / h > aspect) { var nh = w / aspect; y0 -= (nh - h); h = nh; }
     else { var nw = h * aspect; x0 -= (nw - w) / 2; w = nw; }
@@ -489,11 +634,13 @@
     this.t0 = 0;
     this.time = 0;
     this.onPhase = opts.onPhase || null;
+    this.labels = !!opts.labels;   // name the working muscles on the figure
+    this.guides = !!opts.guides;   // joint-angle checkpoints
     this._raf = null;
     this._lastIdx = -1;
     this._loop = this._loop.bind(this);
     container.innerHTML = '<svg class="fig-svg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">' +
-      '<defs><filter id="glow" filterUnits="userSpaceOnUse" x="-2000" y="-2000" width="4000" height="4000"><feGaussianBlur stdDeviation="2.2" result="b"/>' +
+      '<defs><filter id="glow" filterUnits="userSpaceOnUse" x="-2000" y="-2000" width="4000" height="4000"><feGaussianBlur stdDeviation="1.8" result="b"/>' +
       '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>' +
       '<linearGradient id="floorg" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="0" y2="60"><stop offset="0" stop-color="var(--floor-a)"/><stop offset="1" stop-color="var(--floor-b)"/></linearGradient></defs>' +
       '<g class="g-floor"></g><g class="g-static"></g><g class="g-dyn"></g><g class="g-fig"></g></svg>';
@@ -508,7 +655,7 @@
     this.anim = anim;
     this.time = 0;
     this._lastIdx = -1;
-    var vb = viewBox(anim, this.aspect);
+    var vb = viewBox(anim, this.aspect, this.labels ? 46 : 0);
     this.svg.setAttribute('viewBox', vb.map(f1).join(' '));
     this.gFloor.innerHTML = rect(vb[0] - 3000, 0, vb[2] + 6000, 600, '', 0).replace('class=""', 'fill="url(#floorg)"') +
       line([vb[0] - 3000, 0], [vb[0] + vb[2] + 3000, 0], 1.5, 'p-floor-line');
@@ -522,7 +669,8 @@
     var smp = sample(this.anim, this.time, this.speed);
     var J = solve(smp.pose);
     this.gDyn.innerHTML = dynamicProps(this.anim, J);
-    this.gFig.innerHTML = drawFigure(J, this.anim);
+    this.gFig.innerHTML = drawFigure(J, this.anim) +
+      (this.guides ? drawGuides(J, this.anim) : '') + (this.labels ? drawLabels(J, this.anim) : '');
     if (smp.idx !== this._lastIdx) {
       this._lastIdx = smp.idx;
       if (this.onPhase) this.onPhase(smp.label, smp.idx);
@@ -586,7 +734,7 @@
   // spec = { vb: [x, y, w, h], scene: [...], props: [{ t, x, y, k }], pose: {...} }
   function icon(spec) {
     var body = (spec.scene || []).map(function (o) { return SCENE[o.type] ? SCENE[o.type](o) : ''; }).join('');
-    if (spec.pose) body += drawFigure(solve(spec.pose), { focus: spec.focus || [], hold: spec.hold || {} });
+    if (spec.pose) body += drawFigure(solve(spec.pose), { muscles: spec.muscles || { p: [], s: [] }, hold: spec.hold || {} });
     (spec.props || []).forEach(function (pr) { body += ICON_PROP[pr.t](pr.x, pr.y, pr.k); });
     var floor = spec.noFloor ? '' : line([spec.vb[0] - 20, 0], [spec.vb[0] + spec.vb[2] + 20, 0], 2, 'p-floor-line');
     return '<svg class="fig-svg icon" viewBox="' + spec.vb.join(' ') + '" preserveAspectRatio="xMidYMid meet">' + floor + body + '</svg>';
@@ -594,6 +742,6 @@
 
   global.Figure = {
     L: L, solve: solve, sample: sample, totalDur: totalDur, viewBox: viewBox,
-    d: d, add: add, ik2: ik2, Player: Player, icon: icon
+    d: d, add: add, ik2: ik2, Player: Player, icon: icon, MUSCLE_NAME: MUSCLE_NAME
   };
 })(window);
