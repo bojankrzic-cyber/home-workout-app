@@ -18,7 +18,7 @@
 
   var SESSIONS = {
     L1: {
-      name: 'Spodnji del – moč', short: 'Noge & trup', color: '#c6ff3d',
+      name: 'Spodnji del – moč', short: 'Noge & trup', color: '#3ec46d',
       blocks: [
         { title: 'Ogrevanje', items: [C('bike_z2', 6)] },
         { title: 'Glavni del', items: [S('kb_goblet_squat', 4, [8, 10], 120)] },
@@ -30,7 +30,7 @@
       ]
     },
     U1: {
-      name: 'Zgornji del – potisk & poteg', short: 'Prsa, hrbet, roke', color: '#38e1ff',
+      name: 'Zgornji del – potisk & poteg', short: 'Prsa, hrbet, roke', color: '#5ad1b8',
       blocks: [
         { title: 'Ogrevanje', items: [C('row_steady', 5)] },
         { title: 'Superset A', items: [S('db_bench', 4, [6, 10], 0), S('pullup', 4, [4, 8], 120)] },
@@ -41,7 +41,7 @@
       ]
     },
     L2: {
-      name: 'Zadnja veriga & kondicija', short: 'Zadnjica, hrbet, srce', color: '#ffb547',
+      name: 'Zadnja veriga & kondicija', short: 'Zadnjica, hrbet, srce', color: '#f08a5d',
       blocks: [
         { title: 'Ogrevanje', items: [C('bike_z2', 6)] },
         { title: 'Moč', items: [S('kb_swing', 6, [15, 15], 45)] },
@@ -53,7 +53,7 @@
       ]
     },
     U2: {
-      name: 'Zgornji del – volumen & trup', short: 'Kinesis, rame, trup', color: '#b48cff',
+      name: 'Zgornji del – volumen & trup', short: 'Kinesis, rame, trup', color: '#b6c99b',
       blocks: [
         { title: 'Ogrevanje', items: [C('row_steady', 5)] },
         { title: 'Superset A', items: [S('db_incline', 4, [8, 12], 0), S('k_pulldown', 4, [10, 12], 90)] },
@@ -65,7 +65,7 @@
       ]
     },
     F1: {
-      name: 'Celo telo A – počep & potisk', short: 'Celo telo', color: '#c6ff3d',
+      name: 'Celo telo A – počep & potisk', short: 'Celo telo', color: '#3ec46d',
       blocks: [
         { title: 'Ogrevanje', items: [C('bike_z2', 6)] },
         { title: 'Glavni del', items: [S('kb_goblet_squat', 4, [8, 10], 120)] },
@@ -77,7 +77,7 @@
       ]
     },
     F2: {
-      name: 'Celo telo B – zgib & poteg', short: 'Celo telo', color: '#38e1ff',
+      name: 'Celo telo B – zgib & poteg', short: 'Celo telo', color: '#5ad1b8',
       blocks: [
         { title: 'Ogrevanje', items: [C('row_steady', 5)] },
         { title: 'Moč', items: [S('kb_swing', 5, [15, 15], 45)] },
@@ -89,7 +89,7 @@
       ]
     },
     F3: {
-      name: 'Celo telo C – zadnjica & Kinesis', short: 'Celo telo', color: '#ffb547',
+      name: 'Celo telo C – zadnjica & Kinesis', short: 'Celo telo', color: '#f08a5d',
       blocks: [
         { title: 'Ogrevanje', items: [C('bike_z2', 6)] },
         { title: 'Superset A', items: [S('db_hip_thrust', 4, [8, 12], 0), S('k_pulldown', 4, [10, 12], 90)] },
@@ -101,6 +101,48 @@
       ]
     }
   };
+
+  // ---------------------------------------------------------------- HYROX (home substitutes, race format)
+  function D(id, m) { return { id: id, dist: m }; }
+  function hxRun(n, min) { return { title: 'Tek ' + n + ' (kolo)', items: [C('hx_bike_run', min)] }; }
+  function hxSt(n, name, item) { return { title: 'Postaja ' + n + ' · ' + name, items: [item] }; }
+  var HX_STATIONS = [
+    ['SkiErg', T('k_ski', 1, 240, 0)],
+    ['Sled push', T('bike_sled', 1, 150, 0)],
+    ['Sled pull', T('k_sled_pull', 1, 150, 0)],
+    ['Burpee broad jumps', S('burpee_bj', 1, [25, 25], 0)],
+    ['Veslanje 1000 m', D('row_steady', 1000)],
+    ['Farmers carry', T('kb_farmers', 1, 150, 0)],
+    ['Sandbag lunges', S('kb_lunge', 1, [50, 50], 0)],
+    ['Wall balls', S('db_thruster', 1, [50, 50], 0)]
+  ];
+  function hxRace(stations, runMin) {
+    var b = [{ title: 'Ogrevanje', items: [C('bike_z2', 6)] }];
+    stations.forEach(function (st, i) { b.push(hxRun(i + 1, runMin)); b.push(hxSt(i + 1, st[0], JSON.parse(JSON.stringify(st[1])))); });
+    b.push({ title: 'Ohlajanje', items: [C('row_steady', 4)] });
+    b.push({ title: 'Raztezanje', items: [T('hip_flexor', 1, 40, 10)] });
+    return b;
+  }
+  SESSIONS.HX1 = { name: 'HYROX simulacija – celotna', short: '8 × (tek + postaja) · na čas', color: '#fcb900', race: true, blocks: hxRace(HX_STATIONS, 4) };
+  SESSIONS.HX2 = {
+    name: 'HYROX simulacija – polovica', short: '4 × (tek + postaja) · na čas', color: '#fcb900', race: true,
+    blocks: hxRace([
+      ['SkiErg', T('k_ski', 1, 150, 0)], ['Sled push', T('bike_sled', 1, 90, 0)],
+      ['Burpee broad jumps', S('burpee_bj', 1, [15, 15], 0)], ['Wall balls', S('db_thruster', 1, [30, 30], 0)]
+    ], 3)
+  };
+  SESSIONS.HX3 = {
+    name: 'HYROX postaje – moč & tehnika', short: '3 krogi vseh postaj', color: '#fcb900',
+    blocks: [
+      { title: 'Ogrevanje', items: [C('row_steady', 5)] },
+      { title: 'Krog postaj', items: [T('k_ski', 3, 60, 0), T('k_sled_pull', 3, 60, 0), S('kb_lunge', 3, [20, 20], 0), S('db_thruster', 3, [20, 20], 0), T('kb_farmers', 3, 60, 0), S('burpee_bj', 3, [10, 10], 120)] },
+      { title: 'Kompromitiran tek', items: [I('hx_bike_run', 4, 60, 30)] },
+      { title: 'Ohlajanje', items: [C('bike_z2', 3)] },
+      { title: 'Raztezanje', items: [T('hamstring_bench', 1, 40, 10)] }
+    ]
+  };
+  // adv = official HYROX volumes; lower levels scale down (weights scale via progression)
+  var HX_SCALE = { beg: 0.6, mid: 0.8, adv: 1 };
 
   var PLANS = {
     4: { name: '4× tedensko – Upper / Lower', order: ['L1', 'U1', 'L2', 'U2'], days: [1, 2, 4, 5] },
@@ -173,8 +215,8 @@
         title: b.title,
         items: b.items.map(function (it) {
           var o = JSON.parse(JSON.stringify(it));
-          if (o.sets) {
-            if (lvl === 'beg') o.sets = Math.max(2, o.sets - 1);
+          if (o.sets && !src.race) {
+            if (lvl === 'beg') o.sets = Math.max(Math.min(2, o.sets), o.sets - 1);
             if (lvl === 'adv' && /Glavni|Superset A|Moč/.test(b.title)) o.sets += 1;
             if (week === 4) o.sets = Math.max(1, Math.ceil(o.sets * 0.6));
           }
@@ -182,12 +224,19 @@
             if (lvl === 'beg') o.cardio.rounds = Math.max(3, o.cardio.rounds - 2);
             if (week === 4) o.cardio.rounds = Math.max(3, Math.ceil(o.cardio.rounds * 0.6));
           }
+          if (src.race) {
+            var k = HX_SCALE[lvl] || 1;
+            if (o.reps) { var n = Math.max(5, Math.round(o.reps[0] * k / 5) * 5); o.reps = [n, n]; }
+            if (o.time) o.time = Math.round(o.time * k / 10) * 10;
+            if (o.cardio && o.cardio.min && /^Tek/.test(b.title)) o.cardio.min = Math.max(2, Math.round(o.cardio.min * k));
+            if (o.dist) o.dist = Math.round(o.dist * k / 100) * 100;
+          }
           if (o.reps) o.sug = suggest(state, o);
           return o;
         })
       };
     });
-    return { key: key, name: src.name, short: src.short, color: src.color, custom: !!src.custom, week: week, weekInfo: WEEK_INFO[week], blocks: blocks };
+    return { key: key, name: src.name, short: src.short, color: src.color, custom: !!src.custom, race: !!src.race, week: week, weekInfo: WEEK_INFO[week], blocks: blocks };
   }
 
   // Flatten to an ordered list of steps (supersets interleaved by round)
@@ -214,7 +263,11 @@
           var gl = groupLetter(b.title, bi);
           var lbl = items.length > 1 && gl ? gl + (ii + 1) : '';
           var perSide = it.perSide || ex.perSide;
-          if (it.time) {
+          if (it.dist) {
+            out.push({ kind: 'dist', id: it.id, item: it, block: b.title, dist: it.dist, set: s, sets: it.sets || 1, rest: restAfter, tag: lbl, label: it.dist + ' m' });
+          } else if (it.cardio) {
+            out.push({ kind: 'time', id: it.id, item: it, block: b.title, sec: (it.cardio.min || 1) * 60, set: 1, sets: 1, rest: restAfter, label: (it.cardio.min || 1) + ' min' });
+          } else if (it.time) {
             out.push({ kind: 'time', id: it.id, item: it, block: b.title, sec: perSide ? it.time * 2 : it.time, set: s, sets: it.sets, rest: restAfter, tag: lbl, label: it.time + ' s' + (perSide ? ' / stran' : '') });
           } else {
             out.push({ kind: 'reps', id: it.id, item: it, block: b.title, set: s, sets: it.sets, rest: restAfter, tag: lbl, perSide: perSide });
@@ -235,7 +288,8 @@
     var sec = 0;
     steps(session).forEach(function (st) {
       if (st.kind === 'time') sec += st.sec + st.rest + (st.easy || st.hard ? 0 : 8);
-      else sec += (st.item.reps[1] * 4 * (st.perSide ? 2 : 1)) + st.rest + 10;
+      else if (st.kind === 'dist') sec += st.dist * 0.27 + st.rest + 10;
+      else sec += (st.item.reps[1] * (Exercises.BY_ID[st.id].secPerRep || 4) * (st.perSide ? 2 : 1)) + st.rest + 10;
     });
     return Math.round(sec / 60);
   }
@@ -245,6 +299,7 @@
   // Default prescription per exercise: first use in a template session, else by type.
   var PRESET = {};
   Object.keys(SESSIONS).forEach(function (k) {
+    if (/^HX/.test(k)) return;
     SESSIONS[k].blocks.forEach(function (b) {
       b.items.forEach(function (it) { if (!PRESET[it.id] && !it.cardio) PRESET[it.id] = it; });
     });
@@ -265,6 +320,12 @@
     var focus = (opts.focus && opts.focus.length) ? opts.focus : ['noge', 'zadnjica', 'prsa', 'hrbet', 'rame', 'trup'];
     var lower = focus.some(function (f) { return LOWER.indexOf(f) >= 0; });
     if (opts.type === 'kardio') return cardioSession(opts, min);
+    if (opts.type === 'hyrox') {
+      var key = { full: 'HX1', half: 'HX2', stations: 'HX3' }[opts.format || 'half'];
+      var copy = JSON.parse(JSON.stringify(SESSIONS[key]));
+      copy.custom = true; copy.opts = opts;
+      return copy;
+    }
 
     var cardioMin = opts.type === 'mix' ? Math.max(6, Math.round(min * 0.3)) : 0;
     var head = [{ title: 'Ogrevanje', items: [C(lower ? 'bike_z2' : 'row_steady', min <= 30 ? 4 : 5)] }];
@@ -287,7 +348,7 @@
     }
     return {
       name: (opts.type === 'mix' ? 'Moč + kardio: ' : 'Moč: ') + focus.map(function (f) { return Exercises.FOCUS[f].name; }).join(', '),
-      short: min + ' min · po meri', color: '#ff6b9a', custom: true, opts: opts, blocks: best.blocks
+      short: min + ' min · po meri', color: '#f08a5d', custom: true, opts: opts, blocks: best.blocks
     };
   }
 
@@ -361,7 +422,7 @@
     blocks.push({ title: 'Raztezanje', items: [T('hamstring_bench', 1, 40, 10)] });
     var mName = { bike: 'kolo', rower: 'veslač', both: 'kolo + veslač' }[m];
     var iName = { z2: 'cona 2', hiit: 'intervali', mix: 'cona 2 + intervali' }[inten];
-    return { name: 'Kardio: ' + mName + ' – ' + iName, short: min + ' min · po meri', color: '#38e1ff', custom: true, opts: opts, blocks: blocks };
+    return { name: 'Kardio: ' + mName + ' – ' + iName, short: min + ' min · po meri', color: '#5ad1b8', custom: true, opts: opts, blocks: blocks };
   }
 
   // Exercises that can replace `id` (share its primary group, same kind), excluding ones already in the session
@@ -405,11 +466,12 @@
     var e = Exercises.BY_ID[id];
     var it = e.type === 'cardio' ? (e.id.indexOf('hiit') > 0 ? I(id, 8, e.id === 'bike_hiit' ? 20 : 30, e.id === 'bike_hiit' ? 40 : 30) : C(id, 10)) : prescribe(id, 3);
     if (!it.cardio) it.rest = it.time ? 30 : 90;
-    return { name: e.name, short: 'Posamezna vaja', color: '#c6ff3d', custom: true, blocks: [{ title: 'Vaja', items: [it] }] };
+    return { name: e.name, short: 'Posamezna vaja', color: '#3ec46d', custom: true, blocks: [{ title: 'Vaja', items: [it] }] };
   }
 
   global.Program = {
     SESSIONS: SESSIONS, PLANS: PLANS, WEEK_INFO: WEEK_INFO,
+    HX_KEYS: ['HX1', 'HX2', 'HX3'],
     get: get, build: build, steps: steps, generate: generate, alternatives: alternatives,
     replaceItem: replaceItem, removeItem: removeItem, single: single, nextSessionKey: nextSessionKey, blockWeek: blockWeek,
     suggest: suggest, estimateMin: estimateMin, unitLabel: unitLabel, groupLetter: groupLetter

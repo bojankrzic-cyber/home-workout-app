@@ -183,6 +183,12 @@
     go(screen || 'overview', { key: key });
   }
 
+  var LEAF = '<svg class="leaf" viewBox="0 0 32 32" aria-hidden="true"><path d="M6 26C6 13 15 5 28 4c-1 13-9 22-22 22z" fill="var(--accent)"/>' +
+    '<path d="M7 25C12 18 17 13 24 8" stroke="var(--bg)" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg>';
+  function brandMark(cls) {
+    return '<div class="brand ' + (cls || '') + '">' + LEAF + '<span class="bf">Finest</span><span class="bm">Form</span><small>by Nature\'s Finest</small></div>';
+  }
+
   function avatar(p, big) {
     return '<span class="avatar' + (big ? ' big' : '') + '" style="background:' + p.color + '">' + esc((p.name || '?').trim().charAt(0).toUpperCase()) + '</span>';
   }
@@ -214,6 +220,8 @@
   function rx(item) {
     var e = ex(item.id);
     if (item.cardio) return item.cardio.min ? item.cardio.min + ' min' : item.cardio.rounds + '× ' + item.cardio.work + '/' + item.cardio.easy + ' s';
+    if (item.dist) return item.dist + ' m';
+    if (item.time && item.sets === 1) return item.time >= 60 ? fmt(item.time) + ' min' : item.time + ' s' + ((item.perSide || e.perSide) ? '/str.' : '');
     if (item.time) return item.sets + '× ' + item.time + ' s' + ((item.perSide || e.perSide) ? '/str.' : '');
     var r = item.reps[0] === item.reps[1] ? item.reps[0] : item.reps[0] + '–' + item.reps[1];
     return item.sets + '× ' + r + ((item.perSide || e.perSide) ? '/str.' : '');
@@ -260,7 +268,7 @@
 
     root.innerHTML =
       '<div class="screen">' +
-      '<div class="topbar"><div class="brand">Home<b>Gym</b> Coach</div><span class="chip">' + esc(plan.name) + '</span><span class="chip on">' + esc(sess.weekInfo.label) + '</span><div class="spacer"></div>' +
+      '<div class="topbar">' + brandMark() + '<span class="chip on">' + esc(sess.weekInfo.label) + '</span><div class="spacer"></div>' +
       '<button class="btn sm focusable" data-go="builder">＋ Sestavi trening</button>' +
       '<button class="btn sm ghost focusable" data-go="library">Knjižnica vaj</button>' +
       '<button class="btn sm ghost focusable" data-go="history">Napredek</button>' +
@@ -284,6 +292,11 @@
       '<div class="row">' + QUICK.map(function (q, i) {
         return '<div class="session-card focusable quick" tabindex="0" data-quick="' + i + '"><div class="tag" style="color:' + q.color + '">' + q.tag + '</div><h3>' + esc(q.name) + '</h3><p>' + esc(q.sub) + '</p></div>';
       }).join('') + '<div class="session-card focusable quick" tabindex="0" data-go="builder"><div class="tag">PO MERI</div><h3>＋ Sestavi svoj trening</h3><p>moč / kardio / kombinirano · fokus · trajanje</p></div></div>' +
+      '<div class="section-title"><h2>🏁 HYROX</h2><span>simulacija tekme na tvoji opremi – na čas, z vmesnimi časi</span></div>' +
+      '<div class="row">' + Program.HX_KEYS.map(function (k) {
+        var hs = Program.SESSIONS[k];
+        return '<div class="session-card hx focusable" tabindex="0" data-go="overview" data-p=\'{"key":"' + k + '"}\'><div class="tag">' + (hs.race ? 'NA ČAS' : 'TRENING') + '</div><h3>' + esc(hs.name) + '</h3><p>' + esc(hs.short) + '</p></div>';
+      }).join('') + '</div>' +
       (state.saved.length ? '<div class="section-title"><h2>Moji shranjeni treningi</h2></div><div class="row">' + state.saved.filter(function (k) { return state.customs[k]; }).map(function (k) {
         var c = state.customs[k];
         return '<div class="session-card focusable" tabindex="0" data-go="overview" data-p=\'{"key":"' + k + '"}\'><div class="tag" style="color:' + c.color + '">SHRANJENO</div><h3>' + esc(c.name) + '</h3><p>' + esc(c.short) + '</p></div>';
@@ -299,12 +312,12 @@
   };
 
   var QUICK = [
-    { tag: 'MOČ', name: 'Celo telo', sub: '45 min · vse glavne skupine', color: '#c6ff3d', opts: { type: 'moc', focus: ['noge', 'prsa', 'hrbet', 'zadnjica', 'rame', 'trup'], min: 45 } },
-    { tag: 'MOČ', name: 'Noge & zadnjica', sub: '40 min', color: '#ffb547', opts: { type: 'moc', focus: ['noge', 'zadnjica'], min: 40 } },
-    { tag: 'MOČ', name: 'Zgornji del', sub: '40 min · prsa, hrbet, rame, roke', color: '#b48cff', opts: { type: 'moc', focus: ['prsa', 'hrbet', 'rame', 'roke'], min: 40 } },
-    { tag: 'TRUP', name: 'Trebušne & hrbet', sub: '20 min', color: '#4dffb8', opts: { type: 'moc', focus: ['trup'], min: 20 } },
-    { tag: 'KARDIO', name: 'Intervali kolo + veslač', sub: '30 min', color: '#38e1ff', opts: { type: 'kardio', machine: 'both', intensity: 'hiit', min: 30 } },
-    { tag: 'KARDIO', name: 'Cona 2 – vzdržljivost', sub: '40 min · lahkotno', color: '#38e1ff', opts: { type: 'kardio', machine: 'both', intensity: 'z2', min: 40 } }
+    { tag: 'MOČ', name: 'Celo telo', sub: '45 min · vse glavne skupine', color: '#3ec46d', opts: { type: 'moc', focus: ['noge', 'prsa', 'hrbet', 'zadnjica', 'rame', 'trup'], min: 45 } },
+    { tag: 'MOČ', name: 'Noge & zadnjica', sub: '40 min', color: '#f08a5d', opts: { type: 'moc', focus: ['noge', 'zadnjica'], min: 40 } },
+    { tag: 'MOČ', name: 'Zgornji del', sub: '40 min · prsa, hrbet, rame, roke', color: '#b6c99b', opts: { type: 'moc', focus: ['prsa', 'hrbet', 'rame', 'roke'], min: 40 } },
+    { tag: 'TRUP', name: 'Trebušne & hrbet', sub: '20 min', color: '#a99be8', opts: { type: 'moc', focus: ['trup'], min: 20 } },
+    { tag: 'KARDIO', name: 'Intervali kolo + veslač', sub: '30 min', color: '#5ad1b8', opts: { type: 'kardio', machine: 'both', intensity: 'hiit', min: 30 } },
+    { tag: 'KARDIO', name: 'Cona 2 – vzdržljivost', sub: '40 min · lahkotno', color: '#5ad1b8', opts: { type: 'kardio', machine: 'both', intensity: 'z2', min: 40 } }
   ];
 
   function weeksStreak() {
@@ -523,89 +536,156 @@
   };
 
   // ---------------------------------------------------------------- guided workout player
+  // Layout follows proven workout-player patterns (Ladder, Runna, Hevy on Mobbin):
+  // always-visible total clock + segmented session progress, "Next →" card, one big ring
+  // (countdown for timed work/rest, tempo rep-pacer for rep sets), ±15 s on rest.
+  var RING_C = 2 * Math.PI * 54;
+  function ring(id) {
+    return '<div class="ring-wrap"><svg class="ring" viewBox="0 0 120 120"><defs><linearGradient id="rg-' + id + '" x1="0" y1="0" x2="1" y2="1">' +
+      '<stop offset="0" stop-color="var(--ring-a)"/><stop offset="1" stop-color="var(--ring-b)"/></linearGradient></defs>' +
+      '<circle class="ring-bg" cx="60" cy="60" r="54"/><circle class="ring-fg" id="' + id + '" cx="60" cy="60" r="54" stroke="url(#rg-' + id + ')" ' +
+      'stroke-dasharray="' + RING_C.toFixed(1) + '" stroke-dashoffset="0" transform="rotate(-90 60 60)"/></svg>' +
+      '<div class="ring-center"><small id="' + id + 'Top"></small><b id="' + id + 'Val"></b><span id="' + id + 'Sub"></span></div></div>';
+  }
+  function setRing(id, frac) {
+    var el = document.getElementById(id);
+    if (el) el.style.strokeDashoffset = (RING_C * (1 - Math.max(0, Math.min(1, frac)))).toFixed(1);
+  }
+
   SCREENS.player = function (p) {
     var sess = Program.build(state, p.key);
     var st = Program.steps(sess);
-    var i = 0, phase = 'work', remain = 0, elapsed = 0, paused = false, startedAt = Date.now();
-    var logged = [];
+    var race = sess.race;
+    var i = 0, phase = 'work', remain = 0, elapsed = 0, paused = false, total = 0, restTotal = 0;
+    var logged = [], splits = [];
     var cur = { reps: 0, load: 0 };
+    var pacerBase = 0, pacerHit = false;
     var itemsById = {};
     sess.blocks.forEach(function (b) { b.items.forEach(function (it) { itemsById[it.id] = it; }); });
+    // block index per step for the segmented progress bar
+    var blockTitles = [];
+    st.forEach(function (s) { if (blockTitles[blockTitles.length - 1] !== s.block) blockTitles.push(s.block); });
 
     var el = document.createElement('div');
-    el.className = 'player';
+    el.className = 'player p2' + (race ? ' race' : '');
     el.innerHTML = '<div class="stage"><div class="fig" id="wFig"></div><div class="phase" id="wPhase"></div>' +
-      '<div class="badge-top"><span class="chip on" id="wBlock"></span><span class="chip" id="wTag"></span></div>' +
-      '<div class="rest-overlay" id="wRest" hidden><div class="t">POČITEK</div><div class="big" id="wRestT"></div><div class="t" id="wRestNext"></div></div></div>' +
-      '<div class="side"><div class="kicker" id="wSet"></div><h2 id="wName"></h2><div class="muscles" id="wWhy"></div>' +
-      '<div class="prescription" id="wRx"></div><div class="timer" id="wTimer">0:00</div>' +
+      '<div class="hud-top"><div class="hud-prog"><div class="segs" id="wSegs">' + blockTitles.map(function () { return '<i><b></b></i>'; }).join('') + '</div>' +
+      '<div class="hud-meta" id="wMeta"></div></div>' +
+      '<div class="hud-clock"><small>' + (race ? 'RACE ČAS' : 'SKUPAJ') + '</small><b id="wClock">0:00</b></div></div>' +
+      '<div class="next-card" id="wNextCard"><div class="nc-thumb" id="wNextThumb"></div><div><small id="wNextLbl"></small><b id="wNextName"></b></div></div>' +
+      '<div class="finish" id="wFinish" hidden></div></div>' +
+      '<div class="side"><div class="kicker"><span id="wBlock"></span><span class="dots-set" id="wDots"></span></div>' +
+      '<h2 id="wName"></h2><div class="why" id="wWhy"></div>' +
+      ring('wRing') +
+      '<div class="chips-row" id="wRx"></div>' +
       '<div class="logger" id="wLog"></div>' +
-      '<ul class="cues" id="wCues"></ul>' +
-      '<div class="controls"><button class="btn primary focusable" id="wDone" data-autofocus>✓ Serija opravljena</button>' +
-      '<button class="btn focusable" id="wPause">Pavza</button><button class="btn focusable" id="wSkip">Preskoči ▶</button><button class="btn ghost focusable" id="wExit">Končaj</button></div></div>' +
-      '<div class="bottom"><div class="next-up" id="wNext"></div><div class="progress" id="wProg"></div><div class="next-up" id="wClock"></div></div>';
+      '<div class="controls"><button class="btn primary focusable" id="wDone" data-autofocus></button>' +
+      '<button class="btn focusable" id="wMinus" hidden>−15 s</button><button class="btn focusable" id="wPlus" hidden>+15 s</button>' +
+      '<button class="btn focusable" id="wPause">Pavza</button><button class="btn ghost focusable" id="wSkip">Preskoči</button>' +
+      '<button class="btn ghost focusable" id="wExit">Končaj</button></div>' +
+      (race ? '<div class="splits" id="wSplits"></div>' : '') + '</div>';
     document.body.appendChild(el);
     keepAwake(true);
     var pl = new Figure.Player($('#wFig'), { aspect: 1.45, onPhase: function (l) { $('#wPhase').textContent = l || ' '; } });
     players.push(pl);
+    var nextPl = new Figure.Player($('#wNextThumb'), { aspect: 1.2 });
+    players.push(nextPl);
     var lastId = null;
 
-    $('#wProg').innerHTML = st.map(function () { return '<i></i>'; }).join('');
+    function showAnim(id, speedMul) {
+      var e = ex(id);
+      if (id !== lastId) { pl.load(e.anim); lastId = id; }
+      pl.speed = (e.speed || 1) * (speedMul || 1);
+    }
+    function pacerReps() {
+      var e = ex(st[i].id);
+      var T = Figure.totalDur(e.anim);
+      return Math.floor((pl.time - pacerBase) * pl.speed / T) * (e.repsPerCycle || 1);
+    }
 
     function stepper(key, val, step, unit) {
       return '<div class="stepper"><button class="focusable" data-k="' + key + '" data-d="-' + step + '">−</button><div class="val"><span id="v_' + key + '">' + val + '</span><small>' + unit + '</small></div>' +
         '<button class="focusable" data-k="' + key + '" data-d="' + step + '">+</button></div>';
+    }
+    function chips(list) { return list.map(function (c) { return '<div class="chip-stat"><b>' + esc(c[0]) + '</b><span>' + esc(c[1]) + '</span></div>'; }).join(''); }
+
+    function renderNext() {
+      var nx = st[i + 1];
+      if (!nx) { $('#wNextLbl').textContent = 'Zadnji del'; $('#wNextName').textContent = 'Še malo – zmoreš 💪'; nextPl.stop(); return; }
+      var ne = ex(nx.id);
+      $('#wNextLbl').textContent = 'Naslednje →' + (nx.kind === 'reps' && nx.sets > 1 ? ' serija ' + nx.set + '/' + nx.sets : '') + (nx.rest === 0 && phase === 'rest' ? '' : '');
+      $('#wNextName').textContent = (nx.kind === 'reps' ? (nx.item.reps[0] === nx.item.reps[1] ? nx.item.reps[0] : nx.item.reps[0] + '–' + nx.item.reps[1]) + '× ' :
+        nx.kind === 'dist' ? nx.dist + ' m ' : fmt(nx.sec) + ' ') + ne.name;
+      nextPl.speed = ne.speed || 1; nextPl.load(ne.anim);
+    }
+
+    function progressUI() {
+      var bi = blockTitles.indexOf(st[Math.min(i, st.length - 1)].block);
+      var segs = $$('#wSegs i');
+      var inBlock = st.filter(function (s) { return s.block === blockTitles[bi]; });
+      var posInBlock = st.slice(0, i).filter(function (s) { return s.block === blockTitles[bi]; }).length;
+      segs.forEach(function (sg, k) {
+        sg.className = k < bi ? 'done' : k === bi ? 'cur' : '';
+        sg.firstChild.style.width = (k < bi ? 100 : k === bi ? Math.round(posInBlock / inBlock.length * 100) : 0) + '%';
+      });
+      $('#wMeta').textContent = 'Blok ' + (bi + 1) + '/' + blockTitles.length + ' · ' + Math.round(i / st.length * 100) + ' %';
     }
 
     function enter(n) {
       i = n;
       if (i >= st.length) return finish();
       var s = st[i], e = ex(s.id), it = s.item;
-      phase = 'work'; elapsed = 0;
-      $('#wRest').hidden = true;
-      if (s.id !== lastId) { pl.speed = (e.speed || 1); pl.load(e.anim); lastId = s.id; }
-      else { pl.speed = (e.speed || 1); }
-      if (s.easy) pl.speed = (e.speed || 1) * 0.7;
-      $('#wBlock').textContent = s.block;
-      $('#wTag').textContent = s.tag ? s.tag : (s.hard ? 'INTERVAL ' + s.set + '/' + s.sets : '');
-      $('#wTag').hidden = !$('#wTag').textContent;
+      phase = 'work'; elapsed = 0; pacerHit = false;
+      el.classList.remove('resting');
+      showAnim(s.id, s.easy ? 0.7 : 1);
+      pacerBase = pl.time;
+      $('#wBlock').textContent = s.block + (s.tag ? ' · ' + s.tag : '');
+      $('#wDots').innerHTML = s.sets > 1 ? Array.apply(null, Array(s.sets)).map(function (_, k) { return '<i' + (k < s.set - 1 ? ' class="done"' : k === s.set - 1 ? ' class="cur"' : '') + '></i>'; }).join('') : '';
       $('#wName').textContent = e.name;
-      $('#wSet').textContent = s.kind === 'reps' ? 'Serija ' + s.set + ' / ' + s.sets : (s.sets > 1 ? 'Krog ' + s.set + ' / ' + s.sets : e.muscles);
-      $('#wCues').innerHTML = e.cues.slice(0, 3).map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('');
-      var bars = $$('#wProg i');
-      bars.forEach(function (b, k) { b.className = k < i ? 'done' : k === i ? 'cur' : ''; });
+      $('#wMinus').hidden = $('#wPlus').hidden = true;
+      $('#wSkip').hidden = false;
+      el.classList.toggle('hard', !!s.hard);
+      el.classList.toggle('easy', !!s.easy);
 
       if (s.kind === 'reps') {
         var sug = it.sug;
         var prev = logged.filter(function (l) { return l.id === s.id; }).pop();
-        cur.reps = prev ? prev.reps : sug.reps;
+        cur.reps = prev ? prev.reps : (race ? it.reps[1] : sug.reps);
         cur.load = prev ? prev.load : sug.load;
-        $('#wWhy').textContent = sug.why || ('Cilj: ' + it.reps[0] + '–' + it.reps[1] + ' ponovitev, RIR ' + sess.weekInfo.rir);
-        $('#wRx').innerHTML = '<div><b>' + (it.reps[0] === it.reps[1] ? it.reps[0] : it.reps[0] + '–' + it.reps[1]) + '</b><span>ponovitev' + (s.perSide ? '/str.' : '') + '</span></div>' +
-          '<div><b>RIR ' + sess.weekInfo.rir + '</b><span>v rezervi</span></div><div><b>' + esc(e.tempo || '') + '</b><span>tempo</span></div>';
+        var target = it.reps[0] === it.reps[1] ? it.reps[0] : it.reps[0] + '–' + it.reps[1];
+        $('#wWhy').textContent = race ? 'Na čas – ' + target + ' ponovitev' + (s.perSide ? ' na stran' : '') : (sug.why || 'Cilj ' + target + ' ponovitev, RIR ' + sess.weekInfo.rir);
+        $('#wRx').innerHTML = chips([[target + (s.perSide ? '/str.' : ''), 'cilj'], [loadTxt(e, cur.load), 'breme'], [race ? 'na čas' : 'RIR ' + sess.weekInfo.rir, race ? 'način' : 'napor'], [e.tempo || '—', 'tempo']]);
         var lg = stepper('reps', cur.reps, 1, 'ponovitev');
         if (e.unit === 'kg') lg += stepper('load', cur.load, e.id.indexOf('kb_') === 0 ? 4 : (e.inc || 2), 'kg');
         if (e.unit === 'stopnja') lg += stepper('load', cur.load, 1, 'stopnja');
         $('#wLog').innerHTML = lg; $('#wLog').hidden = false;
-        $('#wTimer').className = 'timer';
-        $('#wDone').textContent = '✓ Serija opravljena';
+        $('#wDone').textContent = race ? '✓ Postaja končana' : '✓ Serija opravljena';
         Voice.say(e.name + '. ' + (s.set === 1 ? e.cues[0] : 'Serija ' + s.set));
+      } else if (s.kind === 'dist') {
+        $('#wWhy').textContent = 'Veslaj ' + s.dist + ' m – ko monitor pokaže razdaljo, pritisni OK';
+        $('#wRx').innerHTML = chips([[s.dist + ' m', 'razdalja'], ['~' + fmt(s.dist * 0.27), 'ciljni čas'], [e.tempo || '—', 'tempo']]);
+        $('#wLog').innerHTML = ''; $('#wLog').hidden = true;
+        $('#wDone').textContent = '✓ ' + s.dist + ' m končano';
+        Voice.say(e.name + '. ' + s.dist + ' metrov.');
       } else {
         remain = s.sec;
-        $('#wWhy').textContent = s.label || '';
-        $('#wRx').innerHTML = '<div><b>' + fmt(s.sec) + '</b><span>' + (s.hard ? 'močno' : s.easy ? 'lahkotno' : 'trajanje') + '</span></div>' +
-          '<div><b>' + (s.sets > 1 ? s.set + '/' + s.sets : '1') + '</b><span>' + (s.hard || s.easy ? 'interval' : 'serija') + '</span></div><div><b>' + esc(e.tempo || '') + '</b><span>tempo</span></div>';
+        $('#wWhy').textContent = race && /^Postaja/.test(s.block) ? 'Postaja na čas – ' + fmt(s.sec) : s.sec >= 60 && !s.hard && !s.easy ? fmt(s.sec) + ' min' : (s.label || '');
+        var rx = [[fmt(s.sec), s.hard ? 'močno' : s.easy ? 'lahkotno' : 'trajanje']];
+        if (s.sets > 1) rx.push([s.set + '/' + s.sets, s.hard || s.easy ? 'interval' : 'serija']);
+        if (e.unit === 'stopnja' || e.unit === 'kg') rx.push([loadTxt(e, it.sug ? it.sug.load : (state.ex[s.id] || {}).load || e.load), 'breme']);
+        rx.push([e.tempo || '—', 'tempo']);
+        $('#wRx').innerHTML = chips(rx);
         $('#wLog').innerHTML = ''; $('#wLog').hidden = true;
-        $('#wTimer').className = 'timer' + (s.easy ? ' rest' : '');
-        $('#wDone').textContent = '⏭ Naprej';
+        $('#wDone').textContent = race ? '✓ Postaja končana' : '⏭ Naprej';
         if (s.hard) { Audio.beep(1200, 0.35); Voice.say('Močno!'); }
         else if (s.easy) { Audio.beep(600, 0.3); Voice.say('Lahkotno.'); }
         else Voice.say(e.name + '. ' + e.cues[0]);
       }
-      var nx = st[i + 1];
-      $('#wNext').innerHTML = nx ? 'Naslednje: <b>' + esc(ex(nx.id).name) + '</b>' : 'Zadnja serija 💪';
       bindSteppers();
-      if (!el.contains(document.activeElement)) $('#wDone').focus();
+      renderNext();
+      progressUI();
+      draw();
+      if (!el.contains(document.activeElement) || document.activeElement.hidden) $('#wDone').focus();
     }
 
     function bindSteppers() {
@@ -621,58 +701,103 @@
     function completeWork() {
       var s = st[i];
       if (s.kind === 'reps') logged.push({ id: s.id, reps: cur.reps, load: cur.load });
+      splits.push({ name: s.block.replace(/^Postaja \d+ · /, ''), id: s.id, sec: elapsed || (s.sec - Math.max(0, remain)) || 0, station: /^Postaja|^Tek/.test(s.block) });
+      if (race) renderSplits();
       if (s.rest > 0 && i < st.length - 1) startRest(s.rest);
       else enter(i + 1);
     }
 
     function startRest(sec) {
-      phase = 'rest'; remain = sec;
+      phase = 'rest'; remain = sec; restTotal = sec;
+      el.classList.add('resting');
       var nx = st[i + 1], ne = ex(nx.id);
-      $('#wRest').hidden = false;
-      $('#wRestNext').innerHTML = 'Naslednje: <b>' + esc(ne.name) + '</b>' + (nx.kind === 'reps' ? ' · serija ' + nx.set + '/' + nx.sets : '');
+      showAnim(nx.id);
+      $('#wName').textContent = 'Počitek';
+      $('#wWhy').textContent = 'Pripravi se: ' + ne.name + (nx.kind === 'reps' ? ' · serija ' + nx.set + '/' + nx.sets : '');
+      $('#wLog').hidden = true;
+      $('#wRx').innerHTML = chips([[fmt(sec), 'počitek'], [ne.name.split(' (')[0], 'naslednje']]);
       $('#wDone').textContent = '⏭ Preskoči počitek';
-      // show the next exercise animating behind the rest overlay
-      if (nx.id !== lastId) { pl.speed = ne.speed || 1; pl.load(ne.anim); lastId = nx.id; }
+      $('#wMinus').hidden = $('#wPlus').hidden = false;
+      $('#wSkip').hidden = true;
+      $('#wNextLbl').textContent = 'Med počitkom: tehnika naslednje vaje';
       Voice.say('Počitek ' + sec + ' sekund. Naslednje: ' + ne.name);
+      draw();
+    }
+
+    function renderSplits() {
+      var w = $('#wSplits'); if (!w) return;
+      var rows = splits.filter(function (x) { return x.station; }).slice(-5);
+      w.innerHTML = '<div class="label">Vmesni časi</div>' + rows.map(function (r) { return '<div class="split"><span>' + esc(r.name) + '</span><b>' + fmt(r.sec) + '</b></div>'; }).join('');
+    }
+
+    // single place that paints the ring + clocks
+    function draw() {
+      $('#wClock').textContent = fmt(total);
+      var s = st[i]; if (!s) return;
+      var top = $('#wRingTop'), val = $('#wRingVal'), sub = $('#wRingSub');
+      if (phase === 'rest') {
+        top.textContent = 'POČITEK'; val.textContent = fmt(remain); sub.textContent = 'od ' + fmt(restTotal);
+        setRing('wRing', remain / restTotal);
+        return;
+      }
+      if (s.kind === 'reps') {
+        var tgt = s.item.reps[1], pr = Math.min(pacerReps(), tgt);
+        top.textContent = 'TEMPO ŠTEVEC'; val.textContent = pr; sub.textContent = '/ ' + tgt + ' · ' + fmt(elapsed);
+        setRing('wRing', pr / tgt);
+        if (pr >= tgt && !pacerHit) { pacerHit = true; Audio.beep(1320, 0.2); $('#wPhase').textContent = 'Cilj dosežen – OK za konec'; }
+      } else if (s.kind === 'dist') {
+        var est = s.dist * 0.27;
+        top.textContent = s.dist + ' m'; val.textContent = fmt(elapsed); sub.textContent = 'cilj ~' + fmt(est);
+        setRing('wRing', elapsed / est);
+      } else {
+        top.textContent = s.hard ? 'MOČNO' : s.easy ? 'LAHKOTNO' : race ? 'POSTAJA' : 'ČAS';
+        val.textContent = fmt(remain);
+        var e = ex(s.id);
+        sub.textContent = e.type === 'cardio' && !/^(bike|row|hx_)/.test(s.id) ? '≈ ' + pacerReps() + ' ponovitev' : 'od ' + fmt(s.sec);
+        setRing('wRing', remain / s.sec);
+      }
     }
 
     function tick() {
-      if (paused) return;
-      var s = st[i]; if (!s) return;
-      $('#wClock').textContent = fmt((Date.now() - startedAt) / 1000);
+      if (paused || !st[i]) return;
+      total += 0.25;
       if (phase === 'rest') {
         remain -= 0.25;
-        $('#wRestT').textContent = fmt(remain);
         if (remain <= 3.01 && remain > 0 && Math.abs(remain - Math.round(remain)) < 0.01) Audio.beep(880, 0.12);
-        if (remain <= 0) { Audio.beep(1320, 0.3); enter(i + 1); }
-        return;
-      }
-      if (s.kind === 'time') {
-        remain -= 0.25;
-        $('#wTimer').textContent = fmt(remain);
-        if (remain <= 3.01 && remain > 0 && Math.abs(remain - Math.round(remain)) < 0.01) Audio.beep(880, 0.12);
-        if (s.sec >= 60 && Math.abs(remain - s.sec / 2) < 0.01) Voice.say('Polovica.');
-        if (remain <= 0) { Audio.beep(1320, 0.3); completeWork(); }
+        if (remain <= 0) { Audio.beep(1320, 0.3); enter(i + 1); return; }
       } else {
         elapsed += 0.25;
-        $('#wTimer').textContent = fmt(elapsed);
+        var s = st[i];
+        if (s.kind === 'time') {
+          remain -= 0.25;
+          if (remain <= 3.01 && remain > 0 && Math.abs(remain - Math.round(remain)) < 0.01) Audio.beep(880, 0.12);
+          if (s.sec >= 60 && Math.abs(remain - s.sec / 2) < 0.01) Voice.say('Polovica.');
+          if (remain <= 0) { Audio.beep(1320, 0.3); completeWork(); return; }
+        }
       }
+      draw();
     }
     var iv = setInterval(tick, 250);
 
     function finish() {
       clearInterval(iv);
-      var min = Math.max(1, Math.round((Date.now() - startedAt) / 60000));
+      var min = Math.max(1, Math.round(total / 60));
       if (logged.length || min >= 10) {
-        Store.recordSession(state, { date: new Date().toISOString(), session: sess.key, name: sess.name, min: min, sets: logged, items: itemsById });
+        Store.recordSession(state, { date: new Date().toISOString(), session: sess.key, name: sess.name, min: min, sec: Math.round(total), splits: race ? splits : undefined, sets: logged, items: itemsById });
       }
       Voice.say('Odlično. Trening je končan.');
-      pl.stop();
-      $('#wRest').hidden = false;
-      $('#wRest').innerHTML = '<div class="t">TRENING KONČAN</div><div class="big" style="color:var(--accent)">' + min + ' min</div><div class="t">' + logged.length + ' zabeleženih serij · napredek je shranjen</div>' +
-        '<button class="btn primary focusable" id="wHome" style="margin-top:1.5rem">Domov</button>';
-      $('.controls', el).innerHTML = '';
-      $('#wHome').onclick = function () { stack = [{ screen: 'home', params: {} }]; render(); };
+      pl.stop(); nextPl.stop();
+      var vol = logged.reduce(function (a, l) { return a + (ex(l.id).unit === 'kg' ? l.reps * l.load : 0); }, 0);
+      var reps = logged.reduce(function (a, l) { return a + l.reps; }, 0);
+      var f = $('#wFinish');
+      f.hidden = false;
+      f.innerHTML = '<div class="fin-card"><div class="kicker">' + (race ? 'HYROX ČAS' : 'TRENING KONČAN') + '</div><div class="fin-time">' + fmt(total) + '</div>' +
+        '<div class="fin-stats"><div><b>' + logged.length + '</b><span>serij</span></div><div><b>' + reps + '</b><span>ponovitev</span></div><div><b>' + Math.round(vol) + ' kg</b><span>volumen</span></div></div>' +
+        (race ? '<div class="splits fin-splits">' + splits.filter(function (x) { return x.station; }).map(function (r) { return '<div class="split"><span>' + esc(r.name) + '</span><b>' + fmt(r.sec) + '</b></div>'; }).join('') + '</div>' : '') +
+        '<button class="btn primary focusable" id="wHome">Domov</button></div>';
+      $('.side', el).hidden = true;
+      el.classList.add('done');
+      $('#wHome').onclick = function () { resetTo('home'); };
       $('#wHome').focus();
       activeSession.confirmExit = null;
       i = st.length;
@@ -682,8 +807,14 @@
       if (phase === 'rest') { enter(i + 1); return; }
       completeWork();
     };
-    $('#wSkip').onclick = function () { if (phase === 'rest') enter(i + 1); else enter(i + 1); };
-    $('#wPause').onclick = function () { paused = !paused; this.textContent = paused ? 'Nadaljuj' : 'Pavza'; if (paused) pl.stop(); else pl.start(); };
+    $('#wSkip').onclick = function () { enter(i + 1); };
+    $('#wMinus').onclick = function () { remain = Math.max(1, remain - 15); restTotal = Math.max(restTotal - 15, remain); draw(); };
+    $('#wPlus').onclick = function () { remain += 15; restTotal += 15; draw(); };
+    $('#wPause').onclick = function () {
+      paused = !paused; this.textContent = paused ? 'Nadaljuj' : 'Pavza';
+      el.classList.toggle('paused', paused);
+      if (paused) pl.stop(); else pl.start();
+    };
     $('#wExit').onclick = function () { if (confirm('Končam trening in shranim opravljene serije?')) finish(); };
 
     activeSession = {
@@ -697,12 +828,11 @@
     enter(0);
   };
 
-
   // ---------------------------------------------------------------- profiles ("Kdo trenira?")
   SCREENS.profiles = function () {
     var list = Store.list();
     var lastId = (Store.active() || {}).id;
-    root.innerHTML = '<div class="screen center"><div class="brand big-brand">Home<b>Gym</b> Coach</div><h1 class="who-title">Kdo trenira?</h1><div class="profiles">' +
+    root.innerHTML = '<div class="screen center">' + brandMark('big-brand') + '<h1 class="who-title">Kdo trenira?</h1><div class="profiles">' +
       list.map(function (pr, i) {
         return '<button class="profile focusable" data-pid="' + pr.id + '"' + (pr.id === lastId || (!lastId && i === 0) ? ' data-autofocus' : '') + '>' + avatar(pr, true) +
           '<b>' + esc(pr.name) + '</b><span>' + (pr.pin ? '🔒 ' : '') + pr.log.length + ' treningov</span></button>';
@@ -839,8 +969,12 @@
       '<button class="btn focusable" id="bPrev" data-fid="b-prev">📺 Predogled</button>' +
       '<button class="btn primary focusable" id="bGo" data-fid="b-go">▶ Začni</button></div>' +
       '<div class="panel builder">' +
-      '<div class="opt-row"><div class="k">Vrsta</div>' + chip('type', 'moc', '🏋️ Moč', o.type === 'moc') + chip('type', 'kardio', '❤️ Kardio', o.type === 'kardio') + chip('type', 'mix', '⚡ Moč + kardio', o.type === 'mix') + '</div>';
-    if (o.type !== 'kardio') {
+      '<div class="opt-row"><div class="k">Vrsta</div>' + chip('type', 'moc', '🏋️ Moč', o.type === 'moc') + chip('type', 'kardio', '❤️ Kardio', o.type === 'kardio') + chip('type', 'mix', '⚡ Moč + kardio', o.type === 'mix') + chip('type', 'hyrox', '🏁 HYROX', o.type === 'hyrox') + '</div>';
+    if (o.type === 'hyrox') {
+      html += '<div class="opt-row"><div class="k">Format</div>' + chip('format', 'full', 'Celotna simulacija (8 postaj)', o.format === 'full') +
+        chip('format', 'half', 'Polovica (4 postaje)', (o.format || 'half') === 'half') + chip('format', 'stations', 'Trening postaj', o.format === 'stations') + '</div>' +
+        '<div class="hint">Nadomestki: tek → kolo · SkiErg → Kinesis poteg · sled push → kolo stoje (težak upor) · sled pull → Kinesis roka-čez-roko · wall balls → DB thruster · sandbag → KB izpadni koraki. Količina se prilagodi nivoju.</div>';
+    } else if (o.type !== 'kardio') {
       var all = ALL_FOCUS.every(function (f) { return o.focus.indexOf(f) >= 0; });
       html += '<div class="opt-row"><div class="k">Fokus <span class="hint">(več izbir)</span></div>' + chip('focus', 'all', 'Celo telo', all) +
         ALL_FOCUS.map(function (f) { return chip('focus', f, Exercises.FOCUS[f].icon + ' ' + Exercises.FOCUS[f].name, !all && o.focus.indexOf(f) >= 0); }).join('') + '</div>';
@@ -848,7 +982,8 @@
       html += '<div class="opt-row"><div class="k">Naprava</div>' + chip('machine', 'bike', '🚴 Kolo', o.machine === 'bike') + chip('machine', 'rower', '🚣 Veslač', o.machine === 'rower') + chip('machine', 'both', 'Oboje', o.machine === 'both') + '</div>' +
         '<div class="opt-row"><div class="k">Intenzivnost</div>' + chip('intensity', 'z2', 'Lahkotno – cona 2', o.intensity === 'z2') + chip('intensity', 'hiit', 'Intervali', o.intensity === 'hiit') + chip('intensity', 'mix', 'Mešano', o.intensity === 'mix') + '</div>';
     }
-    html += '<div class="opt-row"><div class="k">Trajanje</div>' + [20, 30, 45, 60].map(function (m) { return chip('min', m, m + ' min', o.min === m); }).join('') + '</div></div><div class="blocks">';
+    if (o.type !== 'hyrox') html += '<div class="opt-row"><div class="k">Trajanje</div>' + [20, 30, 45, 60].map(function (m) { return chip('min', m, m + ' min', o.min === m); }).join('') + '</div>';
+    html += '</div><div class="blocks">';
     var row = 0;
     built.blocks.forEach(function (b, bi) {
       html += '<div class="block"><h3>' + esc(b.title) + '</h3>';

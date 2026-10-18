@@ -1,13 +1,13 @@
 {
-  "name": "HomeGym Coach",
-  "short_name": "HomeGym",
+  "name": "Finest Form – by Nature's Finest",
+  "short_name": "Finest Form",
   "description": "Osebni domači trening z animiranimi vajami za TV.",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",
   "orientation": "landscape",
-  "background_color": "#07090d",
-  "theme_color": "#07090d",
+  "background_color": "#050a07",
+  "theme_color": "#050a07",
   "icons": [
     { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
   ]

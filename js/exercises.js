@@ -158,6 +158,58 @@
 
   function quad(aN, aF, lN, lF) { return { r: [0, -51], t: 99, hd: -20, aN: aN, aF: aF, lN: lN, lF: lF }; }
 
+
+  // ------------------------------------------------------------ HYROX substitutes
+  // Standing heavy climb on the bike (sled-push substitute): hips out of the saddle, bob with the stroke
+  function bikeStandAnim(period) {
+    return {
+      scene: [BIKE], period: period, label: 'Stoje, težak upor – potiskaj',
+      focus: ['thigh', 'glute'],
+      fn: function (u) {
+        var a = 180 - u * 360;
+        var pN = Figure.add([BIKE.cx, BIKE.cy], a, 17), pF = Figure.add([BIKE.cx, BIKE.cy], a + 180, 17);
+        var bob = Math.abs(Math.cos(u * Math.PI * 2));
+        return {
+          r: [3 + 2 * Math.sin(u * Math.PI * 4), -115 + 9 * bob], t: 136, hd: 28,
+          lN: [0, 0, 100], lF: [0, 0, 100],
+          ik: { fN: [pN[0] - 5, pN[1] - 7], fF: [pF[0] - 5, pF[1] - 7], hN: [BIKE.bx + 2, BIKE.by + 2], hF: [BIKE.bx, BIKE.by + 3] },
+          x: { crank: a }
+        };
+      }
+    };
+  }
+
+  // Farmer's carry: walking cycle in place (treadmill view), bells hang at the sides
+  var carryAnim = {
+    hold: { N: 'kb', F: 'kb' }, focus: ['fore', 'torso', 'glute'], period: 1.1, label: 'Hodi visoko, ramena dol',
+    fn: function (u) {
+      function foot(ph) {
+        ph = ((ph % 1) + 1) % 1;
+        if (ph < 0.6) { var k = ph / 0.6; return [22 - 44 * k, -6]; }
+        var q = (ph - 0.6) / 0.4; return [-22 + 44 * q, -6 - 14 * Math.sin(q * Math.PI)];
+      }
+      var bob = 2 * Math.cos(u * Math.PI * 4);
+      var sw = 6 * Math.sin(u * Math.PI * 2);
+      return {
+        r: [0, -91 + bob], t: 182, hd: -4, aN: [sw * 0.4, sw * 0.4], aF: [-sw * 0.4, -sw * 0.4], kb: 0,
+        lN: [0, 0, 72], lF: [0, 0, 72],
+        ik: { fN: foot(u), fF: foot(u + 0.5) }
+      };
+    }
+  };
+
+  function lungeP(hip, fN, fF) {
+    return { r: hip, t: 178, hd: -4, aN: [16, 158], kb: 0, lN: [0, 0, fN[0] < 0 ? 20 : 72], lF: [0, 0, fF[0] < 0 ? 20 : 72], ik: { fN: fN, fF: fF } };
+  }
+
+  var thrRack = stand({ aN: [22, 174] });
+  var thrBot = stand({ t: 152, lN: [100, -35], aN: [26, 176], hd: 8 });
+  var thrTop = stand({ t: 182, aN: [178, 178] });
+
+  var K_SKI = { type: 'kinesis', x: 110, pulleys: [[92, -205]] };
+  var K_SLED = { type: 'kinesis', x: 120, pulleys: [[102, -70]] };
+  function sled(aN, aF) { return { t: 196, hd: -14, lN: [34, -12, 74], lF: [10, -26, 50], aN: aN, aF: aF, pin: ['fN', 26, -6] }; }
+
   // ======================================================================
   var LIST = [
     // ---------------------------------------------------------------- CARDIO
@@ -680,6 +732,109 @@
           { d: 2.4, l: 'Izdih – zgib naprej', p: { r: [-4, -91], t: 128, hd: 15, aN: [62, 66], lN: [0, 0, 175], ik: { fN: [80, -54], fF: [-5, -6] } } }
         ]
       }
+    },
+
+    // ------------------------------------------------------------ HYROX (substitutes on home equipment)
+    {
+      id: 'hx_bike_run', name: 'Kolo – nadomestek teka (HYROX)', equip: ['bike'], type: 'cardio', unit: 'min',
+      muscles: 'Srce, noge', tempo: '90–100 obratov/min · RPE 7',
+      cues: ['Tempo, ki ga zdržiš vseh 8 krogov – ne sprint', 'Upor srednji: pri 95 obr./min diham hitro, a nadzorovano', 'Zadnjih 20 s rahlo upočasni in pripravi postajo'],
+      mistakes: ['Prvi krog prehiter', 'Zadrževanje diha na postaji takoj po kolesu'],
+      anim: bikeAnim(0.62)
+    },
+    {
+      id: 'k_ski', name: 'Kinesis – SkiErg poteg (HYROX)', equip: ['kinesis'], type: 'cardio', unit: 'stopnja', load: 6, inc: 1,
+      muscles: 'Široka hrbtna, trup, triceps, zadnjica', tempo: 'Ritmično ~40 potegov/min',
+      cues: ['Visoka škripca spredaj, ročaja nad glavo', 'Poteg z zgibom v kolkih in trebušnimi – roke končajo ob bokih', 'Kolena mehka, sunek iz bokov kot pri SkiErgu'],
+      mistakes: ['Poteg samo z rokami', 'Zaokrožen hrbet v spodnjem delu'],
+      anim: {
+        scene: [K_SKI], cables: cab(K_SKI), hold: { N: 'handle', F: 'handle' }, focus: ['torso', 'upper'],
+        frames: [
+          { d: 0.55, l: 'POTEG – zgib v kolkih', p: stand({ t: 184, aN: [160, 160], hd: -6 }) },
+          { d: 0.15, l: 'Roke ob bokih', p: stand({ t: 128, lN: [30, -14], aN: [-22, -22], hd: 22 }) },
+          { d: 0.8, l: 'Gor – iztegni se', p: stand({ t: 128, lN: [30, -14], aN: [-22, -22], hd: 22 }) }
+        ]
+      }
+    },
+    {
+      id: 'bike_sled', name: 'Kolo – težak upor stoje (nadomestek sled push)', equip: ['bike'], type: 'cardio', unit: 'min',
+      muscles: 'Kvadricepsi, zadnjica, srce', tempo: '55–65 obratov/min · težak upor',
+      cues: ['Upor tako visok, da kadenca pade pod 65', 'Iz sedla, teža nad pedali, trup nagnjen kot pri potiskanju sani', 'Moč iz kolkov – roke samo za ravnotežje'],
+      mistakes: ['Prenizek upor – vrtenje brez sile', 'Zibanje kolesa s trupom'],
+      anim: bikeStandAnim(1.05)
+    },
+    {
+      id: 'k_sled_pull', name: 'Kinesis – vlečenje sani roka-čez-roko', equip: ['kinesis'], type: 'cardio', unit: 'stopnja', load: 12, inc: 1, repsPerCycle: 2,
+      muscles: 'Hrbet, biceps, prijem, zadnjica', tempo: 'Izmenično, hitro',
+      cues: ['Nizka škripca spredaj, atletska stoja, boki nazaj', 'Izmenično vleci z levo in desno roko k boku', 'Trup nagnjen nazaj, teža na petah'],
+      mistakes: ['Pokončna stoja – vleče samo z rokami', 'Okrogel hrbet'],
+      anim: {
+        scene: [K_SLED], cables: cab(K_SLED), hold: { N: 'handle', F: 'handle' }, focus: ['upper', 'torso'],
+        frames: [
+          { d: 0.42, l: 'Desna k boku', p: sled([84, 88], [-60, 70]) },
+          { d: 0.42, l: 'Leva k boku', p: sled([-60, 70], [84, 88]) }
+        ]
+      }
+    },
+    {
+      id: 'burpee_bj', name: 'Burpee s skokom v daljino (HYROX)', equip: ['floor'], type: 'cardio', unit: 'bw', load: 0, inc: 0, secPerRep: 6,
+      muscles: 'Celo telo, srce', tempo: 'Enakomerno',
+      cues: ['Prsi do tal, nato noge pod telo', 'Sonožni skok naprej – mehak doskok v polčep', 'Doma: hoja nazaj na začetno točko, ritem brez postankov'],
+      mistakes: ['Predolg skok, ki uniči ritem', 'Doskok na iztegnjena kolena'],
+      anim: {
+        focus: ['thigh', 'torso'],
+        frames: [
+          { d: 0.35, l: 'Dol', p: { pin: ['fN', 0, -6], t: 180, lN: [0, 0], ik: { hN: [6, -86], hF: [4, -86] } } },
+          { d: 0.25, l: 'Roke na tla', p: { pin: ['fN', 0, -6], t: 125, hd: 15, lN: [95, -35], ik: { hN: [34, -5], hF: [31, -5] } } },
+          { d: 0.35, l: 'Noge nazaj', p: { pin: ['fN', -78, -6], t: 112, hd: -5, lN: [-68, -68, 15], ik: { hN: [34, -5], hF: [31, -5] } } },
+          { d: 0.3, l: 'Prsi do tal', p: { pin: ['fN', -78, -6], t: 96, hd: -5, lN: [-84, -84, 15], ik: { hN: [38, -5], hF: [35, -5] } } },
+          { d: 0.3, l: 'Noge pod telo', p: { pin: ['fN', 0, -6], t: 125, hd: 15, lN: [95, -35], ik: { hN: [34, -5], hF: [31, -5] } } },
+          { d: 0.3, l: 'SKOK naprej', p: { pin: ['fN', 0, -6], t: 140, hd: 10, lN: [70, -30], ik: { hN: [-20, -60], hF: [-22, -60] } } },
+          { d: 0.35, l: 'Let', p: { pin: ['fN', 52, -40], t: 168, hd: -4, lN: [30, -20, 110], ik: { hN: [110, -150], hF: [107, -150] } } },
+          { d: 0.6, l: 'Mehak doskok', p: { pin: ['fN', 95, -6], t: 140, hd: 10, lN: [75, -30], ik: { hN: [125, -70], hF: [122, -70] } } },
+          { d: 0.6, l: 'Nazaj na začetek', p: { pin: ['fN', 95, -6], t: 180, lN: [0, 0], ik: { hN: [101, -86], hF: [99, -86] } } }
+        ]
+      }
+    },
+    {
+      id: 'kb_farmers', name: 'Kmečka hoja s kettlebelli (HYROX)', equip: ['kb'], type: 'cardio', unit: 'kg', load: 16, inc: 4,
+      muscles: 'Prijem, trup, ramena, noge', tempo: 'Hitri kratki koraki',
+      cues: ['Dva KB ob telesu, ramena stisnjena dol in nazaj', 'Hitri kratki koraki, pogled naprej', 'Ne ustavljaj se – če prijem popušča, pojdi počasneje'],
+      mistakes: ['Nagib na eno stran', 'Ramena pri ušesih'],
+      anim: carryAnim
+    },
+    {
+      id: 'kb_lunge', name: 'Izpadni koraki z utežjo (nadomestek sandbag lunges)', equip: ['kb'], type: 'strength', unit: 'kg', load: 12, inc: 4, repsPerCycle: 2, secPerRep: 2.5,
+      muscles: 'Kvadricepsi, zadnjica, trup', tempo: 'Enakomerno',
+      cues: ['KB pred prsnico (goblet)', 'Zadnje koleno se dotakne tal, trup pokonci', 'Izmenjuj nogi brez postankov'],
+      mistakes: ['Prekratek korak – koleno daleč čez prste', 'Trup pade naprej'],
+      anim: {
+        hold: { N: 'kb' }, focus: ['thigh', 'glute'],
+        frames: [
+          { d: 0.7, l: 'Korak naprej', p: lungeP([0, -92], [6, -6], [-6, -6]) },
+          { d: 0.25, l: 'Koleno do tal', p: lungeP([-6, -50], [36, -6], [-44, -10]) },
+          { d: 0.7, l: 'Potisni nazaj gor', p: lungeP([-6, -50], [36, -6], [-44, -10]) },
+          { d: 0.7, l: 'Druga noga', p: lungeP([0, -92], [-6, -6], [6, -6]) },
+          { d: 0.25, l: 'Koleno do tal', p: lungeP([-6, -50], [-44, -10], [36, -6]) },
+          { d: 0.7, l: 'Potisni nazaj gor', p: lungeP([-6, -50], [-44, -10], [36, -6]) }
+        ]
+      }
+    },
+    {
+      id: 'db_thruster', name: 'Thruster z utežmi (nadomestek wall balls)', equip: ['db'], type: 'strength', unit: 'kg', load: 8, inc: 2, secPerRep: 3,
+      muscles: 'Noge, ramena, srce', tempo: 'Tekoče, brez pavze',
+      cues: ['Uteži na ramenih, komolci naprej', 'Počep do vzporednice, iz dna eksplodiraj', 'Moč iz nog potisne uteži nad glavo – en tekoč gib'],
+      mistakes: ['Ločen počep in potisk', 'Pete se dvigujejo'],
+      anim: {
+        hold: { N: 'db', F: 'db' }, focus: ['thigh', 'upper'],
+        frames: [
+          { d: 0.9, l: 'Počep', p: thrRack },
+          { d: 0.1, l: 'Dno', p: thrBot },
+          { d: 0.55, l: 'EKSPLODIRAJ gor', p: thrBot },
+          { d: 0.4, l: 'Nad glavo', p: thrTop },
+          { d: 0.5, l: 'Nazaj na ramena', p: thrTop }
+        ]
+      }
     }
   ];
 
@@ -693,10 +848,11 @@
     roke: { name: 'Roke', icon: '💪' },
     trup: { name: 'Trup', icon: '🎯' },
     kardio: { name: 'Kardio', icon: '❤️' },
+    hyrox: { name: 'HYROX', icon: '🏁' },
     mobilnost: { name: 'Mobilnost', icon: '🧘' }
   };
   var GROUPS = {
-    bike_z2: ['kardio', 'noge'], bike_hiit: ['kardio', 'noge'], row_steady: ['kardio', 'hrbet'], row_hiit: ['kardio', 'hrbet'],
+    bike_z2: ['kardio', 'noge'], bike_hiit: ['kardio', 'noge'], row_hiit: ['kardio', 'hrbet'],
     kb_swing: ['zadnjica', 'kardio', 'trup'], kb_goblet_squat: ['noge', 'zadnjica', 'trup'], kb_deadlift: ['zadnjica', 'noge', 'hrbet'], kb_press: ['rame', 'roke', 'trup'],
     db_bench: ['prsa', 'roke', 'rame'], db_incline: ['prsa', 'rame', 'roke'], db_row: ['hrbet', 'roke'], db_rdl: ['zadnjica', 'noge', 'hrbet'],
     db_bulgarian: ['noge', 'zadnjica'], db_shoulder_press: ['rame', 'roke'], db_curl: ['roke'], db_hip_thrust: ['zadnjica', 'noge'], db_stepup: ['noge', 'zadnjica'],
@@ -704,7 +860,10 @@
     k_pushdown: ['roke'], k_pullthrough: ['zadnjica', 'noge'], k_woodchop: ['trup'],
     pullup: ['hrbet', 'roke', 'trup'], hang_knee_raise: ['trup'], hang_leg_raise: ['trup'], dead_hang: ['mobilnost', 'hrbet'],
     back_ext: ['hrbet', 'zadnjica'], situp: ['trup'], pushup: ['prsa', 'roke', 'trup'], plank: ['trup'], dead_bug: ['trup'], bird_dog: ['trup', 'hrbet'],
-    hip_flexor: ['mobilnost', 'noge'], hamstring_bench: ['mobilnost', 'noge']
+    hip_flexor: ['mobilnost', 'noge'], hamstring_bench: ['mobilnost', 'noge'],
+    hx_bike_run: ['kardio', 'noge', 'hyrox'], k_ski: ['kardio', 'hrbet', 'trup', 'hyrox'], bike_sled: ['kardio', 'noge', 'hyrox'], k_sled_pull: ['kardio', 'hrbet', 'roke', 'hyrox'],
+    burpee_bj: ['kardio', 'noge', 'prsa', 'hyrox'], kb_farmers: ['kardio', 'trup', 'roke', 'hyrox'], kb_lunge: ['noge', 'zadnjica', 'hyrox'], db_thruster: ['noge', 'rame', 'kardio', 'hyrox'],
+    row_steady: ['kardio', 'hrbet', 'hyrox']
   };
   // Multi-joint lifts go first in a generated session
   var COMPOUND = ['kb_goblet_squat', 'kb_deadlift', 'db_rdl', 'db_bulgarian', 'db_hip_thrust', 'kb_swing', 'db_bench', 'db_incline', 'pullup',

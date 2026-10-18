@@ -71,7 +71,7 @@ const path = require('path');
   await p.screenshot({ path: out + '/p8-library.png' });
   await p.click('.lib-card'); await p.waitForTimeout(300);
   await p.click('#solo'); await p.waitForTimeout(400);
-  log('solo player:', await p.$eval('#wName', e => e.textContent), await p.$eval('#wSet', e => e.textContent));
+  log('solo player:', await p.$eval('#wName', e => e.textContent), await p.$eval('#wBlock', e => e.textContent));
   log(errs.length ? 'ERRORS:\n' + errs.join('\n') : 'no errors');
   await b.close();
 })();

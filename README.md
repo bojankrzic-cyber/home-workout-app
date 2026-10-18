@@ -1,4 +1,6 @@
-# HomeGym Coach
+# Finest Form — by Nature's Finest
+
+*Finest* = znamka, *Form* = pravilna tehnika (animacije) in "v vrhunski formi". Barve in pisave sledijo Nature's Finest: listno zelena `#33ab59` (za temni TV dvignjena na `#3ec46d`), temno zelena `#006837`, Rethink Sans + Playfair Display.
 
 Osebni trener za domačo telovadnico, narejen **izključno za opremo, ki jo imaš**, in optimiziran za **TV zaslon (10-foot UI, upravljanje z daljincem)**.
 
@@ -13,7 +15,30 @@ Osebni trener za domačo telovadnico, narejen **izključno za opremo, ki jo ima�
 | Technogym Kinesis Personal | potisk za prsa, veslanje, poteg navzdol, face pull, triceps, pull-through, sekanje drv – breme v **stopnjah 0–20** |
 | Stena (drog + dvig nog) | zgibi, dvig kolen/nog v visenju, visenje |
 
-**36 vaj, vsaka z animacijo** (2D skeletna animacija s pravilnim zaporedjem gibanja, faznimi napisi "Spuščaj 3 s / Pavza / Potisni", poudarjenimi delovnimi mišicami, navodili in pogostimi napakami).
+**44 vaj, vsaka z animacijo** (2D skeletna animacija s pravilnim zaporedjem gibanja, faznimi napisi "Spuščaj 3 s / Pavza / Potisni", poudarjenimi delovnimi mišicami, navodili in pogostimi napakami).
+
+### HYROX (na tvoji opremi)
+Tri formati: **celotna simulacija** (8 × tek + postaja), **polovica** (4 postaje) in **trening postaj** (3 krogi). Način *na čas*: race ura, vmesni časi po postajah, povzetek na koncu. Količine: napreden = uradne (1000 m veslanja, 100 m izpadnih korakov ≈ 50, 50 thrusterjev ...), srednji 80 %, začetnik 60 %.
+
+| HYROX postaja | Nadomestek doma |
+|---|---|
+| Tek 1 km | Kolo, ~4 min RPE 7 |
+| SkiErg 1000 m | Kinesis – SkiErg poteg (visoka škripca, zgib v kolkih) |
+| Sled push 50 m | Kolo stoje, težak upor (55–65 obr./min) |
+| Sled pull 50 m | Kinesis – vlečenje roka-čez-roko |
+| Burpee broad jumps 80 m | Burpee s skokom v daljino |
+| Veslanje 1000 m | Veslač 1000 m (OK, ko monitor pokaže razdaljo) |
+| Farmers carry 200 m | Kmečka hoja s KB |
+| Sandbag lunges 100 m | Izpadni koraki s KB (goblet) |
+| Wall balls 100 | DB thruster |
+
+### Predvajalnik (UX po vzorcih z Mobbina)
+Vzorci iz [Ladder](https://mobbin.com/screens/d1169c75-4219-4bf1-aa2c-f5eb8fc0187a), [Ladder – počitek](https://mobbin.com/screens/f17aa38b-027a-4a2b-85e7-f1e80d2e7270), [Gymshark](https://mobbin.com/screens/f4cdbd47-9666-4c67-ae63-c75f2094254d), [Hevy](https://mobbin.com/screens/6f5fad08-23a6-4698-9868-2289969a1d5e), [Runna](https://mobbin.com/screens/d016e28e-df59-456a-8635-51345b522294), [Strava](https://mobbin.com/screens/f8747488-3929-468c-a75f-cb9cd86fe90c):
+- **vedno viden skupni čas** (race način: rumena race ura) + razdeljen napredek po blokih in %,
+- **kartica "Naslednje →"** z mini animacijo; med počitkom se na velikem zaslonu že predvaja tehnika naslednje vaje,
+- **en velik obroč**: odštevanje za časovne postaje/intervale/počitek, **tempo števec ponovitev** (štetje po ritmu animacije) za serije s ponovitvami, čas za razdaljo,
+- počitek **−15 s / +15 s / preskoči**, pike serij, barvno kodiranje (zeleno delo, mint počitek, jantar močno/race),
+- povzetek: čas, serije, ponovitve, volumen (kg), vmesni časi.
 
 ### Več oseb (profili)
 Ob zagonu izbereš, kdo trenira (kot pri Netflixu). Vsaka oseba ima **svoj program (3×/4×), nivo, teže, progresijo, zgodovino in shranjene treninge**. Neobvezni 4-mestni PIN zaklene profil na skupnem TV-ju (zasebnost, ne varnost – podatki so v brskalniku). Obstoječi podatki se ob nadgradnji samodejno prenesejo v profil "Jaz".
@@ -105,6 +130,7 @@ NODE_PATH=$(npm root -g) node tools/snap.cjs contact.png          # vse animacij
 NODE_PATH=$(npm root -g) node tools/snap.cjs c.png kb_swing,pullup # izbrane vaje
 NODE_PATH=$(npm root -g) node tools/ui.cjs ./out                   # UI smoke test + posnetki zaslonov
 NODE_PATH=$(npm root -g) node tools/profiles.cjs ./out             # profili, PIN, sestavljalnik, knjižnica
+NODE_PATH=$(npm root -g) node tools/hyrox.cjs ./out                # HYROX, race ura, vmesni časi, HUD predvajalnika
 ```
 
 Nova vaja = en objekt v `js/exercises.js` (+ vnos v `js/program.js`, če naj bo v programu).

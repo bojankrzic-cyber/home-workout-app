@@ -11,7 +11,7 @@
   'use strict';
   var KEY = 'homeworkout.v2';
   var KEY_V1 = 'homeworkout.v1';
-  var COLORS = ['#c6ff3d', '#38e1ff', '#ffb547', '#b48cff', '#ff6b9a', '#4dffb8'];
+  var COLORS = ['#3ec46d', '#5ad1b8', '#fcb900', '#b6c99b', '#f08a5d', '#a99be8'];
   var db = null;
 
   function defaultSettings() {
