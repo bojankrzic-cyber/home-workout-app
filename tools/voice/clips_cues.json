@@ -1,0 +1,86 @@
+[
+ [
+  "cue_hx_bike_run",
+  "A pace you can hold for all eight rounds. Not a sprint."
+ ],
+ [
+  "cue_row_steady",
+  "Legs, then body, then arms. On the way back: arms, body, legs."
+ ],
+ [
+  "cue_bike_z2",
+  "Saddle at hip height, slight knee bend at the bottom."
+ ],
+ [
+  "cue_hip_flexor",
+  "Back knee down, squeeze the glute on that side."
+ ],
+ [
+  "cue_hamstring_bench",
+  "Heel on the bench, toes up, soft knee."
+ ],
+ [
+  "cue_row_hiit",
+  "30 seconds hard, 30 seconds easy."
+ ],
+ [
+  "cue_k_ski",
+  "High pulley in front, handles overhead."
+ ],
+ [
+  "cue_burpee_bj",
+  "Chest to the floor, then feet under you."
+ ],
+ [
+  "cue_db_thruster",
+  "Dumbbells on the shoulders, elbows forward."
+ ],
+ [
+  "cue_bike_hiit",
+  "Sprint 20 seconds all-out, 40 seconds easy."
+ ],
+ [
+  "cue_kb_swing",
+  "Hinge, don't squat, hips go back."
+ ],
+ [
+  "cue_kb_goblet_squat",
+  "Kettlebell at the chest, elbows down."
+ ],
+ [
+  "cue_kb_press",
+  "Start in the rack position, kettlebell on the forearm, wrist straight."
+ ],
+ [
+  "cue_db_bench",
+  "Shoulder blades back and down, slight arch."
+ ],
+ [
+  "cue_db_incline",
+  "Set the backrest to thirty, to forty-five degrees."
+ ],
+ [
+  "cue_db_row",
+  "Knee and hand on the bench, back flat as a table."
+ ],
+ [
+  "cue_db_rdl",
+  "Knees slightly bent and locked in place."
+ ],
+ [
+  "cue_db_bulgarian",
+  "Rear foot laces-down on the bench."
+ ],
+ [
+  "cue_db_curl",
+  "Elbows pinned to your sides, not drifting forward."
+ ],
+ [
+  "cue_db_hip_thrust",
+  "Bottom of the shoulder blades on the bench edge."
+ ],
+ [
+  "cue_db_stepup",
+  "Whole foot on the bench."
+ ]
+]

@@ -110,6 +110,38 @@
       } catch (e) { /* ignore */ }
     }
   };
+  // Recorded coach (ElevenLabs takes in audio/voice/, listed in js/voiceclips.js). Phrases are built
+  // from clip keys; missing keys are skipped, and if nothing is recorded the device voice reads `text`.
+  var Coach = {
+    el: null, queue: [],
+    has: function (k) { return (window.VOICE_CLIPS || []).indexOf(k) >= 0; },
+    on: function () { return state && state.settings.voice && state.settings.coachVoice !== 'device' && (window.VOICE_CLIPS || []).length > 0; },
+    element: function () {
+      if (!this.el) {
+        this.el = document.createElement('audio'); this.el.setAttribute('playsinline', ''); this.el.preload = 'auto';
+        this.el.addEventListener('ended', function () { Coach.next(); });
+        this.el.addEventListener('error', function () { Coach.next(); });
+      }
+      return this.el;
+    },
+    next: function () {
+      var k = this.queue.shift(); if (!k) return;
+      var el = this.element(); el.src = 'audio/voice/' + k + '.mp3';
+      var pr = el.play(); if (pr && pr.catch) pr.catch(function () { Coach.queue = []; });
+    },
+    play: function (keys) {
+      if ('speechSynthesis' in window) speechSynthesis.cancel();
+      this.queue = keys.slice(); this.next();
+    }
+  };
+  // say(text, keys): recorded clips when available, device voice otherwise
+  Voice.cue = function (text, keys) {
+    if (!state || !state.settings.voice) return;
+    var have = (keys || []).filter(function (k) { return Coach.has(k); });
+    if (Coach.on() && have.length && Coach.has(keys[0])) Coach.play(have);
+    else Voice.say(text);
+  };
+
   // read like a coach, not a label: no dashes, symbols or abbreviations spelled out letter by letter
   Voice.clean = function (t) {
     return String(t)
@@ -147,6 +179,7 @@
         if (Audio.ctx.state === 'suspended') Audio.ctx.resume();
       } catch (e) { /* no web audio */ }
       try { if ('speechSynthesis' in window) { var u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } } catch (e) { /* ignore */ }
+      try { var el = Coach.element(); el.src = Sound.silent(); var pr = el.play(); if (pr && pr.catch) pr.catch(function () {}); } catch (e) { /* ignore */ }
     }
   };
   document.addEventListener('pointerdown', Sound.unlock, true);
@@ -785,7 +818,9 @@
       '<div class="opt-row"><div class="k">Workouts per week</div>' + opt('days', 3, '3× – full body') + opt('days', 4, '4× – upper / lower') + '</div>' +
       '<div class="opt-row"><div class="k">Level</div>' + opt('level', 'beg', 'Beginner') + opt('level', 'mid', 'Intermediate') + opt('level', 'adv', 'Advanced') + '</div>' +
       '<div class="opt-row"><div class="k">Voice coaching</div>' + opt('voice', true, 'On') + opt('voice', false, 'Off') + '<button class="btn sm focusable" id="vTest">▶ Test sound</button><span class="hint">' + esc(voiceInfo) + ' On iPhone, silent mode can mute sound outside workouts.</span></div>' +
-      voiceRow() +
+      ((window.VOICE_CLIPS || []).length ? '<div class="opt-row"><div class="k">Coach</div>' + opt('coachVoice', 'recorded', '★ Premium recorded coach') + opt('coachVoice', 'device', 'Device voice') +
+        '<span class="hint">Recorded studio voice for exercise names, sets, rest and countdowns; works the same on every device.</span></div>' : '') +
+      (s.coachVoice === 'device' ? voiceRow() : '') +
       '<div class="opt-row"><div class="k">Beeps</div>' + opt('beeps', true, 'On') + opt('beeps', false, 'Off') + '</div>' +
       '<div class="opt-row"><div class="k">Nature’s Finest product tips</div>' + tipChip(true, 'On') + tipChip(false, 'Off') +
       '<span class="hint">' + (Products.eligible(state) ? 'Goal-based supplement tips on home and after workouts. Matching happens on this device only.' : 'Shown only to adults – add your age in your profile.') + '</span></div>' +
@@ -814,7 +849,7 @@
     $('#vTest').onclick = function () {
       Sound.unlock(); Sound.session(true);
       Audio.beep(880, 0.15); setTimeout(function () { Audio.beep(1320, 0.25); }, 250);
-      Voice.say('Voice coaching is on. Three, two, one, go!');
+      Voice.cue('Voice coaching is on. Three, two, one, go!', ['hello', 'go']);
       setTimeout(function () { Sound.session(false); }, 4000);
     };
     $('#newBlock').onclick = function () { s.startDate = new Date().toISOString().slice(0, 10); Store.save(); toast('New block starts today – Week 1'); refresh(); };
@@ -865,7 +900,7 @@
       $('#pvChips').innerHTML = musChips(e.anim.muscles, true);
       var pp = photo(it.id); $('#pvPip').hidden = !pp; if (pp) $('#pvPip img').src = pp;
       t0 = Date.now();
-      Voice.say(e.name + '. ' + e.cues[0]);
+      Voice.cue(e.name + '. ' + e.cues[0], ['ex_' + it.id, 'cue_' + it.id]);
     }
     timer = setInterval(function () {
       if (paused) { t0 += 200; return; }
@@ -1040,13 +1075,13 @@
         if (e.unit === 'stopnja') lg += stepper('load', cur.load, 1, 'level');
         $('#wLog').innerHTML = lg; $('#wLog').hidden = false;
         $('#wDone').textContent = race ? '✓ Station done' : '✓ Set done';
-        Voice.say(e.name + '. ' + (s.set === 1 ? e.cues[0] : 'Set ' + s.set));
+        Voice.cue(e.name + '. ' + (s.set === 1 ? e.cues[0] : 'Set ' + s.set), ['ex_' + s.id, s.set === 1 ? 'cue_' + s.id : 'set_' + s.set]);
       } else if (s.kind === 'dist') {
         $('#wWhy').textContent = 'Target ' + s.dist + ' m – press OK when the monitor shows the distance';
         $('#wRx').innerHTML = chips([[s.dist + ' m', 'distance'], ['~' + fmt(s.dist * (e.secPerM || 0.27)), 'target time'], [e.tempo || '—', 'tempo']]);
         $('#wLog').innerHTML = ''; $('#wLog').hidden = true;
         $('#wDone').textContent = '✓ ' + s.dist + ' m done';
-        Voice.say(e.name + '. ' + s.dist + ' meters.');
+        Voice.cue(e.name + '. ' + s.dist + ' meters.', ['ex_' + s.id, 'm_' + s.dist]);
       } else {
         remain = s.sec;
         $('#wWhy').textContent = race && /^(Postaja|Station)/.test(s.block) ? 'Station for time – ' + fmt(s.sec) : s.sec >= 60 && !s.hard && !s.easy ? fmt(s.sec) + ' min' : (s.label || '');
@@ -1061,9 +1096,9 @@
         $('#wRx').innerHTML = chips(rx);
         $('#wLog').innerHTML = ''; $('#wLog').hidden = true;
         $('#wDone').textContent = race ? '✓ Station done' : '⏭ Next';
-        if (s.hard) { Audio.beep(1200, 0.35); Voice.say('Go hard!'); }
-        else if (s.easy) { Audio.beep(600, 0.3); Voice.say('Easy pace.'); }
-        else Voice.say(e.name + '. ' + e.cues[0]);
+        if (s.hard) { Audio.beep(1200, 0.35); Voice.cue('Go hard!', ['hard']); }
+        else if (s.easy) { Audio.beep(600, 0.3); Voice.cue('Easy pace.', ['easy']); }
+        else Voice.cue(e.name + '. ' + e.cues[0], ['ex_' + s.id, 'cue_' + s.id]);
       }
       bindSteppers();
       renderNext();
@@ -1106,7 +1141,7 @@
       $('#wMinus').hidden = $('#wPlus').hidden = false;
       $('#wSkip').hidden = true;
       $('#wNextLbl').textContent = 'While you rest: next exercise technique';
-      Voice.say('Rest ' + sec + ' seconds. Next up: ' + ne.name);
+      Voice.cue('Rest ' + sec + ' seconds. Next up: ' + ne.name, Coach.has('rest_' + sec) ? ['rest_' + sec, 'next', 'ex_' + nx.id] : ['next', 'ex_' + nx.id]);
       draw();
     }
 
@@ -1163,7 +1198,7 @@
         if (s.kind === 'time') {
           remain -= 0.25;
           if (remain <= 3.01 && remain > 0 && Math.abs(remain - Math.round(remain)) < 0.01) Audio.beep(880, 0.12);
-          if (s.sec >= 60 && Math.abs(remain - s.sec / 2) < 0.01) Voice.say('Halfway.');
+          if (s.sec >= 60 && Math.abs(remain - s.sec / 2) < 0.01) Voice.cue('Halfway.', ['half']);
           if (remain <= 0) { Audio.beep(1320, 0.3); completeWork(); return; }
         }
       }
@@ -1178,7 +1213,7 @@
       if (logged.length || min >= 10) {
         Store.recordSession(state, { date: new Date().toISOString(), session: sess.key, name: sess.name, min: min, sec: Math.round(total), splits: race ? splits : undefined, sets: logged, items: itemsById });
       }
-      Voice.say('Great job. Workout complete.');
+      Voice.cue('Great job. Workout complete.', ['done']);
       pl.stop(); nextPl.stop();
       var vol = logged.reduce(function (a, l) { return a + (ex(l.id).unit === 'kg' ? l.reps * l.load : 0); }, 0);
       var reps = logged.reduce(function (a, l) { return a + l.reps; }, 0);
