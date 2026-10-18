@@ -596,3 +596,51 @@ h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -.015em; }
   .me-stats b { font-size: 1.35rem; white-space: nowrap; }
 }
 .caution-note { color: var(--warn); font-weight: 600; }
+.num-in { width: 4.6rem; background: transparent; border: 0; border-radius: 8px; color: var(--text); font: inherit; font-weight: 600; font-size: 1.15rem; text-align: center; padding: .1rem 0; -moz-appearance: textfield; }
+.num-in::-webkit-outer-spin-button, .num-in::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.num-in:focus { outline: 2px solid var(--accent); background: var(--bg-2); }
+
+/* ===== Phone layout pass ===================================================== */
+.main-nav { display: flex; gap: 1.2rem; align-items: center; }
+.main-nav i { font-style: normal; margin-right: .35rem; opacity: .8; }
+@media (max-width: 900px) {
+  /* home: brand row on top, app navigation as a bottom tab bar */
+  .screen:has(.main-nav) { padding-bottom: calc(5.6rem + env(safe-area-inset-bottom, 0px)); }
+  .main-nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 9; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0;
+    padding: .4rem max(.5rem, env(safe-area-inset-right, 0px)) calc(.4rem + env(safe-area-inset-bottom, 0px)) max(.5rem, env(safe-area-inset-left, 0px));
+    background: rgba(5, 10, 7, .92); backdrop-filter: blur(14px); border-top: 1px solid var(--line); }
+  .main-nav .btn { flex-direction: column; gap: .15rem; background: transparent; border: 0; padding: .45rem .2rem; font-size: .72rem; color: var(--muted); border-radius: 12px; }
+  .main-nav .btn i { margin: 0; font-size: 1.25rem; opacity: 1; color: var(--text); }
+  .main-nav .btn:first-child i { color: var(--accent); }
+  .topbar .who { margin-left: auto; }
+  .topbar .who .who-name { display: none; }
+  .hero-card { padding: 1.4rem; min-height: 0; }
+  .hero-card .actions { gap: .6rem; }
+  .hero-card .actions .btn { padding: .8rem 1.1rem; }
+  /* page headers stack; action buttons wrap below the title */
+  .ov-head { flex-direction: column; align-items: stretch; gap: .9rem; }
+  .ov-head h1 { font-size: 1.9rem; }
+  .ov-head .spacer { display: none; }
+  .ov-head > .btn, .ov-head > button { align-self: flex-start; }
+  .ov-head:has(> .btn) { display: grid; grid-template-columns: 1fr 1fr; }
+  .ov-head:has(> .btn) > div:first-child { grid-column: 1 / -1; }
+  .ov-head:has(> .btn) > .btn { width: 100%; justify-content: center; }
+  .ov-head:has(> .btn) > .btn.primary { grid-column: 1 / -1; }
+  /* sticky footers: hint on its own line, buttons share the row */
+  .eq-foot { flex-wrap: wrap; bottom: -1.2rem; }
+  .eq-foot .hint { flex: 1 1 100%; }
+  .eq-foot .spacer { display: none; }
+  .eq-foot .btn { flex: 1; justify-content: center; }
+  /* exercise detail + preview: smaller photo so the figure stays visible */
+  .player.exd .pip, .player.preview .pip { width: 8.5rem; right: .8rem; bottom: .8rem; }
+  .player.exd .stage .phase, .player.preview .stage .phase { font-size: .95rem; max-width: 60%; white-space: normal; left: .8rem; transform: none; }
+  .panel { padding: 1.2rem; }
+  .topbar h1 { font-size: 1.9rem; }
+  .opt-row .k { min-width: 100%; }
+  .settings-profile { flex-wrap: wrap; }
+}
+.main-nav i svg { width: 1.05em; height: 1.05em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vertical-align: -.15em; }
+@media (max-width: 900px) {
+  .main-nav .btn i svg { width: 1.4rem; height: 1.4rem; }
+  .screen:has(.main-nav) ~ .toast, body:has(.main-nav) .toast { bottom: calc(5.4rem + env(safe-area-inset-bottom, 0px)); }
+}
