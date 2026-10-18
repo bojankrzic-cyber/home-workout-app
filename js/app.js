@@ -63,10 +63,30 @@
   };
   var Voice = {
     v: null,
+    // English voices ranked by how human they sound. iOS lists robotic "Eloquence" and novelty
+    // voices first, so the first en-GB match is often the worst one; premium/enhanced/neural win.
+    list: function () {
+      if (!('speechSynthesis' in window)) return [];
+      return speechSynthesis.getVoices().filter(function (v) { return /^en/i.test(v.lang); })
+        .map(function (v) { return { v: v, score: Voice.score(v) }; })
+        .sort(function (a, b) { return b.score - a.score; });
+    },
+    score: function (v) {
+      var n = v.name, sc = 0;
+      if (/premium/i.test(n)) sc += 60;
+      if (/enhanced/i.test(n)) sc += 45;
+      if (/neural|natural|online/i.test(n)) sc += 55;
+      if (/^Google/i.test(n)) sc += 35;
+      if (/\b(Daniel|Serena|Kate|Martha|Arthur|Oliver|Stephanie|Jamie|Ava|Zoe|Evan|Nathan|Samantha|Allison|Susan|Tom|Karen|Moira|Tessa|Libby|Ryan|Sonia|Aria|Jenny|Guy)\b/.test(n)) sc += 20;
+      if (/\b(Eddy|Flo|Grandma|Grandpa|Reed|Rocko|Sandy|Shelley|Albert|Bad News|Bahh|Bells|Boing|Bubbles|Cellos|Fred|Good News|Jester|Junior|Kathy|Organ|Ralph|Superstar|Trinoids|Whisper|Wobble|Zarvox)\b/.test(n)) sc -= 100;
+      if (/^en-GB/i.test(String(v.lang).replace('_', '-'))) sc += 4; else if (/^en-US/i.test(String(v.lang).replace('_', '-'))) sc += 3;
+      if (v.localService === false) sc += 5;
+      return sc;
+    },
     pick: function () {
-      var vs = speechSynthesis.getVoices();
-      var by = function (re) { return vs.filter(function (v) { return re.test(String(v.lang).replace('_', '-')); })[0]; };
-      Voice.v = by(/^en-GB/i) || by(/^en-US/i) || by(/^en/i) || null;
+      var all = Voice.list(), want = state && state.settings.voiceName;
+      var chosen = want && all.filter(function (x) { return x.v.name === want; })[0];
+      Voice.v = chosen ? chosen.v : all[0] ? all[0].v : null;
     },
     init: function () {
       if (!('speechSynthesis' in window)) return;
@@ -78,10 +98,10 @@
     say: function (text) {
       if (!state || !state.settings.voice || !('speechSynthesis' in window)) return;
       try {
-        if (!this.v) this.pick();
-        var u = new SpeechSynthesisUtterance(text);
+        this.pick();
+        var u = new SpeechSynthesisUtterance(Voice.clean(text));
         if (this.v) u.voice = this.v;
-        u.lang = (this.v && this.v.lang) || 'en-GB'; u.rate = 1.0;
+        u.lang = (this.v && this.v.lang) || 'en-GB'; u.rate = 0.98; u.pitch = 1;
         var busy = speechSynthesis.speaking || speechSynthesis.pending;
         if (busy) speechSynthesis.cancel();
         // Safari drops an utterance queued in the same tick as cancel()
@@ -89,6 +109,15 @@
         if (speechSynthesis.paused) speechSynthesis.resume();
       } catch (e) { /* ignore */ }
     }
+  };
+  // read like a coach, not a label: no dashes, symbols or abbreviations spelled out letter by letter
+  Voice.clean = function (t) {
+    return String(t)
+      .replace(/\bKB\b/g, 'kettlebell').replace(/\bDB\b/g, 'dumbbell').replace(/\bRPM\b/g, 'R P M')
+      .replace(/\bRPE\b/g, 'effort').replace(/\bRIR\b/g, 'reps in reserve').replace(/\bZ(\d)\b/g, 'zone $1')
+      .replace(/(\d+)\s*×/g, '$1 times').replace(/\/side\b/g, ' per side').replace(/(\d+)\s*s\b/g, '$1 seconds')
+      .replace(/(\d+)\s*m\b/g, '$1 meters').replace(/(\d)\s*[–-]\s*(\d)/g, '$1 to $2').replace(/\s*[–—]\s*/g, ', ').replace(/[()]/g, '').replace(/\s*\/\s*/g, ', ')
+      .replace(/\s+/g, ' ').trim();
   };
   Voice.init();
 
@@ -731,6 +760,17 @@
     function tipChip(val, label) {   // the effective state (explicit choice, else the global pilot switch)
       return '<button class="chip focusable' + (Products.enabled(state) === val ? ' on' : '') + '" data-set="tips" data-val=\'' + val + '\'>' + label + '</button>';
     }
+    // pick the coach voice; best-sounding voices first, ★ = premium/enhanced/neural quality
+    function voiceRow() {
+      var all = Voice.list().filter(function (x) { return x.score > -50; }).slice(0, 8);   // novelty/robotic voices hidden
+      if (!all.length) return '';
+      var cur = Voice.v && Voice.v.name, poor = all[0].score < 40;
+      return '<div class="opt-row"><div class="k">Coach voice</div>' + all.map(function (x) {
+        var nm = x.v.name.replace(/\s*\(.*\)\s*$/, '').replace(/^Microsoft\s+|\s+Online.*$/g, '');
+        return '<button class="chip focusable' + (x.v.name === cur ? ' on' : '') + '" data-voice="' + esc(x.v.name) + '">' + (x.score >= 40 ? '★ ' : '') + esc(nm) + ' <small>' + esc(String(x.v.lang).replace('_', '-').slice(3)) + '</small></button>';
+      }).join('') +
+        (poor ? '<span class="hint">Only basic voices on this device. iPhone: Settings → Accessibility → Spoken Content → Voices → English → download a “Premium” or “Enhanced” voice (e.g. Serena, Zoe, Jamie, Evan), then reopen the app.</span>' : '') + '</div>';
+    }
     var voiceInfo = !('speechSynthesis' in window) ? 'This browser has no speech – using beeps.' : Voice.v ? 'Voice: ' + Voice.v.name : 'Uses the device’s default English voice.';
     root.innerHTML = '<div class="screen"><div class="topbar"><h1>Settings</h1><div class="spacer"></div>' +
       '<button class="btn sm ghost focusable who" data-go="profiles">' + avatar(state) + 'Switch person</button></div>' +
@@ -745,6 +785,7 @@
       '<div class="opt-row"><div class="k">Workouts per week</div>' + opt('days', 3, '3× – full body') + opt('days', 4, '4× – upper / lower') + '</div>' +
       '<div class="opt-row"><div class="k">Level</div>' + opt('level', 'beg', 'Beginner') + opt('level', 'mid', 'Intermediate') + opt('level', 'adv', 'Advanced') + '</div>' +
       '<div class="opt-row"><div class="k">Voice coaching</div>' + opt('voice', true, 'On') + opt('voice', false, 'Off') + '<button class="btn sm focusable" id="vTest">▶ Test sound</button><span class="hint">' + esc(voiceInfo) + ' On iPhone, silent mode can mute sound outside workouts.</span></div>' +
+      voiceRow() +
       '<div class="opt-row"><div class="k">Beeps</div>' + opt('beeps', true, 'On') + opt('beeps', false, 'Off') + '</div>' +
       '<div class="opt-row"><div class="k">Nature’s Finest product tips</div>' + tipChip(true, 'On') + tipChip(false, 'Off') +
       '<span class="hint">' + (Products.eligible(state) ? 'Goal-based supplement tips on home and after workouts. Matching happens on this device only.' : 'Shown only to adults – add your age in your profile.') + '</span></div>' +
@@ -760,6 +801,13 @@
       b.onclick = function () {
         s[b.getAttribute('data-set')] = JSON.parse(b.getAttribute('data-val'));
         Store.save();
+        refresh();
+      };
+    });
+    $$('[data-voice]').forEach(function (b) {
+      b.onclick = function () {
+        s.voiceName = b.getAttribute('data-voice'); Store.save(); Voice.pick();
+        Sound.unlock(); Voice.say('Hi ' + state.name + '. I will be your coach today. Three, two, one, go!');
         refresh();
       };
     });
