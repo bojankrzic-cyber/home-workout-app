@@ -210,8 +210,22 @@
   // Real HYROX stations replace home substitutes when the profile owns the equipment
   var STATION = { treadmill_run: { dist: 1000 }, skierg: { dist: 1000 }, sled_push: { dist: 50 }, sled_pull: { dist: 50 }, wall_ball: { reps: [100, 100] } };
 
+  // Joint-friendly swaps: exercises that load a sore joint give way to a gentler option from the same pattern
+  var LIMITS = {
+    knee: ['box_jump', 'burpee_bj', 'db_bulgarian', 'kb_lunge', 'sandbag_lunge', 'bw_lunge', 'jump_rope', 'high_knees', 'treadmill_run', 'bb_squat', 'wall_ball', 'db_thruster', 'mountain_climber'],
+    back: ['bb_deadlift', 'bb_squat', 'kb_swing', 'back_ext', 'situp', 'hang_leg_raise', 'burpee_bj', 'sled_pull', 'k_sled_pull'],
+    shoulder: ['db_shoulder_press', 'kb_press', 'bb_bench', 'pullup', 'dead_hang', 'hang_leg_raise', 'hang_knee_raise', 'wall_ball', 'db_thruster', 'pushup', 'skierg', 'k_ski'],
+    wrist: ['pushup', 'plank', 'mountain_climber', 'burpee_bj', 'bb_bench']
+  };
+  function avoided(state) {
+    var out = {};
+    ((state.settings && state.settings.limits) || []).forEach(function (k) { (LIMITS[k] || []).forEach(function (id) { out[id] = 1; }); });
+    return out;
+  }
+
   // Swap every exercise the profile cannot do for the best owned alternative (same movement pattern).
-  function adapt(src, own, upgrade) {
+  function adapt(src, own, upgrade, avoid) {
+    avoid = avoid || {};
     var used = {}, missing = [];
     var blocks = src.blocks.map(function (b) {
       var items = [];
@@ -220,15 +234,21 @@
         if (upgrade) {
           var list = Exercises.PATTERNS[Exercises.PATTERN_OF[id]] || [id];
           // race stations repeat (8 runs), so reuse is allowed here
-          pick = list.filter(function (x) { return Exercises.available(x, own); })[0] || null;
+          pick = list.filter(function (x) { return Exercises.available(x, own) && !avoid[x]; })[0] ||
+            list.filter(function (x) { return Exercises.available(x, own); })[0] || null;
           if (!pick && Exercises.available(id, own)) pick = id;
         } else {
           pick = Exercises.substitute(id, own, Object.keys(used).filter(function (x) { return x !== id; }));
+          if (pick && avoid[pick]) {
+            var safe = (Exercises.PATTERNS[Exercises.PATTERN_OF[id]] || []).filter(function (x) { return !avoid[x] && !used[x] && Exercises.available(x, own); })[0];
+            if (safe) pick = safe;
+          }
         }
         if (!pick) { missing.push(id); return; }
         var o = JSON.parse(JSON.stringify(it));
         if (pick !== id) {
           o.id = pick; o.swappedFrom = id;
+          if (avoid[id]) o.joint = true;
           var conv = upgrade && src.race && STATION[pick];
           if (conv) { delete o.time; delete o.cardio; o.sets = 1; o.rest = it.rest || 0; if (conv.dist) { delete o.reps; o.dist = conv.dist; } else o.reps = conv.reps.slice(); }
           else if (!o.cardio && !o.time && !o.dist && Exercises.BY_ID[pick].type === 'cardio' && Exercises.BY_ID[pick].unit !== 'kg' && Exercises.BY_ID[pick].unit !== 'bw') {
@@ -239,6 +259,7 @@
           }
           if (o.reps && !o.dist && Exercises.BY_ID[pick].unit === 's') { o.time = 40; delete o.reps; }
         }
+        if (avoid[o.id]) o.caution = true;   // no gentler option with this equipment – flag it instead
         used[pick] = 1;
         items.push(o);
       });
@@ -252,7 +273,9 @@
     if (!src) { key = nextSessionKey(state); src = SESSIONS[key]; }
     var week = blockWeek(state);
     var lvl = state.settings.level;
-    var ad = adapt(src, owned(state), src.race || /^HX/.test(key) || (src.opts && src.opts.type === 'hyrox'));
+    var ad = adapt(src, owned(state), src.race || /^HX/.test(key) || (src.opts && src.opts.type === 'hyrox'), avoided(state));
+    var goal = state.settings.goal || 'general';
+    var conditioning = goal === 'fatloss' || goal === 'endurance' || goal === 'hyrox';
     var blocks = ad.blocks.map(function (b) {
       return {
         title: b.title,
@@ -267,6 +290,18 @@
             if (lvl === 'beg') o.cardio.rounds = Math.max(3, o.cardio.rounds - 2);
             if (week === 4) o.cardio.rounds = Math.max(3, Math.ceil(o.cardio.rounds * 0.6));
           }
+          // the profile's goal shapes the prescription (race simulations stay at race standard)
+          if (!src.race) {
+            var main = /Glavni|Main|Superset A|Moč|Strength/.test(b.title);
+            if (o.reps && goal === 'strength' && main && Exercises.COMPOUND.indexOf(o.id) >= 0) {
+              o.reps = [Math.max(3, o.reps[0] - 3), Math.max(5, o.reps[1] - 3)];
+              if (o.rest) o.rest += 30;
+            }
+            if (o.reps && goal === 'endurance' && !main) o.reps = [o.reps[0] + 3, o.reps[1] + 5];
+            if (o.rest && conditioning) o.rest = Math.max(30, Math.round(o.rest * 0.75 / 15) * 15);
+            if (o.cardio && o.cardio.rounds && conditioning) o.cardio.rounds += 2;
+            if (o.cardio && o.cardio.min && goal === 'endurance') o.cardio.min = Math.round(o.cardio.min * 1.25);
+          }
           if (src.race) {
             var k = HX_SCALE[lvl] || 1;
             if (o.reps) { var n = Math.max(5, Math.round(o.reps[0] * k / 5) * 5); o.reps = [n, n]; }
@@ -279,7 +314,23 @@
         })
       };
     });
-    return { key: key, name: src.name, short: src.short, color: src.color, custom: !!src.custom, race: !!src.race, missing: ad.missing, week: week, weekInfo: WEEK_INFO[week], blocks: blocks };
+    // preferred session length: trim accessory sets first, then main-lift sets, never warm-up or cooldown
+    var cap = state.settings.sessionMin, trimmed = false;
+    if (cap && !src.race) {
+      for (var guard = 0; guard < 40 && estimateMin({ blocks: blocks }) > cap + 3; guard++) {
+        var best = null;
+        [/^(?!.*(Main|Glavni|Warm|Ogrev|Cool|Ohlaj|Stretch|Raztez))/, /Main|Glavni|Strength|Moč/].some(function (re, pass) {
+          blocks.forEach(function (b) {
+            if (!re.test(b.title)) return;
+            b.items.forEach(function (it) { if (it.sets > (pass ? 2 : 1) && (!best || it.sets > best.sets)) best = it; });
+          });
+          return !!best;
+        });
+        if (!best) break;
+        best.sets--; trimmed = true;
+      }
+    }
+    return { key: key, name: src.name, short: src.short, color: src.color, custom: !!src.custom, race: !!src.race, missing: ad.missing, week: week, weekInfo: WEEK_INFO[week], blocks: blocks, goal: goal, trimmed: trimmed ? cap : 0 };
   }
 
   // Flatten to an ordered list of steps (supersets interleaved by round)
