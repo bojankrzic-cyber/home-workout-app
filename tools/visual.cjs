@@ -1,0 +1,36 @@
+// Visual review screenshots of the main screens:  NODE_PATH=$(npm root -g) node tools/visual.cjs outdir
+const { chromium } = require('playwright');
+const path = require('path');
+(async () => {
+  const out = process.argv[2] || '.';
+  const b = await chromium.launch({ executablePath: process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+  const p = await b.newPage({ viewport: { width: 1920, height: 1080 } });
+  const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
+  p.on('dialog', d => d.accept());
+  await p.goto('file://' + path.resolve(__dirname, '../index.html'));
+  await p.evaluate(() => localStorage.clear()); await p.reload(); await p.waitForTimeout(400);
+  await p.keyboard.type('Bojan'); await p.click('#pSave'); await p.waitForTimeout(300); await p.waitForTimeout(900);
+  await p.screenshot({ path: out + '/v1-home.png' });
+  await p.evaluate(() => document.querySelector('.screen').scrollTo(0, 900)); await p.waitForTimeout(400);
+  await p.screenshot({ path: out + '/v2-home-cards.png' });
+  await p.goto('file://' + path.resolve(__dirname, '../index.html')); await p.waitForTimeout(500);
+  await p.click('[data-go="library"]'); await p.waitForTimeout(700);
+  await p.screenshot({ path: out + '/v3-library.png' });
+  await p.focus('.lib-card'); await p.waitForTimeout(900);
+  await p.screenshot({ path: out + '/v4-library-focus.png' });
+  await p.click('.lib-card:nth-child(6)'); await p.waitForTimeout(1500);
+  await p.screenshot({ path: out + '/v5-exercise.png' });
+  await p.click('#exPip'); await p.waitForTimeout(400);
+  await p.screenshot({ path: out + '/v6-exercise-photo.png' });
+  await p.goto('file://' + path.resolve(__dirname, '../index.html')); await p.waitForTimeout(500);
+  await p.click('[data-go="player"]'); await p.waitForTimeout(400); await p.click('#wDone'); await p.waitForTimeout(1800);
+  await p.screenshot({ path: out + '/v7-player.png' });
+  await p.goto('file://' + path.resolve(__dirname, '../index.html')); await p.waitForTimeout(500);
+  await p.click('[data-go="preview"]'); await p.waitForTimeout(400); await p.click('#pvNext'); await p.waitForTimeout(1500);
+  await p.screenshot({ path: out + '/v8-preview.png' });
+  await p.goto('file://' + path.resolve(__dirname, '../index.html')); await p.waitForTimeout(500);
+  await p.click('.who'); await p.waitForTimeout(800);
+  await p.screenshot({ path: out + '/v9-picker.png' });
+  console.log(errs.length ? 'ERRORS:\n' + errs.join('\n') : 'no errors');
+  await b.close();
+})();
