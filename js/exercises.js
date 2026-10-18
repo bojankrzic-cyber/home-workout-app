@@ -15,31 +15,31 @@
 
   // Equipment catalogue. `icon` is drawn by Figure.icon with the same renderer as the animations.
   var EQUIP = {
-    bike: { name: 'Sobno kolo', group: 'kardio', desc: 'Ogrevanje, cona 2, intervali, HYROX tek', icon: { vb: [-82, -134, 196, 146], scene: [{ type: 'bike', sx: -28, sy: -96, cx: 0, cy: -32, bx: 38, by: -112 }] } },
-    rower: { name: 'Veslač', group: 'kardio', desc: 'Tehnika, intervali, 1000 m', icon: { vb: [-118, -86, 268, 98], scene: [{ type: 'rower', fx: 60 }] } },
-    treadmill: { name: 'Tekalna steza', group: 'kardio', desc: 'Tek, HYROX 1 km', icon: { vb: [-76, -160, 196, 172], scene: [{ type: 'treadmill', x0: -64, x1: 70 }] } },
-    skierg: { name: 'SkiErg', group: 'kardio', desc: 'HYROX SkiErg, intervali', icon: { vb: [-56, -232, 116, 244], scene: [{ type: 'skierg', x: 0 }] } },
-    db: { name: 'Uteži (dumbbells)', group: 'utezi', desc: 'Potiski, veslanje, RDL, thrusterji', icon: { vb: [-64, -96, 128, 108], noFloor: true, props: [{ t: 'db', x: -4, y: -26 }, { t: 'db', x: 10, y: -66, k: 0.75 }] } },
-    kb: { name: 'Kettlebelli', group: 'utezi', desc: 'Swing, goblet počep, nošenje', icon: { vb: [-70, -82, 140, 94], props: [{ t: 'kb', x: -26, y: -28 }, { t: 'kb', x: 32, y: -22, k: 0.75 }] } },
-    barbell: { name: 'Olimpijska palica + stojalo', group: 'utezi', desc: 'Počep, mrtvi dvig, potisk s palico', icon: { vb: [-100, -92, 200, 104], props: [{ t: 'barbell', x: 0, y: -34 }] } },
-    sandbag: { name: 'Sandbag', group: 'utezi', desc: 'HYROX izpadni koraki, nošenje', icon: { vb: [-64, -72, 128, 84], props: [{ t: 'bag', x: 0, y: -20 }] } },
-    wallball: { name: 'Wall ball (medicinka)', group: 'utezi', desc: 'HYROX wall balls (potrebuje steno)', icon: { vb: [-50, -72, 100, 84], props: [{ t: 'ball', x: 0, y: -30 }] } },
-    bench: { name: 'NOHrD klop', group: 'klopi', desc: 'Ravna / poševna klop, opora', icon: { vb: [-82, -86, 180, 98], scene: [{ type: 'bench', x: -62, len: 118 }] } },
-    tria: { name: 'NOHrD TriaTrainer', group: 'klopi', desc: 'Trebušnjaki in iztegovanje hrbta', icon: { vb: [-56, -92, 176, 104], scene: [{ type: 'tria_abs', x: -40 }] } },
-    wall: { name: 'Stena: drog + dvig nog', group: 'klopi', desc: 'Zgibi, dvig nog, visenje', icon: { vb: [-92, -252, 160, 264], scene: [{ type: 'wall', x: -48, y: -226, bx: 46 }] } },
-    box: { name: 'Plyo škatla', group: 'klopi', desc: 'Skoki na škatlo, stopanje', icon: { vb: [-60, -74, 120, 86], scene: [{ type: 'box', x: -32, w: 64, h: 54 }] } },
-    kinesis: { name: 'Technogym Kinesis Personal', group: 'kabli', desc: 'Kabelske vaje, upor 0–20', icon: { vb: [-62, -222, 124, 234], scene: [{ type: 'kinesis', x: 0, pulleys: [[-24, -186], [-24, -112], [-24, -36]] }] } },
-    bands: { name: 'Elastike', group: 'kabli', desc: 'Veslanje, triceps, ogrevanje', icon: { vb: [-62, -76, 124, 88], noFloor: true, props: [{ t: 'band', x: 0, y: -34 }] } },
-    sled: { name: 'Sani (sled)', group: 'hyrox', desc: 'HYROX sled push in sled pull', icon: { vb: [-60, -124, 150, 136], scene: [{ type: 'sled', x: -24 }] } },
-    rope: { name: 'Kolebnica', group: 'hyrox', desc: 'Kondicija, ogrevanje', icon: { vb: [-62, -110, 124, 122], noFloor: true, props: [{ t: 'rope', x: 0, y: -56 }] } },
-    floor: { name: 'Lastna teža', group: 'telo', desc: 'Vedno na voljo', always: true, icon: { vb: [-60, -196, 120, 208], pose: { t: 180, lN: [0, 0], aN: [0, 0], pin: ['fN', 0, -6] }, focus: ['torso'] } }
+    bike: { name: 'Exercise bike', group: 'kardio', desc: 'Warm-up, Zone 2, intervals, HYROX runs', icon: { vb: [-82, -134, 196, 146], scene: [{ type: 'bike', sx: -28, sy: -96, cx: 0, cy: -32, bx: 38, by: -112 }] } },
+    rower: { name: 'Rower', group: 'kardio', desc: 'Technique, intervals, 1000 m', icon: { vb: [-118, -86, 268, 98], scene: [{ type: 'rower', fx: 60 }] } },
+    treadmill: { name: 'Treadmill', group: 'kardio', desc: 'Running, HYROX 1 km', icon: { vb: [-76, -160, 196, 172], scene: [{ type: 'treadmill', x0: -64, x1: 70 }] } },
+    skierg: { name: 'SkiErg', group: 'kardio', desc: 'HYROX SkiErg, intervals', icon: { vb: [-56, -232, 116, 244], scene: [{ type: 'skierg', x: 0 }] } },
+    db: { name: 'Dumbbells', group: 'utezi', desc: 'Presses, rows, RDLs, thrusters', icon: { vb: [-64, -96, 128, 108], noFloor: true, props: [{ t: 'db', x: -4, y: -26 }, { t: 'db', x: 10, y: -66, k: 0.75 }] } },
+    kb: { name: 'Kettlebells', group: 'utezi', desc: 'Swings, goblet squats, carries', icon: { vb: [-70, -82, 140, 94], props: [{ t: 'kb', x: -26, y: -28 }, { t: 'kb', x: 32, y: -22, k: 0.75 }] } },
+    barbell: { name: 'Olympic barbell + rack', group: 'utezi', desc: 'Squats, deadlifts, barbell presses', icon: { vb: [-100, -92, 200, 104], props: [{ t: 'barbell', x: 0, y: -34 }] } },
+    sandbag: { name: 'Sandbag', group: 'utezi', desc: 'HYROX Sandbag Lunges, carries', icon: { vb: [-64, -72, 128, 84], props: [{ t: 'bag', x: 0, y: -20 }] } },
+    wallball: { name: 'Wall ball (med ball)', group: 'utezi', desc: 'HYROX Wall Balls (needs a wall)', icon: { vb: [-50, -72, 100, 84], props: [{ t: 'ball', x: 0, y: -30 }] } },
+    bench: { name: 'NOHrD bench', group: 'klopi', desc: 'Flat / incline bench, support', icon: { vb: [-82, -86, 180, 98], scene: [{ type: 'bench', x: -62, len: 118 }] } },
+    tria: { name: 'NOHrD TriaTrainer', group: 'klopi', desc: 'Sit-ups and back extensions', icon: { vb: [-56, -92, 176, 104], scene: [{ type: 'tria_abs', x: -40 }] } },
+    wall: { name: 'Wall station: pull-up bar + leg raise', group: 'klopi', desc: 'Pull-ups, leg raises, hangs', icon: { vb: [-92, -252, 160, 264], scene: [{ type: 'wall', x: -48, y: -226, bx: 46 }] } },
+    box: { name: 'Plyo box', group: 'klopi', desc: 'Box jumps, step-ups', icon: { vb: [-60, -74, 120, 86], scene: [{ type: 'box', x: -32, w: 64, h: 54 }] } },
+    kinesis: { name: 'Technogym Kinesis Personal', group: 'kabli', desc: 'Cable exercises, resistance 0–20', icon: { vb: [-62, -222, 124, 234], scene: [{ type: 'kinesis', x: 0, pulleys: [[-24, -186], [-24, -112], [-24, -36]] }] } },
+    bands: { name: 'Resistance bands', group: 'kabli', desc: 'Rows, triceps, warm-ups', icon: { vb: [-62, -76, 124, 88], noFloor: true, props: [{ t: 'band', x: 0, y: -34 }] } },
+    sled: { name: 'Sled', group: 'hyrox', desc: 'HYROX Sled Push and Sled Pull', icon: { vb: [-60, -124, 150, 136], scene: [{ type: 'sled', x: -24 }] } },
+    rope: { name: 'Jump rope', group: 'hyrox', desc: 'Conditioning, warm-ups', icon: { vb: [-62, -110, 124, 122], noFloor: true, props: [{ t: 'rope', x: 0, y: -56 }] } },
+    floor: { name: 'Bodyweight', group: 'telo', desc: 'Always available', always: true, icon: { vb: [-60, -196, 120, 208], pose: { t: 180, lN: [0, 0], aN: [0, 0], pin: ['fN', 0, -6] }, focus: ['torso'] } }
   };
   var EQUIP_GROUPS = [
-    { id: 'kardio', name: 'Kardio naprave' },
-    { id: 'utezi', name: 'Proste uteži' },
-    { id: 'klopi', name: 'Klopi, stene, škatle' },
-    { id: 'kabli', name: 'Kabli in elastike' },
-    { id: 'hyrox', name: 'HYROX in kondicija' }
+    { id: 'kardio', name: 'Cardio machines' },
+    { id: 'utezi', name: 'Free weights' },
+    { id: 'klopi', name: 'Benches, wall & boxes' },
+    { id: 'kabli', name: 'Cables & bands' },
+    { id: 'hyrox', name: 'HYROX & conditioning' }
   ];
   var HOME_GYM = ['bike', 'rower', 'kb', 'db', 'tria', 'bench', 'kinesis', 'wall'];
 
@@ -47,7 +47,7 @@
   var BIKE = { type: 'bike', sx: -28, sy: -96, cx: 0, cy: -32, bx: 38, by: -112 };
   function bikeAnim(period) {
     return {
-      scene: [BIKE], period: period, label: 'Enakomeren krog pedala',
+      scene: [BIKE], period: period, label: 'Smooth, even pedal stroke',
       focus: ['thigh', 'shin'],
       fn: function (u) {
         var a = 180 - u * 360;
@@ -75,11 +75,11 @@
     scene: [{ type: 'rower', fx: FX }],
     focus: ['thigh', 'torso', 'upper'],
     frames: [
-      { d: 0.42, l: 'Noge potisnejo', p: rowPose(FX - 60, 155, [FX + 6, -56]) },
-      { d: 0.42, l: 'Trup nazaj, roke potegnejo', p: rowPose(FX - 89, 160, [FX - 22, -58]) },
-      { d: 0.18, l: 'Zaključek', p: rowPose(FX - 91, 198, [FX - 86, -62]) },
-      { d: 0.55, l: 'Roke ven', p: rowPose(FX - 91, 198, [FX - 86, -62]) },
-      { d: 0.75, l: 'Trup naprej, počasi nazaj', p: rowPose(FX - 89, 160, [FX - 24, -57]) }
+      { d: 0.42, l: 'Legs drive', p: rowPose(FX - 60, 155, [FX + 6, -56]) },
+      { d: 0.42, l: 'Lean back, arms pull', p: rowPose(FX - 89, 160, [FX - 22, -58]) },
+      { d: 0.18, l: 'Finish', p: rowPose(FX - 91, 198, [FX - 86, -62]) },
+      { d: 0.55, l: 'Arms away', p: rowPose(FX - 91, 198, [FX - 86, -62]) },
+      { d: 0.75, l: 'Body over, slow recovery', p: rowPose(FX - 89, 160, [FX - 24, -57]) }
     ]
   };
 
@@ -181,7 +181,7 @@
   // Standing heavy climb on the bike (sled-push substitute): hips out of the saddle, bob with the stroke
   function bikeStandAnim(period) {
     return {
-      scene: [BIKE], period: period, label: 'Stoje, težak upor – potiskaj',
+      scene: [BIKE], period: period, label: 'Out of the saddle, heavy – drive',
       focus: ['thigh', 'glute'],
       fn: function (u) {
         var a = 180 - u * 360;
@@ -199,7 +199,7 @@
 
   // Farmer's carry: walking cycle in place (treadmill view), bells hang at the sides
   var carryAnim = {
-    hold: { N: 'kb', F: 'kb' }, focus: ['fore', 'torso', 'glute'], period: 1.1, label: 'Hodi visoko, ramena dol',
+    hold: { N: 'kb', F: 'kb' }, focus: ['fore', 'torso', 'glute'], period: 1.1, label: 'Walk tall, shoulders down',
     fn: function (u) {
       function foot(ph) {
         ph = ((ph % 1) + 1) % 1;
@@ -237,7 +237,7 @@
     var q = (ph - 0.42) / 0.58; return [-stride + 2 * stride * q, base - lift * Math.sin(q * Math.PI)];
   }
   var treadAnim = {
-    scene: [TREAD], focus: ['thigh', 'shin'], period: 0.72, label: 'Kratki hitri koraki, pristanek pod boki',
+    scene: [TREAD], focus: ['thigh', 'shin'], period: 0.72, label: 'Short quick steps, land under hips',
     fn: function (u) {
       var sw = Math.sin(u * Math.PI * 2);
       return {
@@ -253,7 +253,7 @@
   var SKI = { type: 'skierg', x: 96 };
   var SLED_P = { type: 'sled', x: 30 };
   var sledPushAnim = {
-    scene: [SLED_P], focus: ['thigh', 'glute'], period: 1.3, label: 'Nizko, poganjaj s celimi stopali',
+    scene: [SLED_P], focus: ['thigh', 'glute'], period: 1.3, label: 'Stay low, drive with full feet',
     fn: function (u) {
       return {
         r: [-48, -80 + 2 * Math.cos(u * Math.PI * 4)], t: 124, hd: 30,
@@ -278,91 +278,91 @@
   var LIST = [
     // ---------------------------------------------------------------- CARDIO
     {
-      id: 'bike_z2', name: 'Sobno kolo – ogrevanje / cona 2', equip: ['bike'], type: 'cardio', unit: 'min',
-      muscles: 'Srce, noge', tempo: '80–90 obratov/min',
-      cues: ['Sedež na višini kolka – koleno ostane rahlo pokrčeno spodaj', 'Ramena sproščena, trup nagnjen ~30°', 'Tempo: lahko še govoriš v celih stavkih (RPE 4–5)'],
-      mistakes: ['Prenizek sedež (bolečina v kolenu)', 'Zibanje bokov na sedežu'],
+      id: 'bike_z2', name: 'Bike – warm-up / Zone 2', equip: ['bike'], type: 'cardio', unit: 'min',
+      muscles: 'Cardio, legs', tempo: '80–90 RPM',
+      cues: ['Saddle at hip height – slight knee bend at the bottom', 'Shoulders relaxed, torso leaning ~30°', 'Pace: you can still talk in full sentences (RPE 4–5)'],
+      mistakes: ['Saddle too low (knee pain)', 'Hips rocking on the saddle'],
       anim: bikeAnim(0.75)
     },
     {
-      id: 'bike_hiit', name: 'Sobno kolo – intervali', equip: ['bike'], type: 'cardio', unit: 'min',
-      muscles: 'Srce, noge', tempo: '100+ obratov/min v sprintu',
-      cues: ['Sprint 20 s maksimalno, 40 s lahkotno', 'Upor zvišaj, da kadenca ne zleti čez 110', 'Trup miren, moč iz kolkov'],
-      mistakes: ['Premajhen upor – samo vrtenje brez sile', 'Zadrževanje diha'],
+      id: 'bike_hiit', name: 'Bike – intervals', equip: ['bike'], type: 'cardio', unit: 'min',
+      muscles: 'Cardio, legs', tempo: '100+ RPM on sprints',
+      cues: ['Sprint 20 s all-out, 40 s easy', 'Add resistance so cadence stays under 110', 'Quiet upper body, power from the hips'],
+      mistakes: ['Too little resistance – spinning with no force', 'Holding your breath'],
       anim: bikeAnim(0.55)
     },
     {
-      id: 'row_steady', name: 'Veslač – tehnika / enakomerno', equip: ['rower'], type: 'cardio', unit: 'min',
-      muscles: 'Noge, hrbet, roke', tempo: '20–24 zaveslajev/min',
-      cues: ['Zaporedje: NOGE → TRUP → ROKE, nazaj ROKE → TRUP → NOGE', 'Razmerje 1 : 2 – potisk hiter, povratek počasen', 'Golen navpično na začetku, hrbet raven'],
-      mistakes: ['Vlečenje z rokami pred nogami', 'Prevelik nagib nazaj na koncu'],
+      id: 'row_steady', name: 'Rowing – technique / steady', equip: ['rower'], type: 'cardio', unit: 'min',
+      muscles: 'Legs, back, arms', tempo: '20–24 strokes/min',
+      cues: ['Sequence: LEGS → BODY → ARMS, return ARMS → BODY → LEGS', '1:2 ratio – fast drive, slow recovery', 'Shins vertical at the catch, back flat'],
+      mistakes: ['Pulling with the arms before the legs', 'Leaning back too far at the finish'],
       anim: ROW_ANIM, speed: 0.95
     },
     {
-      id: 'row_hiit', name: 'Veslač – intervali', equip: ['rower'], type: 'cardio', unit: 'min',
-      muscles: 'Celo telo, srce', tempo: '26–30 zaveslajev/min v intervalu',
-      cues: ['30 s močno, 30 s lahkotno', 'Moč pride iz potiska nog, ne iz rok', 'Glej 500 m čas – drži ga stabilnega med serijami'],
-      mistakes: ['Hitra frekvenca brez sile', 'Krivljenje hrbta na začetku zaveslaja'],
+      id: 'row_hiit', name: 'Rowing – intervals', equip: ['rower'], type: 'cardio', unit: 'min',
+      muscles: 'Full body, heart', tempo: '26–30 strokes/min on intervals',
+      cues: ['30 s hard, 30 s easy', 'Power comes from the leg drive, not the arms', 'Watch your 500 m split – keep it steady across sets'],
+      mistakes: ['High stroke rate with no power', 'Rounding the back at the catch'],
       anim: ROW_ANIM, speed: 1.25
     },
 
     // ------------------------------------------------------------ KETTLEBELL
     {
       id: 'kb_swing', name: 'Kettlebell swing', equip: ['kb'], type: 'strength', unit: 'kg', load: 16, inc: 4,
-      muscles: 'Zadnjica, zadnje stegenske, trup', tempo: 'Eksplozivno',
-      cues: ['Zgib v kolkih (hinge), NE počep – boki gredo nazaj', 'Eksplozivni potisk bokov, zadnjica stisnjena na vrhu', 'Roke so samo vrvi – KB do višine prsi', 'Izdih na vrhu, trebušne napete'],
-      mistakes: ['Dviganje z rokami', 'Zaokrožen hrbet spodaj', 'Nagib nazaj na vrhu'],
+      muscles: 'Glutes, hamstrings, core', tempo: 'Explosive',
+      cues: ['Hinge, DON\'T squat – hips go back', 'Explosive hip drive, glutes squeezed at the top', 'Arms are just ropes – KB to chest height', 'Exhale at the top, abs braced'],
+      mistakes: ['Lifting with the arms', 'Rounded back at the bottom', 'Leaning back at the top'],
       anim: {
         scene: [], hold: { N: 'kb' }, focus: ['glute', 'thigh'],
         frames: [
-          { d: 0.55, l: 'Zgib – boki nazaj', p: swingTop },
-          { d: 0.12, l: 'Spodaj', p: swingBot },
-          { d: 0.5, l: 'POTISK BOKOV', p: swingBot },
-          { d: 0.15, l: 'Vrh – stisni zadnjico', p: swingTop }
+          { d: 0.55, l: 'Hinge – hips back', p: swingTop },
+          { d: 0.12, l: 'Bottom', p: swingBot },
+          { d: 0.5, l: 'HIP DRIVE', p: swingBot },
+          { d: 0.15, l: 'Top – squeeze glutes', p: swingTop }
         ]
       }
     },
     {
-      id: 'kb_goblet_squat', name: 'Goblet počep s kettlebellom', equip: ['kb'], type: 'strength', unit: 'kg', load: 16, inc: 4,
-      muscles: 'Kvadricepsi, zadnjica, trup', tempo: '3-1-1',
-      cues: ['KB ob prsnici, komolci navzdol', 'Kolena sledijo prstom, peta ostane na tleh', 'Spusti se počasi 3 s, kratka pavza spodaj', 'Prsni koš pokonci'],
-      mistakes: ['Pete se dvigujejo', 'Kolena padajo navznoter', 'Plitev počep'],
+      id: 'kb_goblet_squat', name: 'Goblet squat', equip: ['kb'], type: 'strength', unit: 'kg', load: 16, inc: 4,
+      muscles: 'Quads, glutes, core', tempo: '3-1-1',
+      cues: ['KB at the chest, elbows down', 'Knees track over toes, heels stay down', 'Lower for 3 s, brief pause at the bottom', 'Chest up'],
+      mistakes: ['Heels lifting', 'Knees caving in', 'Shallow squat'],
       anim: {
         hold: { N: 'kb' }, focus: ['thigh', 'glute'],
         frames: [
-          { d: 2.2, l: 'Spuščaj 3 s', p: gobTop },
-          { d: 0.5, l: 'Pavza spodaj', p: gobBot },
-          { d: 1.0, l: 'Potisni gor', p: gobBot },
-          { d: 0.6, l: 'Stoj vzravnano', p: gobTop }
+          { d: 2.2, l: 'Lower for 3 s', p: gobTop },
+          { d: 0.5, l: 'Pause at bottom', p: gobBot },
+          { d: 1.0, l: 'Drive up', p: gobBot },
+          { d: 0.6, l: 'Stand tall', p: gobTop }
         ]
       }
     },
     {
-      id: 'kb_deadlift', name: 'Mrtvi dvig s kettlebellom', equip: ['kb'], type: 'strength', unit: 'kg', load: 24, inc: 4,
-      muscles: 'Zadnjica, zadnje stegenske, hrbet', tempo: '2-0-1',
-      cues: ['KB med stopali, stopala nekoliko širše od bokov', 'Boki nazaj, hrbet nevtralen, lopatice "v žepe"', 'Potisni tla stran in iztegni boke'],
-      mistakes: ['Okrogel hrbet', 'Vlečenje z rokami'],
+      id: 'kb_deadlift', name: 'Kettlebell deadlift', equip: ['kb'], type: 'strength', unit: 'kg', load: 24, inc: 4,
+      muscles: 'Glutes, hamstrings, back', tempo: '2-0-1',
+      cues: ['KB between the feet, feet slightly wider than hips', 'Hips back, neutral spine, shoulder blades "in your back pockets"', 'Push the floor away and lock out the hips'],
+      mistakes: ['Rounded back', 'Pulling with the arms'],
       anim: {
         hold: { N: 'kb' }, focus: ['glute', 'thigh', 'torso'],
         frames: [
-          { d: 1.6, l: 'Spusti – boki nazaj', p: dlTop },
-          { d: 0.4, l: 'Napni hrbet', p: dlBot },
-          { d: 1.0, l: 'Potisni tla', p: dlBot },
-          { d: 0.6, l: 'Vrh', p: dlTop }
+          { d: 1.6, l: 'Lower – hips back', p: dlTop },
+          { d: 0.4, l: 'Brace your back', p: dlBot },
+          { d: 1.0, l: 'Push the floor away', p: dlBot },
+          { d: 0.6, l: 'Top', p: dlTop }
         ]
       }
     },
     {
-      id: 'kb_press', name: 'Potisk kettlebella nad glavo (enoročno)', equip: ['kb'], type: 'strength', unit: 'kg', load: 12, inc: 4, perSide: true,
-      muscles: 'Ramena, triceps, trup', tempo: '1-1-2',
-      cues: ['Začni v "rack" poziciji – KB na podlakti, zapestje ravno', 'Stisni zadnjico in trebušne, rebra dol', 'Potisni navpično, biceps ob uho'],
-      mistakes: ['Prekomerna ukrivljenost ledvenega dela', 'Upognjeno zapestje'],
+      id: 'kb_press', name: 'Single-arm kettlebell overhead press', equip: ['kb'], type: 'strength', unit: 'kg', load: 12, inc: 4, perSide: true,
+      muscles: 'Shoulders, triceps, core', tempo: '1-1-2',
+      cues: ['Start in the rack position – KB on the forearm, wrist straight', 'Squeeze glutes and abs, ribs down', 'Press straight up, biceps by the ear'],
+      mistakes: ['Excessive lower-back arch', 'Bent wrist'],
       anim: {
         hold: { N: 'kb' }, focus: ['upper', 'fore'],
         frames: [
-          { d: 0.9, l: 'Potisni gor', p: pressRack },
-          { d: 0.5, l: 'Zakleni zgoraj', p: pressTop },
-          { d: 1.6, l: 'Kontrolirano dol', p: pressTop },
+          { d: 0.9, l: 'Drive up', p: pressRack },
+          { d: 0.5, l: 'Lock out', p: pressTop },
+          { d: 1.6, l: 'Controlled down', p: pressTop },
           { d: 0.4, l: 'Rack', p: pressRack }
         ]
       }
@@ -370,136 +370,136 @@
 
     // ------------------------------------------------------------ DUMBBELLS
     {
-      id: 'db_bench', name: 'Potisk z utežmi na klopi', equip: ['db', 'bench'], type: 'strength', unit: 'kg', load: 16, inc: 2,
-      muscles: 'Prsa, triceps, sprednja rama', tempo: '3-1-1',
-      cues: ['Lopatice skupaj in navzdol, rahel lok', 'Komolci ~45° od trupa', 'Spusti 3 s do višine prsi, potisni gor in rahlo skupaj'],
-      mistakes: ['Komolci pod 90° na stran', 'Odbijanje uteži od prsi'],
+      id: 'db_bench', name: 'Dumbbell bench press', equip: ['db', 'bench'], type: 'strength', unit: 'kg', load: 16, inc: 2,
+      muscles: 'Chest, triceps, front delts', tempo: '3-1-1',
+      cues: ['Shoulder blades back and down, slight arch', 'Elbows ~45° from the torso', 'Lower for 3 s to chest level, press up and slightly together'],
+      mistakes: ['Elbows flared out to 90°', 'Bouncing the weights off the chest'],
       anim: {
         scene: [BENCH_FLAT], hold: { N: 'db', F: 'db' }, focus: ['torso', 'upper'],
         frames: [
-          { d: 2.2, l: 'Spuščaj 3 s', p: benchPose([172, 172]) },
-          { d: 0.4, l: 'Pavza', p: benchPose([62, 178]) },
-          { d: 0.9, l: 'Potisni', p: benchPose([62, 178]) },
-          { d: 0.5, l: 'Vrh', p: benchPose([172, 172]) }
+          { d: 2.2, l: 'Lower for 3 s', p: benchPose([172, 172]) },
+          { d: 0.4, l: 'Pause', p: benchPose([62, 178]) },
+          { d: 0.9, l: 'Press', p: benchPose([62, 178]) },
+          { d: 0.5, l: 'Top', p: benchPose([172, 172]) }
         ]
       }
     },
     {
-      id: 'db_incline', name: 'Potisk z utežmi na poševni klopi', equip: ['db', 'bench'], type: 'strength', unit: 'kg', load: 14, inc: 2,
-      muscles: 'Zgornja prsa, rame, triceps', tempo: '3-0-1',
-      cues: ['Naslon na ~30–45°', 'Uteži potisni navpično nad zgornji del prsi', 'Lopatice prilepljene na klop'],
-      mistakes: ['Prestrm naklon (postane potisk za rame)', 'Dvigovanje zadnjice'],
+      id: 'db_incline', name: 'Incline dumbbell press', equip: ['db', 'bench'], type: 'strength', unit: 'kg', load: 14, inc: 2,
+      muscles: 'Upper chest, shoulders, triceps', tempo: '3-0-1',
+      cues: ['Backrest at ~30–45°', 'Press straight up over the upper chest', 'Shoulder blades pinned to the bench'],
+      mistakes: ['Incline too steep (turns into a shoulder press)', 'Hips lifting off the bench'],
       anim: {
         scene: [BENCH_INC], hold: { N: 'db', F: 'db' }, focus: ['torso', 'upper'],
         frames: [
-          { d: 2.2, l: 'Spuščaj', p: incPose([178, 178]) },
-          { d: 0.3, l: 'Spodaj', p: incPose([28, 182]) },
-          { d: 0.9, l: 'Potisni', p: incPose([28, 182]) },
-          { d: 0.5, l: 'Vrh', p: incPose([178, 178]) }
+          { d: 2.2, l: 'Lower', p: incPose([178, 178]) },
+          { d: 0.3, l: 'Bottom', p: incPose([28, 182]) },
+          { d: 0.9, l: 'Press', p: incPose([28, 182]) },
+          { d: 0.5, l: 'Top', p: incPose([178, 178]) }
         ]
       }
     },
     {
-      id: 'db_row', name: 'Enoročno veslanje z utežjo', equip: ['db', 'bench'], type: 'strength', unit: 'kg', load: 20, inc: 2, perSide: true,
-      muscles: 'Široka hrbtna, romboidi, biceps', tempo: '1-1-2',
-      cues: ['Koleno in dlan na klopi, hrbet raven kot miza', 'Komolec vleci proti boku (ne proti rami)', 'Na vrhu stisni lopatico, nato počasi dol'],
-      mistakes: ['Rotacija trupa', 'Vlečenje z bicepsom'],
+      id: 'db_row', name: 'Single-arm dumbbell row', equip: ['db', 'bench'], type: 'strength', unit: 'kg', load: 20, inc: 2, perSide: true,
+      muscles: 'Lats, rhomboids, biceps', tempo: '1-1-2',
+      cues: ['Knee and hand on the bench, back flat as a table', 'Drive the elbow toward the hip (not the shoulder)', 'Squeeze the shoulder blade at the top, then lower slowly'],
+      mistakes: ['Twisting the torso', 'Pulling with the biceps'],
       anim: {
         scene: [BENCH_ROW], hold: { N: 'db' }, focus: ['torso', 'upper'],
         frames: [
-          { d: 0.9, l: 'Vleci komolec k boku', p: rowDb([0, 0]) },
-          { d: 0.5, l: 'Stisni lopatico', p: rowDb([-100, 10]) },
-          { d: 1.5, l: 'Kontrolirano dol', p: rowDb([-100, 10]) },
-          { d: 0.3, l: 'Iztegni', p: rowDb([0, 0]) }
+          { d: 0.9, l: 'Drive elbow to hip', p: rowDb([0, 0]) },
+          { d: 0.5, l: 'Squeeze shoulder blade', p: rowDb([-100, 10]) },
+          { d: 1.5, l: 'Controlled down', p: rowDb([-100, 10]) },
+          { d: 0.3, l: 'Extend', p: rowDb([0, 0]) }
         ]
       }
     },
     {
-      id: 'db_rdl', name: 'Romunski mrtvi dvig z utežmi', equip: ['db'], type: 'strength', unit: 'kg', load: 20, inc: 2,
-      muscles: 'Zadnje stegenske, zadnjica, hrbet', tempo: '3-0-1',
-      cues: ['Kolena rahlo pokrčena in fiksna', 'Uteži drsijo ob stegnih, boki gredo nazaj', 'Spusti do raztega zadnje lože (pod kolena), nato potisni boke naprej'],
-      mistakes: ['Počep namesto zgiba', 'Zaokrožen hrbet', 'Uteži daleč od nog'],
+      id: 'db_rdl', name: 'Dumbbell Romanian deadlift', equip: ['db'], type: 'strength', unit: 'kg', load: 20, inc: 2,
+      muscles: 'Hamstrings, glutes, back', tempo: '3-0-1',
+      cues: ['Knees slightly bent and locked in place', 'Weights slide down the thighs, hips go back', 'Lower to a hamstring stretch (below the knees), then drive the hips forward'],
+      mistakes: ['Squatting instead of hinging', 'Rounded back', 'Weights drifting away from the legs'],
       anim: {
         hold: { N: 'db', F: 'db' }, focus: ['thigh', 'glute'],
         frames: [
-          { d: 2.4, l: 'Boki nazaj 3 s', p: rdlTop },
-          { d: 0.3, l: 'Razteg', p: rdlBot },
-          { d: 1.0, l: 'Boki naprej', p: rdlBot },
-          { d: 0.5, l: 'Vrh – stisni', p: rdlTop }
+          { d: 2.4, l: 'Hips back for 3 s', p: rdlTop },
+          { d: 0.3, l: 'Stretch', p: rdlBot },
+          { d: 1.0, l: 'Hips forward', p: rdlBot },
+          { d: 0.5, l: 'Top – squeeze', p: rdlTop }
         ]
       }
     },
     {
-      id: 'db_bulgarian', name: 'Bolgarski počep (zadnja noga na klopi)', equip: ['db', 'bench'], type: 'strength', unit: 'kg', load: 10, inc: 2, perSide: true,
-      muscles: 'Kvadricepsi, zadnjica', tempo: '2-1-1',
-      cues: ['Zadnja noga z narti na klopi', 'Spusti se navpično – zadnje koleno proti tlom', 'Teža na sprednji peti, trup rahlo naprej'],
-      mistakes: ['Sprednja noga preblizu klopi', 'Koleno pada navznoter'],
+      id: 'db_bulgarian', name: 'Bulgarian split squat', equip: ['db', 'bench'], type: 'strength', unit: 'kg', load: 10, inc: 2, perSide: true,
+      muscles: 'Quads, glutes', tempo: '2-1-1',
+      cues: ['Rear foot laces-down on the bench', 'Drop straight down – back knee toward the floor', 'Weight on the front heel, torso slightly forward'],
+      mistakes: ['Front foot too close to the bench', 'Knee caving in'],
       anim: {
         scene: [BSS_BENCH], hold: { N: 'db', F: 'db' }, focus: ['thigh', 'glute'],
         frames: [
-          { d: 1.8, l: 'Spuščaj', p: bss([-12, -86]) },
-          { d: 0.4, l: 'Spodaj', p: bss([-24, -52]) },
-          { d: 1.0, l: 'Potisni skozi peto', p: bss([-24, -52]) },
-          { d: 0.4, l: 'Gor', p: bss([-12, -86]) }
+          { d: 1.8, l: 'Lower', p: bss([-12, -86]) },
+          { d: 0.4, l: 'Bottom', p: bss([-24, -52]) },
+          { d: 1.0, l: 'Drive through the heel', p: bss([-24, -52]) },
+          { d: 0.4, l: 'Up', p: bss([-12, -86]) }
         ]
       }
     },
     {
-      id: 'db_shoulder_press', name: 'Sedeči potisk z utežmi nad glavo', equip: ['db', 'bench'], type: 'strength', unit: 'kg', load: 12, inc: 2,
-      muscles: 'Ramena, triceps', tempo: '2-0-1',
-      cues: ['Naslon skoraj pokonci, hrbet ob naslonu', 'Uteži začnejo v višini ušes', 'Potisni gor in rahlo skupaj, ne zakleni sunkovito'],
-      mistakes: ['Ločen hrbet od naslona', 'Prekratek obseg giba'],
+      id: 'db_shoulder_press', name: 'Seated dumbbell shoulder press', equip: ['db', 'bench'], type: 'strength', unit: 'kg', load: 12, inc: 2,
+      muscles: 'Shoulders, triceps', tempo: '2-0-1',
+      cues: ['Backrest near upright, back against the pad', 'Dumbbells start at ear height', 'Press up and slightly in, don\'t snap the lockout'],
+      mistakes: ['Back coming off the pad', 'Partial range of motion'],
       anim: {
         scene: [BENCH_SEAT], hold: { N: 'db', F: 'db' }, focus: ['upper'],
         frames: [
-          { d: 0.9, l: 'Potisni', p: seatPose([22, 176]) },
-          { d: 0.4, l: 'Vrh', p: seatPose([176, 178]) },
-          { d: 1.8, l: 'Kontrolirano dol', p: seatPose([176, 178]) },
-          { d: 0.3, l: 'Spodaj', p: seatPose([22, 176]) }
+          { d: 0.9, l: 'Press', p: seatPose([22, 176]) },
+          { d: 0.4, l: 'Top', p: seatPose([176, 178]) },
+          { d: 1.8, l: 'Controlled down', p: seatPose([176, 178]) },
+          { d: 0.3, l: 'Bottom', p: seatPose([22, 176]) }
         ]
       }
     },
     {
-      id: 'db_curl', name: 'Biceps upogib z utežmi', equip: ['db'], type: 'strength', unit: 'kg', load: 10, inc: 2,
-      muscles: 'Biceps, podlaket', tempo: '1-1-2',
-      cues: ['Komolci ob telesu, ne gredo naprej', 'Dlani obrnjene navzgor na vrhu', 'Spusti v 2 s do polne iztegnitve'],
-      mistakes: ['Zamah s trupom', 'Polovični gib'],
+      id: 'db_curl', name: 'Dumbbell biceps curl', equip: ['db'], type: 'strength', unit: 'kg', load: 10, inc: 2,
+      muscles: 'Biceps, forearms', tempo: '1-1-2',
+      cues: ['Elbows pinned to your sides, not drifting forward', 'Palms up at the top', 'Lower for 2 s to full extension'],
+      mistakes: ['Swinging with the torso', 'Half reps'],
       anim: {
         hold: { N: 'db', F: 'db' }, focus: ['upper', 'fore'],
         frames: [
-          { d: 0.9, l: 'Upogni', p: stand({ aN: [2, 2] }) },
-          { d: 0.5, l: 'Stisni', p: stand({ aN: [10, 155] }) },
-          { d: 1.8, l: 'Počasi dol', p: stand({ aN: [10, 155] }) },
+          { d: 0.9, l: 'Curl', p: stand({ aN: [2, 2] }) },
+          { d: 0.5, l: 'Squeeze', p: stand({ aN: [10, 155] }) },
+          { d: 1.8, l: 'Slowly down', p: stand({ aN: [10, 155] }) },
           { d: 0.2, l: '', p: stand({ aN: [2, 2] }) }
         ]
       }
     },
     {
-      id: 'db_hip_thrust', name: 'Hip thrust (ramena na klopi)', equip: ['db', 'bench'], type: 'strength', unit: 'kg', load: 20, inc: 2,
-      muscles: 'Zadnjica, zadnje stegenske', tempo: '1-2-2',
-      cues: ['Spodnji rob lopatic na robu klopi', 'Golen navpično na vrhu, brada k prsim', 'Na vrhu 2 s stisni zadnjico – rebra dol'],
-      mistakes: ['Prekomerno ukrivljen ledveni del', 'Potisk skozi prste namesto pete'],
+      id: 'db_hip_thrust', name: 'Dumbbell hip thrust', equip: ['db', 'bench'], type: 'strength', unit: 'kg', load: 20, inc: 2,
+      muscles: 'Glutes, hamstrings', tempo: '1-2-2',
+      cues: ['Bottom of the shoulder blades on the bench edge', 'Shins vertical at the top, chin tucked', 'Squeeze glutes 2 s at the top – ribs down'],
+      mistakes: ['Overarching the lower back', 'Pushing through the toes instead of the heels'],
       anim: {
         scene: [thrustBench], hold: { N: 'db' }, focus: ['glute', 'thigh'],
         frames: [
-          { d: 0.9, l: 'Potisni boke gor', p: thrust(-128, [6, -40]) },
-          { d: 1.2, l: 'Stisni 2 s', p: thrust(-92, [16, -66]) },
-          { d: 1.6, l: 'Počasi dol', p: thrust(-92, [16, -66]) },
+          { d: 0.9, l: 'Drive hips up', p: thrust(-128, [6, -40]) },
+          { d: 1.2, l: 'Squeeze 2 s', p: thrust(-92, [16, -66]) },
+          { d: 1.6, l: 'Slowly down', p: thrust(-92, [16, -66]) },
           { d: 0.2, l: '', p: thrust(-128, [6, -40]) }
         ]
       }
     },
     {
-      id: 'db_stepup', name: 'Stopanje na klop z utežmi', equip: ['db', 'bench'], type: 'strength', unit: 'kg', load: 8, inc: 2, perSide: true,
-      muscles: 'Kvadricepsi, zadnjica, ravnotežje', tempo: '1-0-2',
-      cues: ['Cela stopala na klop', 'Potisni skozi peto zgornje noge – spodnja noga ne pomaga', 'Kontrolirano nazaj dol'],
-      mistakes: ['Odriv s spodnjo nogo', 'Koleno pada navznoter'],
+      id: 'db_stepup', name: 'Dumbbell step-up', equip: ['db', 'bench'], type: 'strength', unit: 'kg', load: 8, inc: 2, perSide: true,
+      muscles: 'Quads, glutes, balance', tempo: '1-0-2',
+      cues: ['Whole foot on the bench', 'Drive through the top heel – the bottom leg doesn\'t help', 'Step back down under control'],
+      mistakes: ['Pushing off the bottom leg', 'Knee caving in'],
       anim: {
         scene: [STEP_BENCH], hold: { N: 'db', F: 'db' }, focus: ['thigh', 'glute'],
         frames: [
-          { d: 1.1, l: 'Potisni skozi peto', p: step([0, -88], [-4, -6]) },
-          { d: 0.4, l: 'Vrh', p: step([36, -134], [60, -96]) },
-          { d: 0.8, l: 'Kontrolirano dol', p: step([36, -134], [60, -96]) },
+          { d: 1.1, l: 'Drive through the heel', p: step([0, -88], [-4, -6]) },
+          { d: 0.4, l: 'Top', p: step([36, -134], [60, -96]) },
+          { d: 0.8, l: 'Controlled down', p: step([36, -134], [60, -96]) },
           { d: 0.8, l: '', p: step([14, -106], [4, -26]) }
         ]
       }
@@ -507,106 +507,106 @@
 
     // ------------------------------------------------------------ KINESIS
     {
-      id: 'k_chest_press', name: 'Kinesis – potisk za prsa stoje', equip: ['kinesis'], type: 'strength', unit: 'stopnja', load: 8, inc: 1,
-      muscles: 'Prsa, triceps, trup', tempo: '1-1-2',
-      cues: ['Hrbet proti napravi, razkoračna stoja', 'Ročaja na višini prsi, komolci ~45°', 'Potisni naprej in rahlo skupaj, trup ostane miren'],
-      mistakes: ['Nagibanje naprej', 'Ramena se dvignejo k ušesom'],
+      id: 'k_chest_press', name: 'Kinesis – standing chest press', equip: ['kinesis'], type: 'strength', unit: 'stopnja', load: 8, inc: 1,
+      muscles: 'Chest, triceps, core', tempo: '1-1-2',
+      cues: ['Back to the machine, split stance', 'Handles at chest height, elbows ~45°', 'Press forward and slightly in, torso stays still'],
+      mistakes: ['Leaning forward', 'Shoulders shrugging toward the ears'],
       anim: {
         scene: [K_BEHIND], cables: cab(K_BEHIND), hold: { N: 'handle', F: 'handle' }, focus: ['torso', 'upper'],
         frames: [
-          { d: 0.9, l: 'Potisni', p: split({ aN: [-68, 90] }) },
-          { d: 0.4, l: 'Stisni', p: split({ aN: [86, 88] }) },
-          { d: 1.6, l: 'Kontrolirano nazaj', p: split({ aN: [86, 88] }) },
+          { d: 0.9, l: 'Press', p: split({ aN: [-68, 90] }) },
+          { d: 0.4, l: 'Squeeze', p: split({ aN: [86, 88] }) },
+          { d: 1.6, l: 'Controlled return', p: split({ aN: [86, 88] }) },
           { d: 0.2, l: '', p: split({ aN: [-68, 90] }) }
         ]
       }
     },
     {
-      id: 'k_row', name: 'Kinesis – veslanje stoje', equip: ['kinesis'], type: 'strength', unit: 'stopnja', load: 8, inc: 1,
-      muscles: 'Hrbet, zadnja rama, biceps', tempo: '1-1-2',
-      cues: ['Obrnjen proti napravi, kolena mehka', 'Najprej lopatice nazaj, nato komolci', 'Na koncu 1 s stisni, prsni koš ponosen'],
-      mistakes: ['Zibanje trupa nazaj', 'Ramena naprej na koncu giba'],
+      id: 'k_row', name: 'Kinesis – standing row', equip: ['kinesis'], type: 'strength', unit: 'stopnja', load: 8, inc: 1,
+      muscles: 'Back, rear delts, biceps', tempo: '1-1-2',
+      cues: ['Facing the machine, soft knees', 'Shoulder blades back first, then elbows', 'Squeeze 1 s at the end, chest proud'],
+      mistakes: ['Rocking the torso back', 'Shoulders rolling forward at the end'],
       anim: {
         scene: [K_FRONT_MID], cables: cab(K_FRONT_MID), hold: { N: 'handle', F: 'handle' }, focus: ['torso', 'upper'],
         frames: [
-          { d: 0.9, l: 'Vleci', p: split({ t: 172, aN: [80, 82] }) },
-          { d: 0.5, l: 'Stisni lopatice', p: split({ t: 178, aN: [-62, 86] }) },
-          { d: 1.6, l: 'Iztegni počasi', p: split({ t: 178, aN: [-62, 86] }) },
+          { d: 0.9, l: 'Pull', p: split({ t: 172, aN: [80, 82] }) },
+          { d: 0.5, l: 'Squeeze shoulder blades', p: split({ t: 178, aN: [-62, 86] }) },
+          { d: 1.6, l: 'Extend slowly', p: split({ t: 178, aN: [-62, 86] }) },
           { d: 0.2, l: '', p: split({ t: 172, aN: [80, 82] }) }
         ]
       }
     },
     {
-      id: 'k_pulldown', name: 'Kinesis – poteg navzdol klečé', equip: ['kinesis'], type: 'strength', unit: 'stopnja', load: 9, inc: 1,
-      muscles: 'Široka hrbtna, biceps', tempo: '1-1-2',
-      cues: ['Polklek, zadnjica stisnjena, trup pokonci', 'Komolce vleci navzdol ob telo', 'Iztegni do konca zgoraj – razteg pod pazduho'],
-      mistakes: ['Nagib nazaj', 'Ramena ostanejo pri ušesih'],
+      id: 'k_pulldown', name: 'Kinesis – half-kneeling pulldown', equip: ['kinesis'], type: 'strength', unit: 'stopnja', load: 9, inc: 1,
+      muscles: 'Lats, biceps', tempo: '1-1-2',
+      cues: ['Half-kneeling, glutes squeezed, torso upright', 'Drive the elbows down to your sides', 'Full extension at the top – stretch through the lats'],
+      mistakes: ['Leaning back', 'Shoulders stuck by the ears'],
       anim: {
         scene: [K_FRONT_HIGH], cables: cab(K_FRONT_HIGH), hold: { N: 'handle', F: 'handle' }, focus: ['torso', 'upper'],
         frames: [
-          { d: 0.9, l: 'Komolci dol', p: kneel({ aN: [158, 158] }) },
-          { d: 0.4, l: 'Stisni', p: kneel({ aN: [-8, 168] }) },
-          { d: 1.6, l: 'Počasi gor', p: kneel({ aN: [-8, 168] }) },
-          { d: 0.3, l: 'Razteg', p: kneel({ aN: [158, 158] }) }
+          { d: 0.9, l: 'Elbows down', p: kneel({ aN: [158, 158] }) },
+          { d: 0.4, l: 'Squeeze', p: kneel({ aN: [-8, 168] }) },
+          { d: 1.6, l: 'Slowly up', p: kneel({ aN: [-8, 168] }) },
+          { d: 0.3, l: 'Stretch', p: kneel({ aN: [158, 158] }) }
         ]
       }
     },
     {
       id: 'k_face_pull', name: 'Kinesis – face pull', equip: ['kinesis'], type: 'strength', unit: 'stopnja', load: 5, inc: 1,
-      muscles: 'Zadnja rama, rotatorji, srednji hrbet', tempo: '1-2-2',
-      cues: ['Ročaja v višini obraza', 'Vleci proti čelu, komolci visoko in narazen', 'Na koncu rotiraj roke navzven (dvojni biceps)'],
-      mistakes: ['Pretežka stopnja – vlečenje z bicepsom', 'Komolci padejo dol'],
+      muscles: 'Rear delts, rotator cuff, mid-back', tempo: '1-2-2',
+      cues: ['Handles at face height', 'Pull toward the forehead, elbows high and wide', 'Rotate the hands out at the end (double-biceps pose)'],
+      mistakes: ['Level too heavy – pulling with the biceps', 'Elbows dropping'],
       anim: {
         scene: [K_FRONT_FACE], cables: cab(K_FRONT_FACE), hold: { N: 'handle', F: 'handle' }, focus: ['upper'],
         frames: [
-          { d: 0.9, l: 'Vleci k obrazu', p: split({ t: 176, aN: [92, 92] }) },
-          { d: 0.9, l: 'Rotiraj ven, drži', p: split({ t: 178, aN: [-92, 172] }) },
-          { d: 1.6, l: 'Počasi nazaj', p: split({ t: 178, aN: [-92, 172] }) },
+          { d: 0.9, l: 'Pull to face', p: split({ t: 176, aN: [92, 92] }) },
+          { d: 0.9, l: 'Rotate out, hold', p: split({ t: 178, aN: [-92, 172] }) },
+          { d: 1.6, l: 'Slowly back', p: split({ t: 178, aN: [-92, 172] }) },
           { d: 0.2, l: '', p: split({ t: 176, aN: [92, 92] }) }
         ]
       }
     },
     {
-      id: 'k_pushdown', name: 'Kinesis – triceps potisk navzdol', equip: ['kinesis'], type: 'strength', unit: 'stopnja', load: 6, inc: 1,
+      id: 'k_pushdown', name: 'Kinesis – triceps pushdown', equip: ['kinesis'], type: 'strength', unit: 'stopnja', load: 6, inc: 1,
       muscles: 'Triceps', tempo: '1-1-2',
-      cues: ['Komolci prilepljeni ob telo', 'Iztegni do konca in stisni 1 s', 'Gor samo do 90°'],
-      mistakes: ['Komolci se premikajo naprej', 'Pomoč z ramo / trupom'],
+      cues: ['Elbows pinned to your sides', 'Fully extend and squeeze 1 s', 'Up only to 90°'],
+      mistakes: ['Elbows drifting forward', 'Helping with the shoulder / torso'],
       anim: {
         scene: [K_PUSH], cables: cab(K_PUSH), hold: { N: 'handle', F: 'handle' }, focus: ['upper'],
         frames: [
-          { d: 0.8, l: 'Iztegni', p: stand({ t: 172, aN: [10, 140] }) },
-          { d: 0.5, l: 'Stisni', p: stand({ t: 172, aN: [8, 10] }) },
-          { d: 1.5, l: 'Počasi gor', p: stand({ t: 172, aN: [8, 10] }) },
+          { d: 0.8, l: 'Extend', p: stand({ t: 172, aN: [10, 140] }) },
+          { d: 0.5, l: 'Squeeze', p: stand({ t: 172, aN: [8, 10] }) },
+          { d: 1.5, l: 'Slowly up', p: stand({ t: 172, aN: [8, 10] }) },
           { d: 0.2, l: '', p: stand({ t: 172, aN: [10, 140] }) }
         ]
       }
     },
     {
-      id: 'k_pullthrough', name: 'Kinesis – pull-through (zgib v kolkih)', equip: ['kinesis'], type: 'strength', unit: 'stopnja', load: 10, inc: 1,
-      muscles: 'Zadnjica, zadnje stegenske', tempo: '2-0-1',
-      cues: ['Hrbet proti napravi, kabel med nogami', 'Boki nazaj, hrbet raven, roke samo držijo', 'Iztegni boke in stisni zadnjico'],
-      mistakes: ['Vlečenje z rokami', 'Počep namesto zgiba'],
+      id: 'k_pullthrough', name: 'Kinesis – cable pull-through', equip: ['kinesis'], type: 'strength', unit: 'stopnja', load: 10, inc: 1,
+      muscles: 'Glutes, hamstrings', tempo: '2-0-1',
+      cues: ['Back to the machine, cable between the legs', 'Hips back, back flat, arms just hold', 'Extend the hips and squeeze the glutes'],
+      mistakes: ['Pulling with the arms', 'Squatting instead of hinging'],
       anim: {
         scene: [K_LOW_BEHIND], cables: cab(K_LOW_BEHIND), hold: { N: 'handle', F: 'handle' }, focus: ['glute', 'thigh'],
         frames: [
-          { d: 1.5, l: 'Boki nazaj', p: stand({ aN: [8, 8] }) },
-          { d: 0.3, l: 'Razteg', p: stand({ t: 108, lN: [36, -4], aN: [-30, -30], hd: 25 }) },
-          { d: 0.9, l: 'Iztegni boke', p: stand({ t: 108, lN: [36, -4], aN: [-30, -30], hd: 25 }) },
-          { d: 0.5, l: 'Stisni', p: stand({ aN: [8, 8] }) }
+          { d: 1.5, l: 'Hips back', p: stand({ aN: [8, 8] }) },
+          { d: 0.3, l: 'Stretch', p: stand({ t: 108, lN: [36, -4], aN: [-30, -30], hd: 25 }) },
+          { d: 0.9, l: 'Extend hips', p: stand({ t: 108, lN: [36, -4], aN: [-30, -30], hd: 25 }) },
+          { d: 0.5, l: 'Squeeze', p: stand({ aN: [8, 8] }) }
         ]
       }
     },
     {
-      id: 'k_woodchop', name: 'Kinesis – sekanje drv (visoko → nizko)', equip: ['kinesis'], type: 'core', unit: 'stopnja', load: 6, inc: 1, perSide: true,
-      muscles: 'Poševne trebušne, trup', tempo: '1-0-2',
-      cues: ['Bočno ob napravi, roke iztegnjene', 'Rotacija iz bokov in trupa diagonalno navzdol', 'Počasi nazaj – upiraj se rotaciji'],
-      mistakes: ['Gib samo z rokami', 'Zaokrožen hrbet spodaj'],
+      id: 'k_woodchop', name: 'Kinesis – high-to-low woodchop', equip: ['kinesis'], type: 'core', unit: 'stopnja', load: 6, inc: 1, perSide: true,
+      muscles: 'Obliques, core', tempo: '1-0-2',
+      cues: ['Side-on to the machine, arms extended', 'Rotate through hips and torso diagonally down', 'Slow return – resist the rotation'],
+      mistakes: ['Moving with the arms only', 'Rounded back at the bottom'],
       anim: {
         scene: [K_HIGH_BEHIND], cables: cab(K_HIGH_BEHIND), hold: { N: 'handle', F: 'handle' }, focus: ['torso'],
         frames: [
-          { d: 0.8, l: 'Sekaj diagonalno', p: stand({ t: 188, aN: [-140, -140], hd: -10 }) },
-          { d: 0.3, l: 'Spodaj', p: stand({ t: 160, lN: [28, -16], aN: [42, 42], hd: 10 }) },
-          { d: 1.5, l: 'Kontrolirano nazaj', p: stand({ t: 160, lN: [28, -16], aN: [42, 42], hd: 10 }) },
+          { d: 0.8, l: 'Chop diagonally', p: stand({ t: 188, aN: [-140, -140], hd: -10 }) },
+          { d: 0.3, l: 'Bottom', p: stand({ t: 160, lN: [28, -16], aN: [42, 42], hd: 10 }) },
+          { d: 1.5, l: 'Controlled return', p: stand({ t: 160, lN: [28, -16], aN: [42, 42], hd: 10 }) },
           { d: 0.2, l: '', p: stand({ t: 188, aN: [-140, -140], hd: -10 }) }
         ]
       }
@@ -614,93 +614,93 @@
 
     // ------------------------------------------------------------ WALL
     {
-      id: 'pullup', name: 'Zgibi na drogu', equip: ['wall'], type: 'strength', unit: 'bw', load: 0, inc: 0,
-      muscles: 'Široka hrbtna, biceps, trup', tempo: '1-1-3',
-      cues: ['Začni iz polnega visenja, najprej stisni lopatice', 'Vleci prsi proti drogu, brada čez drog', 'Spusti v 3 s – če ne gre, delaj samo negativne'],
-      mistakes: ['Zamah z nogami (kipping)', 'Polovični zgibi'],
+      id: 'pullup', name: 'Pull-up', equip: ['wall'], type: 'strength', unit: 'bw', load: 0, inc: 0,
+      muscles: 'Lats, biceps, core', tempo: '1-1-3',
+      cues: ['Start from a dead hang, set the shoulder blades first', 'Pull your chest to the bar, chin over the bar', 'Lower for 3 s – if you can\'t pull up yet, do negatives only'],
+      mistakes: ['Kipping with the legs', 'Half reps'],
       anim: {
         scene: [WALL], focus: ['torso', 'upper'],
         frames: [
-          { d: 1.0, l: 'Vleci', p: hang({ lN: [12, -6, 40] }) },
-          { d: 0.4, l: 'Brada čez drog', p: hang({ t: 184, hd: -8, aN: [36, 170], aF: [33, 168], lN: [22, -10, 40] }) },
-          { d: 2.2, l: 'Spuščaj 3 s', p: hang({ t: 184, hd: -8, aN: [36, 170], aF: [33, 168], lN: [22, -10, 40] }) },
-          { d: 0.5, l: 'Polno visenje', p: hang({ lN: [12, -6, 40] }) }
+          { d: 1.0, l: 'Pull', p: hang({ lN: [12, -6, 40] }) },
+          { d: 0.4, l: 'Chin over bar', p: hang({ t: 184, hd: -8, aN: [36, 170], aF: [33, 168], lN: [22, -10, 40] }) },
+          { d: 2.2, l: 'Lower for 3 s', p: hang({ t: 184, hd: -8, aN: [36, 170], aF: [33, 168], lN: [22, -10, 40] }) },
+          { d: 0.5, l: 'Full hang', p: hang({ lN: [12, -6, 40] }) }
         ]
       }
     },
     {
-      id: 'hang_knee_raise', name: 'Dvig kolen v visenju', equip: ['wall'], type: 'core', unit: 'bw', load: 0, inc: 0,
-      muscles: 'Spodnje trebušne, upogibalke kolka', tempo: '1-1-2',
-      cues: ['Aktivno visenje – ramena stran od ušes', 'Kolena dvigni nad višino bokov, medenico zavij', 'Spusti kontrolirano, brez zamaha'],
-      mistakes: ['Nihanje telesa', 'Kolena samo do 90°'],
+      id: 'hang_knee_raise', name: 'Hanging knee raise', equip: ['wall'], type: 'core', unit: 'bw', load: 0, inc: 0,
+      muscles: 'Lower abs, hip flexors', tempo: '1-1-2',
+      cues: ['Active hang – shoulders away from the ears', 'Raise knees above hip height, tuck the pelvis', 'Lower under control, no swinging'],
+      mistakes: ['Body swinging', 'Knees only to 90°'],
       anim: {
         scene: [WALL], focus: ['torso', 'thigh'],
         frames: [
-          { d: 0.9, l: 'Kolena gor', p: hang({}) },
-          { d: 0.4, l: 'Zavij medenico', p: hang({ t: 188, lN: [118, 12, 50] }) },
-          { d: 1.6, l: 'Počasi dol', p: hang({ t: 188, lN: [118, 12, 50] }) },
+          { d: 0.9, l: 'Knees up', p: hang({}) },
+          { d: 0.4, l: 'Tuck pelvis', p: hang({ t: 188, lN: [118, 12, 50] }) },
+          { d: 1.6, l: 'Slowly down', p: hang({ t: 188, lN: [118, 12, 50] }) },
           { d: 0.3, l: '', p: hang({}) }
         ]
       }
     },
     {
-      id: 'hang_leg_raise', name: 'Dvig iztegnjenih nog v visenju', equip: ['wall'], type: 'core', unit: 'bw', load: 0, inc: 0,
-      muscles: 'Trebušne, upogibalke kolka', tempo: '1-1-3',
-      cues: ['Noge iztegnjene, prsti naprej', 'Dvigni do vodoravne lege ali višje', 'Spuščaj 3 s, ne zanihaj'],
-      mistakes: ['Zamah', 'Upognjena kolena (postane dvig kolen)'],
+      id: 'hang_leg_raise', name: 'Hanging leg raise', equip: ['wall'], type: 'core', unit: 'bw', load: 0, inc: 0,
+      muscles: 'Abs, hip flexors', tempo: '1-1-3',
+      cues: ['Legs straight, toes pointed', 'Raise to horizontal or higher', 'Lower for 3 s, don\'t swing'],
+      mistakes: ['Swinging', 'Bent knees (turns into a knee raise)'],
       anim: {
         scene: [WALL], focus: ['torso', 'thigh'],
         frames: [
-          { d: 1.0, l: 'Noge gor', p: hang({}) },
-          { d: 0.4, l: 'Drži', p: hang({ t: 190, lN: [98, 96, 160] }) },
-          { d: 2.0, l: 'Spuščaj 3 s', p: hang({ t: 190, lN: [98, 96, 160] }) },
+          { d: 1.0, l: 'Legs up', p: hang({}) },
+          { d: 0.4, l: 'Hold', p: hang({ t: 190, lN: [98, 96, 160] }) },
+          { d: 2.0, l: 'Lower for 3 s', p: hang({ t: 190, lN: [98, 96, 160] }) },
           { d: 0.3, l: '', p: hang({}) }
         ]
       }
     },
     {
-      id: 'dead_hang', name: 'Visenje + lopatični dvigi', equip: ['wall'], type: 'mobility', unit: 's',
-      muscles: 'Ramena, prijem, hrbtenica', tempo: 'Počasi',
-      cues: ['Sprosti se v visenju – raztegni hrbtenico', 'Nato samo z lopaticami dvigni telo 2–3 cm', 'Dihaj globoko'],
-      mistakes: ['Zadrževanje diha', 'Upogibanje komolcev'],
+      id: 'dead_hang', name: 'Dead hang + scapular pulls', equip: ['wall'], type: 'mobility', unit: 's',
+      muscles: 'Shoulders, grip, spine', tempo: 'Slow',
+      cues: ['Relax into the hang – decompress the spine', 'Then lift your body 2–3 cm using only the shoulder blades', 'Breathe deeply'],
+      mistakes: ['Holding your breath', 'Bending the elbows'],
       anim: {
         scene: [WALL], focus: ['upper', 'torso'],
         frames: [
-          { d: 1.4, l: 'Pasivno visenje', p: hang({}) },
-          { d: 1.0, l: 'Lopatice dol', p: hang({ aN: [180, 180], pin: ['hN', 30, -230], t: 182 }) },
-          { d: 1.4, l: 'Drži', p: hang({ aN: [180, 180], pin: ['hN', 30, -230], t: 182 }) },
-          { d: 1.0, l: 'Sprosti', p: hang({}) }
+          { d: 1.4, l: 'Passive hang', p: hang({}) },
+          { d: 1.0, l: 'Shoulder blades down', p: hang({ aN: [180, 180], pin: ['hN', 30, -230], t: 182 }) },
+          { d: 1.4, l: 'Hold', p: hang({ aN: [180, 180], pin: ['hN', 30, -230], t: 182 }) },
+          { d: 1.0, l: 'Relax', p: hang({}) }
         ]
       }
     },
 
     // ------------------------------------------------------------ TRIATRAINER
     {
-      id: 'back_ext', name: 'Iztegovanje hrbta (TriaTrainer pol-odprt)', equip: ['tria'], type: 'strength', unit: 'kg', load: 0, inc: 2.5,
-      muscles: 'Iztegovalke hrbta, zadnjica, zadnje stegenske', tempo: '2-1-2',
-      cues: ['Blazina tik pod kolčnima kostema', 'Spusti se z ravnim hrbtom, nato stisni zadnjico', 'Gor samo do ravne linije telesa – brez prekomernega usločenja'],
-      mistakes: ['Hiperekstenzija na vrhu', 'Sunkovit gib'],
+      id: 'back_ext', name: 'Back extension (TriaTrainer half-open)', equip: ['tria'], type: 'strength', unit: 'kg', load: 0, inc: 2.5,
+      muscles: 'Spinal erectors, glutes, hamstrings', tempo: '2-1-2',
+      cues: ['Pad just below the hip bones', 'Lower with a flat back, then squeeze the glutes', 'Up only to a straight line – no overextension'],
+      mistakes: ['Hyperextending at the top', 'Jerky movement'],
       anim: {
         scene: [TRIA_BACK], focus: ['torso', 'glute'],
         frames: [
-          { d: 1.8, l: 'Spuščaj', p: backExt(141) },
-          { d: 0.3, l: 'Spodaj', p: backExt(30) },
-          { d: 1.4, l: 'Stisni zadnjico, gor', p: backExt(30) },
-          { d: 0.8, l: 'Ravna linija – drži', p: backExt(141) }
+          { d: 1.8, l: 'Lower', p: backExt(141) },
+          { d: 0.3, l: 'Bottom', p: backExt(30) },
+          { d: 1.4, l: 'Squeeze glutes, up', p: backExt(30) },
+          { d: 0.8, l: 'Straight line – hold', p: backExt(141) }
         ]
       }
     },
     {
-      id: 'situp', name: 'Trebušnjaki na TriaTrainerju (zaprt)', equip: ['tria'], type: 'core', unit: 'bw', load: 0, inc: 2.5,
-      muscles: 'Trebušne', tempo: '1-1-2',
-      cues: ['Stopala zataknjena pod valje', 'Zvijaj se vretence za vretencem, brada k prsim', 'Spuščaj počasi, ne odpadi na blazino'],
-      mistakes: ['Vlečenje za vrat', 'Sunkovit vzpon s kolki'],
+      id: 'situp', name: 'Decline sit-up (TriaTrainer closed)', equip: ['tria'], type: 'core', unit: 'bw', load: 0, inc: 2.5,
+      muscles: 'Abs', tempo: '1-1-2',
+      cues: ['Feet hooked under the rollers', 'Curl up one vertebra at a time, chin to chest', 'Lower slowly, don\'t flop onto the pad'],
+      mistakes: ['Pulling on the neck', 'Jerking up with the hip flexors'],
       anim: {
         scene: [TRIA_ABS], focus: ['torso'],
         frames: [
-          { d: 1.0, l: 'Zvij se gor', p: situp(282) },
-          { d: 0.4, l: 'Stisni', p: situp(150) },
-          { d: 1.6, l: 'Počasi dol', p: situp(150) },
+          { d: 1.0, l: 'Curl up', p: situp(282) },
+          { d: 0.4, l: 'Squeeze', p: situp(150) },
+          { d: 1.6, l: 'Slowly down', p: situp(150) },
           { d: 0.3, l: '', p: situp(282) }
         ]
       }
@@ -708,344 +708,344 @@
 
     // ------------------------------------------------------------ BODYWEIGHT
     {
-      id: 'pushup', name: 'Sklece', equip: ['floor'], type: 'strength', unit: 'bw', load: 0, inc: 0,
-      muscles: 'Prsa, triceps, trup', tempo: '2-0-1',
-      cues: ['Dlani pod rameni, telo ravna deska', 'Komolci ~45° nazaj', 'Prsi do tik nad tla, nato potisni'],
-      mistakes: ['Povešeni boki', 'Glava naprej'],
+      id: 'pushup', name: 'Push-up', equip: ['floor'], type: 'strength', unit: 'bw', load: 0, inc: 0,
+      muscles: 'Chest, triceps, core', tempo: '2-0-1',
+      cues: ['Hands under shoulders, body in a straight plank', 'Elbows back at ~45°', 'Chest to just above the floor, then press'],
+      mistakes: ['Sagging hips', 'Head jutting forward'],
       anim: {
         focus: ['torso', 'upper'],
         frames: [
-          { d: 1.5, l: 'Spuščaj', p: pushPose(114.6, [40, -5]) },
-          { d: 0.2, l: 'Spodaj', p: pushPose(97, [44, -5]) },
-          { d: 0.8, l: 'Potisni', p: pushPose(97, [44, -5]) },
+          { d: 1.5, l: 'Lower', p: pushPose(114.6, [40, -5]) },
+          { d: 0.2, l: 'Bottom', p: pushPose(97, [44, -5]) },
+          { d: 0.8, l: 'Press', p: pushPose(97, [44, -5]) },
           { d: 0.4, l: '', p: pushPose(114.6, [40, -5]) }
         ]
       }
     },
     {
-      id: 'plank', name: 'Deska na podlakteh', equip: ['floor'], type: 'core', unit: 's',
-      muscles: 'Trebušne, trup', tempo: 'Statično',
-      cues: ['Komolci pod rameni', 'Stisni zadnjico in trebušne – rebra proti medenici', 'Dihaj enakomerno'],
-      mistakes: ['Povešen ali dvignjen boki', 'Zadrževanje diha'],
+      id: 'plank', name: 'Forearm plank', equip: ['floor'], type: 'core', unit: 's',
+      muscles: 'Abs, core', tempo: 'Static hold',
+      cues: ['Elbows under shoulders', 'Squeeze glutes and abs – ribs toward the pelvis', 'Breathe steadily'],
+      mistakes: ['Hips sagging or piked', 'Holding your breath'],
       anim: {
         focus: ['torso'],
         frames: [
-          { d: 2, l: 'Vdih', p: { t: 101, hd: -6, lN: [-79, -79, 15], aN: [-2, 92], pin: PUSH_FEET } },
-          { d: 2, l: 'Izdih – stisni', p: { t: 102.5, hd: -6, lN: [-77.5, -77.5, 15], aN: [-3, 92], pin: PUSH_FEET } }
+          { d: 2, l: 'Inhale', p: { t: 101, hd: -6, lN: [-79, -79, 15], aN: [-2, 92], pin: PUSH_FEET } },
+          { d: 2, l: 'Exhale – brace', p: { t: 102.5, hd: -6, lN: [-77.5, -77.5, 15], aN: [-3, 92], pin: PUSH_FEET } }
         ]
       }
     },
     {
       id: 'dead_bug', name: 'Dead bug', equip: ['floor'], type: 'core', unit: 'bw', load: 0, inc: 0,
-      muscles: 'Globoke trebušne', tempo: '2-1-2',
-      cues: ['Ledveni del pritisnjen v tla ves čas', 'Iztegni nasprotno roko in nogo, izdihni', 'Počasi – kakovost pred številom'],
-      mistakes: ['Dvig ledvenega dela', 'Prehitro'],
+      muscles: 'Deep core', tempo: '2-1-2',
+      cues: ['Lower back pressed into the floor the whole time', 'Extend opposite arm and leg, exhale', 'Slow – quality over quantity'],
+      mistakes: ['Lower back lifting', 'Too fast'],
       anim: {
         focus: ['torso'],
         frames: [
-          { d: 1.4, l: 'Iztegni nasprotno', p: deadBug(DB_REST_ARM, DB_REST_ARM, DB_REST_LEG, DB_REST_LEG) },
-          { d: 0.6, l: 'Izdih', p: deadBug([-96, -96], DB_REST_ARM, DB_REST_LEG, [94, 94, 160]) },
-          { d: 1.4, l: 'Nazaj', p: deadBug([-96, -96], DB_REST_ARM, DB_REST_LEG, [94, 94, 160]) },
-          { d: 1.4, l: 'Druga stran', p: deadBug(DB_REST_ARM, DB_REST_ARM, DB_REST_LEG, DB_REST_LEG) },
-          { d: 0.6, l: 'Izdih', p: deadBug(DB_REST_ARM, [-96, -96], [94, 94, 160], DB_REST_LEG) },
-          { d: 1.4, l: 'Nazaj', p: deadBug(DB_REST_ARM, [-96, -96], [94, 94, 160], DB_REST_LEG) }
+          { d: 1.4, l: 'Extend opposite limbs', p: deadBug(DB_REST_ARM, DB_REST_ARM, DB_REST_LEG, DB_REST_LEG) },
+          { d: 0.6, l: 'Exhale', p: deadBug([-96, -96], DB_REST_ARM, DB_REST_LEG, [94, 94, 160]) },
+          { d: 1.4, l: 'Return', p: deadBug([-96, -96], DB_REST_ARM, DB_REST_LEG, [94, 94, 160]) },
+          { d: 1.4, l: 'Other side', p: deadBug(DB_REST_ARM, DB_REST_ARM, DB_REST_LEG, DB_REST_LEG) },
+          { d: 0.6, l: 'Exhale', p: deadBug(DB_REST_ARM, [-96, -96], [94, 94, 160], DB_REST_LEG) },
+          { d: 1.4, l: 'Return', p: deadBug(DB_REST_ARM, [-96, -96], [94, 94, 160], DB_REST_LEG) }
         ]
       }
     },
     {
       id: 'bird_dog', name: 'Bird dog', equip: ['floor'], type: 'core', unit: 'bw', load: 0, inc: 0,
-      muscles: 'Trup, hrbet, zadnjica', tempo: '2-2-2',
-      cues: ['Na vseh štirih, hrbet raven kot miza', 'Iztegni nasprotno roko in nogo – medenica ostane vodoravna', 'Drži 2 s, nato zamenjaj'],
-      mistakes: ['Rotacija medenice', 'Usločen hrbet'],
+      muscles: 'Core, back, glutes', tempo: '2-2-2',
+      cues: ['On all fours, back flat as a table', 'Extend opposite arm and leg – keep the pelvis level', 'Hold 2 s, then switch'],
+      mistakes: ['Pelvis rotating', 'Arched back'],
       anim: {
         focus: ['torso', 'glute'],
         frames: [
-          { d: 1.2, l: 'Iztegni', p: quad([0, 0], [0, 0], [0, -90, -160], [0, -90, -160]) },
-          { d: 1.4, l: 'Drži', p: quad([92, 92], [0, 0], [0, -90, -160], [-88, -88, -30]) },
-          { d: 1.2, l: 'Nazaj', p: quad([92, 92], [0, 0], [0, -90, -160], [-88, -88, -30]) },
-          { d: 1.2, l: 'Druga stran', p: quad([0, 0], [0, 0], [0, -90, -160], [0, -90, -160]) },
-          { d: 1.4, l: 'Drži', p: quad([0, 0], [92, 92], [-88, -88, -30], [0, -90, -160]) },
-          { d: 1.2, l: 'Nazaj', p: quad([0, 0], [92, 92], [-88, -88, -30], [0, -90, -160]) }
+          { d: 1.2, l: 'Extend', p: quad([0, 0], [0, 0], [0, -90, -160], [0, -90, -160]) },
+          { d: 1.4, l: 'Hold', p: quad([92, 92], [0, 0], [0, -90, -160], [-88, -88, -30]) },
+          { d: 1.2, l: 'Return', p: quad([92, 92], [0, 0], [0, -90, -160], [-88, -88, -30]) },
+          { d: 1.2, l: 'Other side', p: quad([0, 0], [0, 0], [0, -90, -160], [0, -90, -160]) },
+          { d: 1.4, l: 'Hold', p: quad([0, 0], [92, 92], [-88, -88, -30], [0, -90, -160]) },
+          { d: 1.2, l: 'Return', p: quad([0, 0], [92, 92], [-88, -88, -30], [0, -90, -160]) }
         ]
       }
     },
 
     // ------------------------------------------------------------ MOBILITY
     {
-      id: 'hip_flexor', name: 'Razteg upogibalk kolka (polklek)', equip: ['floor'], type: 'mobility', unit: 's', perSide: true,
-      muscles: 'Upogibalke kolka, sprednje stegno', tempo: 'Dihaj',
-      cues: ['Zadnje koleno na tleh, stisni zadnjico na tej strani', 'Medenico zavij nazaj, nato boke rahlo naprej', 'Roka iste strani gor in rahlo čez glavo'],
-      mistakes: ['Usločen ledveni del', 'Sprednje koleno daleč čez prste'],
+      id: 'hip_flexor', name: 'Half-kneeling hip flexor stretch', equip: ['floor'], type: 'mobility', unit: 's', perSide: true,
+      muscles: 'Hip flexors, quads', tempo: 'Breathe',
+      cues: ['Back knee down, squeeze the glute on that side', 'Tuck the pelvis under, then shift hips slightly forward', 'Same-side arm up and slightly overhead'],
+      mistakes: ['Arched lower back', 'Front knee far past the toes'],
       anim: {
         focus: ['thigh', 'glute'],
         frames: [
-          { d: 2.2, l: 'Boki naprej – vdih', p: kneel({ r: [-4, -53], aN: [0, 0], ik: { fN: [42, -8], fF: [-46, -8] } }) },
-          { d: 2.2, l: 'Razteg – izdih', p: kneel({ r: [10, -48], t: 186, aN: [176, 176], ik: { fN: [42, -8], fF: [-46, -8] } }) }
+          { d: 2.2, l: 'Hips forward – inhale', p: kneel({ r: [-4, -53], aN: [0, 0], ik: { fN: [42, -8], fF: [-46, -8] } }) },
+          { d: 2.2, l: 'Stretch – exhale', p: kneel({ r: [10, -48], t: 186, aN: [176, 176], ik: { fN: [42, -8], fF: [-46, -8] } }) }
         ]
       }
     },
     {
-      id: 'hamstring_bench', name: 'Razteg zadnje lože (peta na klopi)', equip: ['bench'], type: 'mobility', unit: 's', perSide: true,
-      muscles: 'Zadnje stegenske, meča, spodnji hrbet', tempo: 'Dihaj',
-      cues: ['Peta na klopi, prsti proti stropu, koleno mehko', 'Zgib v kolkih z ravnim hrbtom – prsni koš proti stopalu', 'Z izdihom se spusti malo globlje'],
-      mistakes: ['Zaokrožen hrbet', 'Sunkovito vzmetenje'],
+      id: 'hamstring_bench', name: 'Hamstring stretch (heel on bench)', equip: ['bench'], type: 'mobility', unit: 's', perSide: true,
+      muscles: 'Hamstrings, calves, lower back', tempo: 'Breathe',
+      cues: ['Heel on the bench, toes up, soft knee', 'Hinge at the hips with a flat back – chest toward the foot', 'Sink a little deeper on each exhale'],
+      mistakes: ['Rounded back', 'Bouncing'],
       anim: {
         scene: [{ type: 'bench', x: 50, len: 100 }], focus: ['thigh'],
         frames: [
-          { d: 2.4, l: 'Vdih – podaljšaj hrbet', p: { r: [0, -92], t: 176, hd: 0, aN: [6, 6], lN: [0, 0, 175], ik: { fN: [80, -54], fF: [-5, -6] } } },
-          { d: 2.4, l: 'Izdih – zgib naprej', p: { r: [-4, -91], t: 128, hd: 15, aN: [62, 66], lN: [0, 0, 175], ik: { fN: [80, -54], fF: [-5, -6] } } }
+          { d: 2.4, l: 'Inhale – lengthen spine', p: { r: [0, -92], t: 176, hd: 0, aN: [6, 6], lN: [0, 0, 175], ik: { fN: [80, -54], fF: [-5, -6] } } },
+          { d: 2.4, l: 'Exhale – hinge forward', p: { r: [-4, -91], t: 128, hd: 15, aN: [62, 66], lN: [0, 0, 175], ik: { fN: [80, -54], fF: [-5, -6] } } }
         ]
       }
     },
 
     // ------------------------------------------------------------ HYROX (substitutes on home equipment)
     {
-      id: 'hx_bike_run', name: 'Kolo – nadomestek teka (HYROX)', equip: ['bike'], type: 'cardio', unit: 'min',
-      muscles: 'Srce, noge', tempo: '90–100 obratov/min · RPE 7',
-      cues: ['Tempo, ki ga zdržiš vseh 8 krogov – ne sprint', 'Upor srednji: pri 95 obr./min diham hitro, a nadzorovano', 'Zadnjih 20 s rahlo upočasni in pripravi postajo'],
-      mistakes: ['Prvi krog prehiter', 'Zadrževanje diha na postaji takoj po kolesu'],
+      id: 'hx_bike_run', name: 'Bike – run substitute (HYROX)', equip: ['bike'], type: 'cardio', unit: 'min',
+      muscles: 'Cardio, legs', tempo: '90–100 RPM · RPE 7',
+      cues: ['A pace you can hold for all 8 rounds – not a sprint', 'Medium resistance: at 95 RPM breathing is fast but controlled', 'Ease off for the last 20 s and get ready for the station'],
+      mistakes: ['First round too fast', 'Holding your breath at the station right after the bike'],
       anim: bikeAnim(0.62)
     },
     {
-      id: 'k_ski', name: 'Kinesis – SkiErg poteg (HYROX)', equip: ['kinesis'], type: 'cardio', unit: 'stopnja', load: 6, inc: 1,
-      muscles: 'Široka hrbtna, trup, triceps, zadnjica', tempo: 'Ritmično ~40 potegov/min',
-      cues: ['Visoka škripca spredaj, ročaja nad glavo', 'Poteg z zgibom v kolkih in trebušnimi – roke končajo ob bokih', 'Kolena mehka, sunek iz bokov kot pri SkiErgu'],
-      mistakes: ['Poteg samo z rokami', 'Zaokrožen hrbet v spodnjem delu'],
+      id: 'k_ski', name: 'Kinesis – SkiErg pull (HYROX)', equip: ['kinesis'], type: 'cardio', unit: 'stopnja', load: 6, inc: 1,
+      muscles: 'Lats, core, triceps, glutes', tempo: 'Rhythmic, ~40 pulls/min',
+      cues: ['High pulley in front, handles overhead', 'Pull with a hip hinge and abs – hands finish by the hips', 'Soft knees, drive from the hips like on the SkiErg'],
+      mistakes: ['Pulling with the arms only', 'Rounded back at the bottom'],
       anim: {
         scene: [K_SKI], cables: cab(K_SKI), hold: { N: 'handle', F: 'handle' }, focus: ['torso', 'upper'],
         frames: [
-          { d: 0.55, l: 'POTEG – zgib v kolkih', p: stand({ t: 184, aN: [160, 160], hd: -6 }) },
-          { d: 0.15, l: 'Roke ob bokih', p: stand({ t: 128, lN: [30, -14], aN: [-22, -22], hd: 22 }) },
-          { d: 0.8, l: 'Gor – iztegni se', p: stand({ t: 128, lN: [30, -14], aN: [-22, -22], hd: 22 }) }
+          { d: 0.55, l: 'PULL – hip hinge', p: stand({ t: 184, aN: [160, 160], hd: -6 }) },
+          { d: 0.15, l: 'Hands by hips', p: stand({ t: 128, lN: [30, -14], aN: [-22, -22], hd: 22 }) },
+          { d: 0.8, l: 'Up – extend', p: stand({ t: 128, lN: [30, -14], aN: [-22, -22], hd: 22 }) }
         ]
       }
     },
     {
-      id: 'bike_sled', name: 'Kolo – težak upor stoje (nadomestek sled push)', equip: ['bike'], type: 'cardio', unit: 'min',
-      muscles: 'Kvadricepsi, zadnjica, srce', tempo: '55–65 obratov/min · težak upor',
-      cues: ['Upor tako visok, da kadenca pade pod 65', 'Iz sedla, teža nad pedali, trup nagnjen kot pri potiskanju sani', 'Moč iz kolkov – roke samo za ravnotežje'],
-      mistakes: ['Prenizek upor – vrtenje brez sile', 'Zibanje kolesa s trupom'],
+      id: 'bike_sled', name: 'Bike – heavy standing climb (Sled Push substitute)', equip: ['bike'], type: 'cardio', unit: 'min',
+      muscles: 'Quads, glutes, heart', tempo: '55–65 RPM · heavy resistance',
+      cues: ['Resistance high enough to drop cadence below 65', 'Out of the saddle, weight over the pedals, torso leaning like on a sled push', 'Power from the hips – hands only for balance'],
+      mistakes: ['Resistance too low – spinning with no force', 'Rocking the bike with the torso'],
       anim: bikeStandAnim(1.05)
     },
     {
-      id: 'k_sled_pull', name: 'Kinesis – vlečenje sani roka-čez-roko', equip: ['kinesis'], type: 'cardio', unit: 'stopnja', load: 12, inc: 1, repsPerCycle: 2,
-      muscles: 'Hrbet, biceps, prijem, zadnjica', tempo: 'Izmenično, hitro',
-      cues: ['Nizka škripca spredaj, atletska stoja, boki nazaj', 'Izmenično vleci z levo in desno roko k boku', 'Trup nagnjen nazaj, teža na petah'],
-      mistakes: ['Pokončna stoja – vleče samo z rokami', 'Okrogel hrbet'],
+      id: 'k_sled_pull', name: 'Kinesis – hand-over-hand sled pull', equip: ['kinesis'], type: 'cardio', unit: 'stopnja', load: 12, inc: 1, repsPerCycle: 2,
+      muscles: 'Back, biceps, grip, glutes', tempo: 'Alternating, fast',
+      cues: ['Low pulley in front, athletic stance, hips back', 'Alternate pulling left and right hand to the hip', 'Lean back, weight in the heels'],
+      mistakes: ['Standing upright – pulling with the arms only', 'Rounded back'],
       anim: {
         scene: [K_SLED], cables: cab(K_SLED), hold: { N: 'handle', F: 'handle' }, focus: ['upper', 'torso'],
         frames: [
-          { d: 0.42, l: 'Desna k boku', p: sled([84, 88], [-60, 70]) },
-          { d: 0.42, l: 'Leva k boku', p: sled([-60, 70], [84, 88]) }
+          { d: 0.42, l: 'Right to hip', p: sled([84, 88], [-60, 70]) },
+          { d: 0.42, l: 'Left to hip', p: sled([-60, 70], [84, 88]) }
         ]
       }
     },
     {
-      id: 'burpee_bj', name: 'Burpee s skokom v daljino (HYROX)', equip: ['floor'], type: 'cardio', unit: 'bw', load: 0, inc: 0, secPerRep: 6,
-      muscles: 'Celo telo, srce', tempo: 'Enakomerno',
-      cues: ['Prsi do tal, nato noge pod telo', 'Sonožni skok naprej – mehak doskok v polčep', 'Doma: hoja nazaj na začetno točko, ritem brez postankov'],
-      mistakes: ['Predolg skok, ki uniči ritem', 'Doskok na iztegnjena kolena'],
+      id: 'burpee_bj', name: 'Burpee broad jump (HYROX)', equip: ['floor'], type: 'cardio', unit: 'bw', load: 0, inc: 0, secPerRep: 6,
+      muscles: 'Full body, heart', tempo: 'Steady',
+      cues: ['Chest to the floor, then feet under you', 'Two-foot jump forward – soft landing in a quarter squat', 'At home: walk back to the start, keep a steady rhythm'],
+      mistakes: ['Jumping too far and losing rhythm', 'Landing with locked knees'],
       anim: {
         focus: ['thigh', 'torso'],
         frames: [
-          { d: 0.35, l: 'Dol', p: { pin: ['fN', 0, -6], t: 180, lN: [0, 0], ik: { hN: [6, -86], hF: [4, -86] } } },
-          { d: 0.25, l: 'Roke na tla', p: { pin: ['fN', 0, -6], t: 125, hd: 15, lN: [95, -35], ik: { hN: [34, -5], hF: [31, -5] } } },
-          { d: 0.35, l: 'Noge nazaj', p: { pin: ['fN', -78, -6], t: 112, hd: -5, lN: [-68, -68, 15], ik: { hN: [34, -5], hF: [31, -5] } } },
-          { d: 0.3, l: 'Prsi do tal', p: { pin: ['fN', -78, -6], t: 96, hd: -5, lN: [-84, -84, 15], ik: { hN: [38, -5], hF: [35, -5] } } },
-          { d: 0.3, l: 'Noge pod telo', p: { pin: ['fN', 0, -6], t: 125, hd: 15, lN: [95, -35], ik: { hN: [34, -5], hF: [31, -5] } } },
-          { d: 0.3, l: 'SKOK naprej', p: { pin: ['fN', 0, -6], t: 140, hd: 10, lN: [70, -30], ik: { hN: [-20, -60], hF: [-22, -60] } } },
-          { d: 0.35, l: 'Let', p: { pin: ['fN', 52, -40], t: 168, hd: -4, lN: [30, -20, 110], ik: { hN: [110, -150], hF: [107, -150] } } },
-          { d: 0.6, l: 'Mehak doskok', p: { pin: ['fN', 95, -6], t: 140, hd: 10, lN: [75, -30], ik: { hN: [125, -70], hF: [122, -70] } } },
-          { d: 0.6, l: 'Nazaj na začetek', p: { pin: ['fN', 95, -6], t: 180, lN: [0, 0], ik: { hN: [101, -86], hF: [99, -86] } } }
+          { d: 0.35, l: 'Down', p: { pin: ['fN', 0, -6], t: 180, lN: [0, 0], ik: { hN: [6, -86], hF: [4, -86] } } },
+          { d: 0.25, l: 'Hands down', p: { pin: ['fN', 0, -6], t: 125, hd: 15, lN: [95, -35], ik: { hN: [34, -5], hF: [31, -5] } } },
+          { d: 0.35, l: 'Jump feet back', p: { pin: ['fN', -78, -6], t: 112, hd: -5, lN: [-68, -68, 15], ik: { hN: [34, -5], hF: [31, -5] } } },
+          { d: 0.3, l: 'Chest to floor', p: { pin: ['fN', -78, -6], t: 96, hd: -5, lN: [-84, -84, 15], ik: { hN: [38, -5], hF: [35, -5] } } },
+          { d: 0.3, l: 'Feet under body', p: { pin: ['fN', 0, -6], t: 125, hd: 15, lN: [95, -35], ik: { hN: [34, -5], hF: [31, -5] } } },
+          { d: 0.3, l: 'JUMP forward', p: { pin: ['fN', 0, -6], t: 140, hd: 10, lN: [70, -30], ik: { hN: [-20, -60], hF: [-22, -60] } } },
+          { d: 0.35, l: 'Flight', p: { pin: ['fN', 52, -40], t: 168, hd: -4, lN: [30, -20, 110], ik: { hN: [110, -150], hF: [107, -150] } } },
+          { d: 0.6, l: 'Soft landing', p: { pin: ['fN', 95, -6], t: 140, hd: 10, lN: [75, -30], ik: { hN: [125, -70], hF: [122, -70] } } },
+          { d: 0.6, l: 'Back to start', p: { pin: ['fN', 95, -6], t: 180, lN: [0, 0], ik: { hN: [101, -86], hF: [99, -86] } } }
         ]
       }
     },
     {
-      id: 'kb_farmers', name: 'Kmečka hoja s kettlebelli (HYROX)', equip: ['kb'], type: 'cardio', unit: 'kg', load: 16, inc: 4,
-      muscles: 'Prijem, trup, ramena, noge', tempo: 'Hitri kratki koraki',
-      cues: ['Dva KB ob telesu, ramena stisnjena dol in nazaj', 'Hitri kratki koraki, pogled naprej', 'Ne ustavljaj se – če prijem popušča, pojdi počasneje'],
-      mistakes: ['Nagib na eno stran', 'Ramena pri ušesih'],
+      id: 'kb_farmers', name: 'Kettlebell farmers carry (HYROX)', equip: ['kb'], type: 'cardio', unit: 'kg', load: 16, inc: 4,
+      muscles: 'Grip, core, shoulders, legs', tempo: 'Quick short steps',
+      cues: ['Two KBs at your sides, shoulders down and back', 'Quick short steps, eyes forward', 'Don\'t stop – if your grip fades, slow down'],
+      mistakes: ['Leaning to one side', 'Shoulders up by the ears'],
       anim: carryAnim
     },
     {
-      id: 'kb_lunge', name: 'Izpadni koraki z utežjo (nadomestek sandbag lunges)', equip: ['kb'], type: 'strength', unit: 'kg', load: 12, inc: 4, repsPerCycle: 2, secPerRep: 2.5,
-      muscles: 'Kvadricepsi, zadnjica, trup', tempo: 'Enakomerno',
-      cues: ['KB pred prsnico (goblet)', 'Zadnje koleno se dotakne tal, trup pokonci', 'Izmenjuj nogi brez postankov'],
-      mistakes: ['Prekratek korak – koleno daleč čez prste', 'Trup pade naprej'],
+      id: 'kb_lunge', name: 'Goblet walking lunge (Sandbag Lunges substitute)', equip: ['kb'], type: 'strength', unit: 'kg', load: 12, inc: 4, repsPerCycle: 2, secPerRep: 2.5,
+      muscles: 'Quads, glutes, core', tempo: 'Steady',
+      cues: ['KB held at the chest (goblet)', 'Back knee touches the floor, torso upright', 'Alternate legs without stopping'],
+      mistakes: ['Step too short – knee far past the toes', 'Torso collapsing forward'],
       anim: {
         hold: { N: 'kb' }, focus: ['thigh', 'glute'],
         frames: [
-          { d: 0.7, l: 'Korak naprej', p: lungeP([0, -92], [6, -6], [-6, -6]) },
-          { d: 0.25, l: 'Koleno do tal', p: lungeP([-6, -50], [36, -6], [-44, -10]) },
-          { d: 0.7, l: 'Potisni nazaj gor', p: lungeP([-6, -50], [36, -6], [-44, -10]) },
-          { d: 0.7, l: 'Druga noga', p: lungeP([0, -92], [-6, -6], [6, -6]) },
-          { d: 0.25, l: 'Koleno do tal', p: lungeP([-6, -50], [-44, -10], [36, -6]) },
-          { d: 0.7, l: 'Potisni nazaj gor', p: lungeP([-6, -50], [-44, -10], [36, -6]) }
+          { d: 0.7, l: 'Step forward', p: lungeP([0, -92], [6, -6], [-6, -6]) },
+          { d: 0.25, l: 'Knee to floor', p: lungeP([-6, -50], [36, -6], [-44, -10]) },
+          { d: 0.7, l: 'Drive back up', p: lungeP([-6, -50], [36, -6], [-44, -10]) },
+          { d: 0.7, l: 'Other leg', p: lungeP([0, -92], [-6, -6], [6, -6]) },
+          { d: 0.25, l: 'Knee to floor', p: lungeP([-6, -50], [-44, -10], [36, -6]) },
+          { d: 0.7, l: 'Drive back up', p: lungeP([-6, -50], [-44, -10], [36, -6]) }
         ]
       }
     },
     {
-      id: 'db_thruster', name: 'Thruster z utežmi (nadomestek wall balls)', equip: ['db'], type: 'strength', unit: 'kg', load: 8, inc: 2, secPerRep: 3,
-      muscles: 'Noge, ramena, srce', tempo: 'Tekoče, brez pavze',
-      cues: ['Uteži na ramenih, komolci naprej', 'Počep do vzporednice, iz dna eksplodiraj', 'Moč iz nog potisne uteži nad glavo – en tekoč gib'],
-      mistakes: ['Ločen počep in potisk', 'Pete se dvigujejo'],
+      id: 'db_thruster', name: 'Dumbbell thruster (Wall Balls substitute)', equip: ['db'], type: 'strength', unit: 'kg', load: 8, inc: 2, secPerRep: 3,
+      muscles: 'Legs, shoulders, heart', tempo: 'Fluid, no pause',
+      cues: ['Dumbbells on the shoulders, elbows forward', 'Squat to parallel, explode out of the bottom', 'Leg drive sends the weights overhead – one fluid movement'],
+      mistakes: ['Splitting the squat and press', 'Heels lifting'],
       anim: {
         hold: { N: 'db', F: 'db' }, focus: ['thigh', 'upper'],
         frames: [
-          { d: 0.9, l: 'Počep', p: thrRack },
-          { d: 0.1, l: 'Dno', p: thrBot },
-          { d: 0.55, l: 'EKSPLODIRAJ gor', p: thrBot },
-          { d: 0.4, l: 'Nad glavo', p: thrTop },
-          { d: 0.5, l: 'Nazaj na ramena', p: thrTop }
+          { d: 0.9, l: 'Squat', p: thrRack },
+          { d: 0.1, l: 'Bottom', p: thrBot },
+          { d: 0.55, l: 'EXPLODE up', p: thrBot },
+          { d: 0.4, l: 'Overhead', p: thrTop },
+          { d: 0.5, l: 'Back to shoulders', p: thrTop }
         ]
       }
     },
 
     // ------------------------------------------------------------ EXTRA EQUIPMENT
     {
-      id: 'treadmill_run', name: 'Tekalna steza – tek', equip: ['treadmill'], type: 'cardio', unit: 'min', secPerM: 0.33,
-      muscles: 'Srce, noge', tempo: 'Kadenca 170–180 korakov/min',
-      cues: ['Pokončna drža, rahel nagib iz gležnjev', 'Kratki hitri koraki – stopalo pristane pod boki', 'Roke nihajo naprej-nazaj, ne čez telo'],
-      mistakes: ['Dolgi koraki s pristankom na peti', 'Držanje za ograjo'],
+      id: 'treadmill_run', name: 'Treadmill run', equip: ['treadmill'], type: 'cardio', unit: 'min', secPerM: 0.33,
+      muscles: 'Cardio, legs', tempo: 'Cadence 170–180 steps/min',
+      cues: ['Tall posture, slight lean from the ankles', 'Short quick steps – feet land under the hips', 'Arms swing front to back, not across the body'],
+      mistakes: ['Overstriding and heel striking', 'Holding the handrails'],
       anim: treadAnim
     },
     {
       id: 'skierg', name: 'SkiErg', equip: ['skierg'], type: 'cardio', unit: 'min', secPerM: 0.28,
-      muscles: 'Hrbet, trup, triceps, zadnjica', tempo: '35–45 potegov/min',
-      cues: ['Ročaja nad glavo, roke rahlo pokrčene', 'Poteg z zgibom v kolkih in trebušnimi, ne samo z rokami', 'Vrnitev: najprej roke gor, nato boki'],
-      mistakes: ['Počep namesto zgiba v kolkih', 'Prekratek poteg nad koleni'],
+      muscles: 'Back, core, triceps, glutes', tempo: '35–45 pulls/min',
+      cues: ['Handles overhead, arms slightly bent', 'Pull with a hip hinge and abs, not just the arms', 'Recovery: arms up first, then hips'],
+      mistakes: ['Squatting instead of hinging', 'Pull stops short above the knees'],
       anim: {
         scene: [SKI], cables: [{ from: [SKI.x - 8, -208], to: ['hN', 'hF'] }], hold: { N: 'handle', F: 'handle' }, focus: ['torso', 'upper'],
         frames: [
-          { d: 0.5, l: 'POTEG', p: stand({ t: 184, aN: [158, 158], hd: -6 }) },
-          { d: 0.15, l: 'Roke ob bokih', p: stand({ t: 126, lN: [32, -16], aN: [-24, -24], hd: 22 }) },
-          { d: 0.8, l: 'Gor – roke, nato boki', p: stand({ t: 126, lN: [32, -16], aN: [-24, -24], hd: 22 }) }
+          { d: 0.5, l: 'PULL', p: stand({ t: 184, aN: [158, 158], hd: -6 }) },
+          { d: 0.15, l: 'Hands by hips', p: stand({ t: 126, lN: [32, -16], aN: [-24, -24], hd: 22 }) },
+          { d: 0.8, l: 'Up – arms, then hips', p: stand({ t: 126, lN: [32, -16], aN: [-24, -24], hd: 22 }) }
         ]
       }
     },
     {
-      id: 'sled_push', name: 'Potiskanje sani', equip: ['sled'], type: 'cardio', unit: 'kg', load: 50, inc: 10, secPerM: 2.4,
-      muscles: 'Kvadricepsi, zadnjica, meča, trup', tempo: 'Kratki močni koraki',
-      cues: ['Roke iztegnjene na visokih ročajih, telo pod ~45°', 'Poganjaj s sprednjim delom stopal, kolena naprej', 'Ne ustavljaj se – ponovni zagon stane največ'],
-      mistakes: ['Pokončna drža', 'Predolgi koraki'],
+      id: 'sled_push', name: 'Sled push', equip: ['sled'], type: 'cardio', unit: 'kg', load: 50, inc: 10, secPerM: 2.4,
+      muscles: 'Quads, glutes, calves, core', tempo: 'Short powerful steps',
+      cues: ['Arms extended on the high handles, body at ~45°', 'Drive through the balls of the feet, knees forward', 'Don\'t stop – restarting costs the most'],
+      mistakes: ['Standing too upright', 'Steps too long'],
       anim: sledPushAnim
     },
     {
-      id: 'sled_pull', name: 'Vlečenje sani z vrvjo', equip: ['sled'], type: 'cardio', unit: 'kg', load: 50, inc: 10, secPerM: 2.4, repsPerCycle: 2,
-      muscles: 'Hrbet, biceps, prijem, zadnjica', tempo: 'Roka čez roko',
-      cues: ['Atletska stoja, boki nazaj, teža na petah', 'Vleci roka čez roko k boku', 'Vrv odlagaj v polju za seboj'],
-      mistakes: ['Vlečenje z iztegnjenimi koleni', 'Okrogel hrbet'],
+      id: 'sled_pull', name: 'Sled pull', equip: ['sled'], type: 'cardio', unit: 'kg', load: 50, inc: 10, secPerM: 2.4, repsPerCycle: 2,
+      muscles: 'Back, biceps, grip, glutes', tempo: 'Hand over hand',
+      cues: ['Athletic stance, hips back, weight in the heels', 'Pull hand over hand to the hip', 'Pile the rope in the box behind you'],
+      mistakes: ['Pulling with locked knees', 'Rounded back'],
       anim: {
         scene: [SLED_R], hold: { N: 'handle', F: 'handle' }, focus: ['upper', 'torso'],
         frames: [
-          { d: 0.42, l: 'Desna k boku', p: sled([84, 88], [-60, 70]) },
-          { d: 0.42, l: 'Leva k boku', p: sled([-60, 70], [84, 88]) }
+          { d: 0.42, l: 'Right to hip', p: sled([84, 88], [-60, 70]) },
+          { d: 0.42, l: 'Left to hip', p: sled([-60, 70], [84, 88]) }
         ]
       }
     },
     {
       id: 'wall_ball', name: 'Wall ball', equip: ['wallball', 'wall'], type: 'cardio', unit: 'kg', load: 6, inc: 3, secPerRep: 2.6,
-      muscles: 'Noge, ramena, srce', tempo: 'Tekoče, ujemi in takoj v počep',
-      cues: ['Žoga pred brado, komolci pod žogo', 'Počep pod vzporednico, iz dna eksplodiraj in vrzi v tarčo', 'Ujemi in z istim gibom v naslednji počep'],
-      mistakes: ['Met samo z rokami', 'Ujemanje z iztegnjenimi rokami nad glavo'],
+      muscles: 'Legs, shoulders, heart', tempo: 'Fluid – catch and drop straight into the squat',
+      cues: ['Ball under the chin, elbows under the ball', 'Squat below parallel, explode up and throw to the target', 'Catch and flow straight into the next squat'],
+      mistakes: ['Throwing with the arms only', 'Catching with arms locked overhead'],
       anim: {
         scene: [TARGET], hold: { N: 'ball' }, focus: ['thigh', 'upper'],
         frames: [
-          { d: 0.7, l: 'Počep', p: wb({ aN: [22, 166] }) },
-          { d: 0.1, l: 'Dno', p: wb({ t: 152, lN: [102, -36], aN: [26, 170], hd: 8 }) },
-          { d: 0.45, l: 'EKSPLODIRAJ', p: wb({ t: 152, lN: [102, -36], aN: [26, 170], hd: 8 }) },
-          { d: 0.35, l: 'Met v tarčo', p: wb({ t: 182, aN: [160, 168], hd: -16 }, [24, -206]) },
+          { d: 0.7, l: 'Squat', p: wb({ aN: [22, 166] }) },
+          { d: 0.1, l: 'Bottom', p: wb({ t: 152, lN: [102, -36], aN: [26, 170], hd: 8 }) },
+          { d: 0.45, l: 'EXPLODE', p: wb({ t: 152, lN: [102, -36], aN: [26, 170], hd: 8 }) },
+          { d: 0.35, l: 'Throw to target', p: wb({ t: 182, aN: [160, 168], hd: -16 }, [24, -206]) },
           { d: 0.35, l: '', p: wb({ t: 182, aN: [140, 160], hd: -20 }, [60, -232]) },
-          { d: 0.12, l: 'Ujemi', p: wb({ t: 180, aN: [60, 140], hd: -8 }, [28, -132]) }
+          { d: 0.12, l: 'Catch', p: wb({ t: 180, aN: [60, 140], hd: -8 }, [28, -132]) }
         ]
       }
     },
     {
-      id: 'sandbag_lunge', name: 'Izpadni koraki s sandbagom', equip: ['sandbag'], type: 'strength', unit: 'kg', load: 10, inc: 5, repsPerCycle: 2, secPerRep: 2.5,
-      muscles: 'Kvadricepsi, zadnjica, trup', tempo: 'Enakomerno',
-      cues: ['Sandbag čez ramena za vratom', 'Zadnje koleno se dotakne tal', 'Trup pokonci, izmenjuj nogi brez postankov'],
-      mistakes: ['Vreča zdrsne na vrat', 'Trup pade naprej'],
+      id: 'sandbag_lunge', name: 'Sandbag lunges', equip: ['sandbag'], type: 'strength', unit: 'kg', load: 10, inc: 5, repsPerCycle: 2, secPerRep: 2.5,
+      muscles: 'Quads, glutes, core', tempo: 'Steady',
+      cues: ['Sandbag across the shoulders behind the neck', 'Back knee touches the floor', 'Torso upright, alternate legs without stopping'],
+      mistakes: ['Bag sliding onto the neck', 'Torso collapsing forward'],
       anim: {
         hold: { N: 'bag' }, focus: ['thigh', 'glute'],
         frames: [
-          { d: 0.7, l: 'Korak naprej', p: m(lungeP([0, -92], [6, -6], [-6, -6]), { aN: [-36, 150], aF: [-30, 155] }) },
-          { d: 0.25, l: 'Koleno do tal', p: m(lungeP([-6, -50], [36, -6], [-44, -10]), { aN: [-36, 150], aF: [-30, 155] }) },
-          { d: 0.7, l: 'Potisni nazaj gor', p: m(lungeP([-6, -50], [36, -6], [-44, -10]), { aN: [-36, 150], aF: [-30, 155] }) },
-          { d: 0.7, l: 'Druga noga', p: m(lungeP([0, -92], [-6, -6], [6, -6]), { aN: [-36, 150], aF: [-30, 155] }) },
-          { d: 0.25, l: 'Koleno do tal', p: m(lungeP([-6, -50], [-44, -10], [36, -6]), { aN: [-36, 150], aF: [-30, 155] }) },
-          { d: 0.7, l: 'Potisni nazaj gor', p: m(lungeP([-6, -50], [-44, -10], [36, -6]), { aN: [-36, 150], aF: [-30, 155] }) }
+          { d: 0.7, l: 'Step forward', p: m(lungeP([0, -92], [6, -6], [-6, -6]), { aN: [-36, 150], aF: [-30, 155] }) },
+          { d: 0.25, l: 'Knee to floor', p: m(lungeP([-6, -50], [36, -6], [-44, -10]), { aN: [-36, 150], aF: [-30, 155] }) },
+          { d: 0.7, l: 'Drive back up', p: m(lungeP([-6, -50], [36, -6], [-44, -10]), { aN: [-36, 150], aF: [-30, 155] }) },
+          { d: 0.7, l: 'Other leg', p: m(lungeP([0, -92], [-6, -6], [6, -6]), { aN: [-36, 150], aF: [-30, 155] }) },
+          { d: 0.25, l: 'Knee to floor', p: m(lungeP([-6, -50], [-44, -10], [36, -6]), { aN: [-36, 150], aF: [-30, 155] }) },
+          { d: 0.7, l: 'Drive back up', p: m(lungeP([-6, -50], [-44, -10], [36, -6]), { aN: [-36, 150], aF: [-30, 155] }) }
         ]
       }
     },
     {
-      id: 'bb_squat', name: 'Počep z olimpijsko palico', equip: ['barbell'], type: 'strength', unit: 'kg', load: 40, inc: 5,
-      muscles: 'Kvadricepsi, zadnjica, trup', tempo: '3-1-1',
-      cues: ['Palica na zgornjem delu trapeza, komolci pod palico', 'Vdih v trebuh, kolena za prsti', 'Pod vzporednico, potisni skozi celo stopalo'],
-      mistakes: ['Pete se dvigujejo', 'Boki gor pred prsmi'],
+      id: 'bb_squat', name: 'Barbell back squat', equip: ['barbell'], type: 'strength', unit: 'kg', load: 40, inc: 5,
+      muscles: 'Quads, glutes, core', tempo: '3-1-1',
+      cues: ['Bar on the upper traps, elbows under the bar', 'Breathe into the belly and brace, knees track the toes', 'Below parallel, drive through the whole foot'],
+      mistakes: ['Heels lifting', 'Hips rising before the chest'],
       anim: {
         scene: [RACK], hold: { N: 'bar' }, focus: ['thigh', 'glute'],
         frames: [
-          { d: 2.2, l: 'Spuščaj 3 s', p: stand({ aN: [-46, 168], hd: 0 }) },
-          { d: 0.4, l: 'Dno', p: stand({ t: 140, lN: [100, -34], aN: [-26, 186], hd: 18 }) },
-          { d: 1.1, l: 'Potisni gor', p: stand({ t: 140, lN: [100, -34], aN: [-26, 186], hd: 18 }) },
-          { d: 0.6, l: 'Vrh', p: stand({ aN: [-46, 168] }) }
+          { d: 2.2, l: 'Lower for 3 s', p: stand({ aN: [-46, 168], hd: 0 }) },
+          { d: 0.4, l: 'Bottom', p: stand({ t: 140, lN: [100, -34], aN: [-26, 186], hd: 18 }) },
+          { d: 1.1, l: 'Drive up', p: stand({ t: 140, lN: [100, -34], aN: [-26, 186], hd: 18 }) },
+          { d: 0.6, l: 'Top', p: stand({ aN: [-46, 168] }) }
         ]
       }
     },
     {
-      id: 'bb_deadlift', name: 'Mrtvi dvig z olimpijsko palico', equip: ['barbell'], type: 'strength', unit: 'kg', load: 60, inc: 5,
-      muscles: 'Zadnjica, zadnje stegenske, hrbet', tempo: '1-0-2',
-      cues: ['Palica nad sredino stopala, golen se je dotika', 'Napni hrbet in "odlomi" palico od tal', 'Palica drsi ob nogah, na vrhu stisni zadnjico'],
-      mistakes: ['Okrogel hrbet', 'Palica daleč od telesa'],
+      id: 'bb_deadlift', name: 'Barbell deadlift', equip: ['barbell'], type: 'strength', unit: 'kg', load: 60, inc: 5,
+      muscles: 'Glutes, hamstrings, back', tempo: '1-0-2',
+      cues: ['Bar over mid-foot, shins touching it', 'Brace your back and "break" the bar off the floor', 'Bar slides up the legs, squeeze glutes at the top'],
+      mistakes: ['Rounded back', 'Bar drifting away from the body'],
       anim: {
         hold: { N: 'plate' }, focus: ['glute', 'thigh', 'torso'],
         frames: [
-          { d: 0.4, l: 'Napni hrbet', p: stand({ t: 122, lN: [74, -24], aN: [-6, -6], hd: 22 }) },
-          { d: 1.1, l: 'Potisni tla stran', p: stand({ t: 122, lN: [74, -24], aN: [-6, -6], hd: 22 }) },
-          { d: 0.5, l: 'Vrh – stisni', p: stand({ aN: [0, 0] }) },
-          { d: 1.6, l: 'Kontrolirano dol', p: stand({ aN: [0, 0] }) }
+          { d: 0.4, l: 'Brace your back', p: stand({ t: 122, lN: [74, -24], aN: [-6, -6], hd: 22 }) },
+          { d: 1.1, l: 'Push the floor away', p: stand({ t: 122, lN: [74, -24], aN: [-6, -6], hd: 22 }) },
+          { d: 0.5, l: 'Top – squeeze', p: stand({ aN: [0, 0] }) },
+          { d: 1.6, l: 'Controlled down', p: stand({ aN: [0, 0] }) }
         ]
       }
     },
     {
-      id: 'bb_bench', name: 'Potisk s palico na klopi', equip: ['barbell', 'bench'], type: 'strength', unit: 'kg', load: 40, inc: 5,
-      muscles: 'Prsa, triceps, sprednja rama', tempo: '3-1-1',
-      cues: ['Lopatice skupaj, stopala v tla', 'Palica se spusti na spodnji del prsi', 'Potisni gor in rahlo nazaj nad rame'],
-      mistakes: ['Odbijanje od prsi', 'Komolci na 90°'],
+      id: 'bb_bench', name: 'Barbell bench press', equip: ['barbell', 'bench'], type: 'strength', unit: 'kg', load: 40, inc: 5,
+      muscles: 'Chest, triceps, front delts', tempo: '3-1-1',
+      cues: ['Shoulder blades together, feet planted', 'Lower the bar to the lower chest', 'Press up and slightly back over the shoulders'],
+      mistakes: ['Bouncing off the chest', 'Elbows flared to 90°'],
       anim: {
         scene: [BENCH_FLAT, { type: 'rack', x: -46, y: -116 }], hold: { N: 'plate' }, focus: ['torso', 'upper'],
         frames: [
-          { d: 2.2, l: 'Spuščaj 3 s', p: benchPose([174, 174]) },
-          { d: 0.4, l: 'Pavza', p: benchPose([58, 178]) },
-          { d: 0.9, l: 'Potisni', p: benchPose([58, 178]) },
-          { d: 0.5, l: 'Vrh', p: benchPose([174, 174]) }
+          { d: 2.2, l: 'Lower for 3 s', p: benchPose([174, 174]) },
+          { d: 0.4, l: 'Pause', p: benchPose([58, 178]) },
+          { d: 0.9, l: 'Press', p: benchPose([58, 178]) },
+          { d: 0.5, l: 'Top', p: benchPose([174, 174]) }
         ]
       }
     },
     {
-      id: 'box_jump', name: 'Skok na škatlo', equip: ['box'], type: 'strength', unit: 'bw', load: 0, inc: 0, secPerRep: 4,
-      muscles: 'Noge, zadnjica, eksplozivnost', tempo: 'Eksplozivno gor, stopi dol',
-      cues: ['Zamah z rokami in hiter polčep', 'Doskok mehko, celo stopalo na škatli', 'Na vrhu se vzravnaj, nato STOPI dol'],
-      mistakes: ['Skok dol (obremenitev Ahilove tetive)', 'Doskok na prste'],
+      id: 'box_jump', name: 'Box jump', equip: ['box'], type: 'strength', unit: 'bw', load: 0, inc: 0, secPerRep: 4,
+      muscles: 'Legs, glutes, power', tempo: 'Explode up, step down',
+      cues: ['Swing the arms and dip quickly', 'Land softly, whole foot on the box', 'Stand tall at the top, then STEP down'],
+      mistakes: ['Jumping down (stresses the Achilles)', 'Landing on the toes'],
       anim: {
         scene: [BOX], focus: ['thigh', 'glute'],
         frames: [
-          { d: 0.4, l: 'Zamah', p: stand({ aN: [10, 10] }) },
-          { d: 0.25, l: 'Polčep', p: stand({ t: 140, lN: [62, -26], aN: [-50, -44], hd: 10 }) },
-          { d: 0.35, l: 'SKOK', p: { pin: ['fN', 34, -74], t: 160, hd: -4, lN: [74, -30, 110], aN: [110, 110] } },
-          { d: 0.5, l: 'Mehak doskok', p: { pin: ['fN', 62, -58], t: 146, hd: 8, lN: [86, -32], aN: [70, 76] } },
-          { d: 0.5, l: 'Vzravnaj se', p: { pin: ['fN', 62, -58], t: 180, lN: [0, 0], aN: [4, 4] } },
-          { d: 0.7, l: 'Stopi dol', p: { pin: ['fN', 30, -34], t: 176, lN: [20, -10], aN: [8, 8] } }
+          { d: 0.4, l: 'Arm swing', p: stand({ aN: [10, 10] }) },
+          { d: 0.25, l: 'Quarter squat', p: stand({ t: 140, lN: [62, -26], aN: [-50, -44], hd: 10 }) },
+          { d: 0.35, l: 'JUMP', p: { pin: ['fN', 34, -74], t: 160, hd: -4, lN: [74, -30, 110], aN: [110, 110] } },
+          { d: 0.5, l: 'Soft landing', p: { pin: ['fN', 62, -58], t: 146, hd: 8, lN: [86, -32], aN: [70, 76] } },
+          { d: 0.5, l: 'Stand tall', p: { pin: ['fN', 62, -58], t: 180, lN: [0, 0], aN: [4, 4] } },
+          { d: 0.7, l: 'Step down', p: { pin: ['fN', 30, -34], t: 176, lN: [20, -10], aN: [8, 8] } }
         ]
       }
     },
     {
-      id: 'jump_rope', name: 'Kolebnica', equip: ['rope'], type: 'cardio', unit: 'min',
-      muscles: 'Meča, srce, koordinacija', tempo: '~120 obratov/min',
-      cues: ['Nizki odskoki s prstov, kolena mehka', 'Vrtenje iz zapestij, komolci ob telesu', 'Pogled naprej, dihaj enakomerno'],
-      mistakes: ['Previsoki skoki', 'Vrtenje iz ramen'],
+      id: 'jump_rope', name: 'Jump rope', equip: ['rope'], type: 'cardio', unit: 'min',
+      muscles: 'Calves, heart, coordination', tempo: '~120 skips/min',
+      cues: ['Low bounces off the balls of the feet, soft knees', 'Turn the rope from the wrists, elbows by your sides', 'Eyes forward, breathe steadily'],
+      mistakes: ['Jumping too high', 'Turning from the shoulders'],
       anim: {
-        focus: ['shin'], period: 0.5, label: 'Iz zapestij',
+        focus: ['shin'], period: 0.5, label: 'From the wrists',
         fn: function (u) {
           var hop = u > 0.3 && u < 0.7 ? 9 * Math.sin((u - 0.3) / 0.4 * Math.PI) : 0;
           return { pin: ['fN', 0, -6 - hop], t: 179, hd: -4, lN: [4, -3, 58 + hop * 2], aN: [14, 82], aF: [12, 80], x: { rope: 180 - u * 360 } };
@@ -1053,111 +1053,111 @@
       }
     },
     {
-      id: 'band_row', name: 'Veslanje z elastiko', equip: ['bands'], type: 'strength', unit: 'bw', load: 0, inc: 0,
-      muscles: 'Hrbet, zadnja rama, biceps', tempo: '1-2-2',
-      cues: ['Elastika pritrjena v višini prsi (vrata / drog)', 'Lopatice nazaj, komolci k bokom', 'Na koncu 2 s stisni, počasi nazaj'],
-      mistakes: ['Zibanje trupa', 'Prešibka elastika – brez napetosti na začetku'],
+      id: 'band_row', name: 'Band row', equip: ['bands'], type: 'strength', unit: 'bw', load: 0, inc: 0,
+      muscles: 'Back, rear delts, biceps', tempo: '1-2-2',
+      cues: ['Band anchored at chest height (door / post)', 'Shoulder blades back, elbows to the hips', 'Squeeze 2 s at the end, return slowly'],
+      mistakes: ['Rocking the torso', 'Band too light – no tension at the start'],
       anim: {
         scene: [ANCHOR_MID], cables: band(ANCHOR_MID), hold: { N: 'handle', F: 'handle' }, focus: ['torso', 'upper'],
         frames: [
-          { d: 0.9, l: 'Vleci', p: split({ t: 172, aN: [80, 82] }) },
-          { d: 0.8, l: 'Stisni 2 s', p: split({ t: 178, aN: [-62, 86] }) },
-          { d: 1.6, l: 'Počasi nazaj', p: split({ t: 178, aN: [-62, 86] }) },
+          { d: 0.9, l: 'Pull', p: split({ t: 172, aN: [80, 82] }) },
+          { d: 0.8, l: 'Squeeze 2 s', p: split({ t: 178, aN: [-62, 86] }) },
+          { d: 1.6, l: 'Slowly back', p: split({ t: 178, aN: [-62, 86] }) },
           { d: 0.2, l: '', p: split({ t: 172, aN: [80, 82] }) }
         ]
       }
     },
     {
-      id: 'band_pushdown', name: 'Triceps potisk z elastiko', equip: ['bands'], type: 'strength', unit: 'bw', load: 0, inc: 0,
+      id: 'band_pushdown', name: 'Band triceps pushdown', equip: ['bands'], type: 'strength', unit: 'bw', load: 0, inc: 0,
       muscles: 'Triceps', tempo: '1-1-2',
-      cues: ['Elastika visoko pritrjena', 'Komolci ob telesu, iztegni do konca', 'Počasi nazaj do 90°'],
-      mistakes: ['Komolci gredo naprej'],
+      cues: ['Band anchored high', 'Elbows by your sides, extend fully', 'Slowly back to 90°'],
+      mistakes: ['Elbows drifting forward'],
       anim: {
         scene: [ANCHOR_HIGH], cables: band(ANCHOR_HIGH), hold: { N: 'handle', F: 'handle' }, focus: ['upper'],
         frames: [
-          { d: 0.8, l: 'Iztegni', p: stand({ t: 172, aN: [10, 140] }) },
-          { d: 0.5, l: 'Stisni', p: stand({ t: 172, aN: [8, 10] }) },
-          { d: 1.5, l: 'Počasi gor', p: stand({ t: 172, aN: [8, 10] }) },
+          { d: 0.8, l: 'Extend', p: stand({ t: 172, aN: [10, 140] }) },
+          { d: 0.5, l: 'Squeeze', p: stand({ t: 172, aN: [8, 10] }) },
+          { d: 1.5, l: 'Slowly up', p: stand({ t: 172, aN: [8, 10] }) },
           { d: 0.2, l: '', p: stand({ t: 172, aN: [10, 140] }) }
         ]
       }
     },
     {
-      id: 'db_farmers', name: 'Kmečka hoja z utežmi', equip: ['db'], type: 'cardio', unit: 'kg', load: 20, inc: 2,
-      muscles: 'Prijem, trup, ramena', tempo: 'Hitri kratki koraki',
-      cues: ['Uteži ob telesu, ramena dol in nazaj', 'Hitri kratki koraki', 'Trup miren, brez nagibanja'],
-      mistakes: ['Ramena pri ušesih'],
+      id: 'db_farmers', name: 'Dumbbell farmers carry', equip: ['db'], type: 'cardio', unit: 'kg', load: 20, inc: 2,
+      muscles: 'Grip, core, shoulders', tempo: 'Quick short steps',
+      cues: ['Dumbbells at your sides, shoulders down and back', 'Quick short steps', 'Torso still, no leaning'],
+      mistakes: ['Shoulders up by the ears'],
       anim: m(carryAnim, { hold: { N: 'db', F: 'db' } })
     },
 
     // ------------------------------------------------------------ BODYWEIGHT FALLBACKS
     {
-      id: 'bw_squat', name: 'Počep z lastno težo', equip: ['floor'], type: 'strength', unit: 'bw', load: 0, inc: 0,
-      muscles: 'Kvadricepsi, zadnjica', tempo: '2-1-1',
-      cues: ['Stopala v širini ramen, roke naprej za ravnotežje', 'Boki nazaj in dol, pete na tleh', 'Na vrhu stisni zadnjico'],
-      mistakes: ['Kolena navznoter', 'Plitev počep'],
+      id: 'bw_squat', name: 'Bodyweight squat', equip: ['floor'], type: 'strength', unit: 'bw', load: 0, inc: 0,
+      muscles: 'Quads, glutes', tempo: '2-1-1',
+      cues: ['Feet shoulder-width, arms forward for balance', 'Hips back and down, heels down', 'Squeeze glutes at the top'],
+      mistakes: ['Knees caving in', 'Shallow squat'],
       anim: {
         focus: ['thigh', 'glute'],
         frames: [
-          { d: 1.6, l: 'Spuščaj', p: stand({ aN: [10, 10] }) },
-          { d: 0.4, l: 'Dno', p: stand({ t: 146, lN: [100, -35], aN: [86, 88], hd: 10 }) },
-          { d: 0.9, l: 'Gor', p: stand({ t: 146, lN: [100, -35], aN: [86, 88], hd: 10 }) },
+          { d: 1.6, l: 'Lower', p: stand({ aN: [10, 10] }) },
+          { d: 0.4, l: 'Bottom', p: stand({ t: 146, lN: [100, -35], aN: [86, 88], hd: 10 }) },
+          { d: 0.9, l: 'Up', p: stand({ t: 146, lN: [100, -35], aN: [86, 88], hd: 10 }) },
           { d: 0.4, l: '', p: stand({ aN: [10, 10] }) }
         ]
       }
     },
     {
-      id: 'bw_lunge', name: 'Izpadni koraki z lastno težo', equip: ['floor'], type: 'strength', unit: 'bw', load: 0, inc: 0, repsPerCycle: 2,
-      muscles: 'Kvadricepsi, zadnjica', tempo: 'Enakomerno',
-      cues: ['Roke na bokih, trup pokonci', 'Zadnje koleno skoraj do tal', 'Potisni se nazaj skozi sprednjo peto'],
-      mistakes: ['Prekratek korak'],
+      id: 'bw_lunge', name: 'Bodyweight lunges', equip: ['floor'], type: 'strength', unit: 'bw', load: 0, inc: 0, repsPerCycle: 2,
+      muscles: 'Quads, glutes', tempo: 'Steady',
+      cues: ['Hands on hips, torso upright', 'Back knee almost to the floor', 'Push back through the front heel'],
+      mistakes: ['Step too short'],
       anim: {
         focus: ['thigh', 'glute'],
         frames: [
-          { d: 0.7, l: 'Korak naprej', p: m(lungeP([0, -92], [6, -6], [-6, -6]), { aN: [24, -30] }) },
-          { d: 0.25, l: 'Koleno do tal', p: m(lungeP([-6, -50], [36, -6], [-44, -10]), { aN: [24, -30] }) },
-          { d: 0.7, l: 'Potisni nazaj', p: m(lungeP([-6, -50], [36, -6], [-44, -10]), { aN: [24, -30] }) },
-          { d: 0.7, l: 'Druga noga', p: m(lungeP([0, -92], [-6, -6], [6, -6]), { aN: [24, -30] }) },
-          { d: 0.25, l: 'Koleno do tal', p: m(lungeP([-6, -50], [-44, -10], [36, -6]), { aN: [24, -30] }) },
-          { d: 0.7, l: 'Potisni nazaj', p: m(lungeP([-6, -50], [-44, -10], [36, -6]), { aN: [24, -30] }) }
+          { d: 0.7, l: 'Step forward', p: m(lungeP([0, -92], [6, -6], [-6, -6]), { aN: [24, -30] }) },
+          { d: 0.25, l: 'Knee to floor', p: m(lungeP([-6, -50], [36, -6], [-44, -10]), { aN: [24, -30] }) },
+          { d: 0.7, l: 'Push back', p: m(lungeP([-6, -50], [36, -6], [-44, -10]), { aN: [24, -30] }) },
+          { d: 0.7, l: 'Other leg', p: m(lungeP([0, -92], [-6, -6], [6, -6]), { aN: [24, -30] }) },
+          { d: 0.25, l: 'Knee to floor', p: m(lungeP([-6, -50], [-44, -10], [36, -6]), { aN: [24, -30] }) },
+          { d: 0.7, l: 'Push back', p: m(lungeP([-6, -50], [-44, -10], [36, -6]), { aN: [24, -30] }) }
         ]
       }
     },
     {
-      id: 'glute_bridge', name: 'Most za zadnjico', equip: ['floor'], type: 'strength', unit: 'bw', load: 0, inc: 0,
-      muscles: 'Zadnjica, zadnje stegenske', tempo: '1-2-2',
-      cues: ['Na hrbtu, stopala blizu zadnjice', 'Potisni boke gor skozi pete', 'Na vrhu 2 s stisni, rebra dol'],
-      mistakes: ['Usločen ledveni del'],
+      id: 'glute_bridge', name: 'Glute bridge', equip: ['floor'], type: 'strength', unit: 'bw', load: 0, inc: 0,
+      muscles: 'Glutes, hamstrings', tempo: '1-2-2',
+      cues: ['On your back, feet close to the glutes', 'Drive hips up through the heels', 'Squeeze 2 s at the top, ribs down'],
+      mistakes: ['Arched lower back'],
       anim: {
         focus: ['glute', 'thigh'],
         frames: [
-          { d: 0.9, l: 'Boki gor', p: { t: -88, hd: 0, pin: ['sho', -42, -11], aN: [92, 92], lN: [0, 0, 80], ik: { fN: [52, -6], fF: [49, -6] } } },
-          { d: 1.2, l: 'Stisni 2 s', p: { t: -62, hd: 20, pin: ['sho', -42, -11], aN: [96, 96], lN: [0, 0, 80], ik: { fN: [52, -6], fF: [49, -6] } } },
-          { d: 1.5, l: 'Počasi dol', p: { t: -62, hd: 20, pin: ['sho', -42, -11], aN: [96, 96], lN: [0, 0, 80], ik: { fN: [52, -6], fF: [49, -6] } } },
+          { d: 0.9, l: 'Hips up', p: { t: -88, hd: 0, pin: ['sho', -42, -11], aN: [92, 92], lN: [0, 0, 80], ik: { fN: [52, -6], fF: [49, -6] } } },
+          { d: 1.2, l: 'Squeeze 2 s', p: { t: -62, hd: 20, pin: ['sho', -42, -11], aN: [96, 96], lN: [0, 0, 80], ik: { fN: [52, -6], fF: [49, -6] } } },
+          { d: 1.5, l: 'Slowly down', p: { t: -62, hd: 20, pin: ['sho', -42, -11], aN: [96, 96], lN: [0, 0, 80], ik: { fN: [52, -6], fF: [49, -6] } } },
           { d: 0.2, l: '', p: { t: -88, hd: 0, pin: ['sho', -42, -11], aN: [92, 92], lN: [0, 0, 80], ik: { fN: [52, -6], fF: [49, -6] } } }
         ]
       }
     },
     {
-      id: 'mountain_climber', name: 'Plezalec (mountain climber)', equip: ['floor'], type: 'cardio', unit: 's', repsPerCycle: 2,
-      muscles: 'Trup, rame, srce', tempo: 'Hitro',
-      cues: ['Dlani pod rameni, boki v liniji', 'Izmenično hitro kolena k prsim', 'Ramena nad dlanmi, ne nazaj'],
-      mistakes: ['Boki visoko', 'Ramena za dlanmi'],
+      id: 'mountain_climber', name: 'Mountain climber', equip: ['floor'], type: 'cardio', unit: 's', repsPerCycle: 2,
+      muscles: 'Core, shoulders, heart', tempo: 'Fast',
+      cues: ['Hands under shoulders, hips in line', 'Drive knees to chest, alternating fast', 'Shoulders over hands, not behind them'],
+      mistakes: ['Hips too high', 'Shoulders behind the hands'],
       anim: {
         focus: ['torso', 'thigh'],
         frames: [
-          { d: 0.3, l: 'Desno koleno', p: { pin: ['hN', 40, -5], t: 108, hd: -8, aN: [0, 0], lN: [40, -100, -30], lF: [-62, -62, 15] } },
-          { d: 0.3, l: 'Levo koleno', p: { pin: ['hN', 40, -5], t: 108, hd: -8, aN: [0, 0], lN: [-62, -62, 15], lF: [40, -100, -30] } }
+          { d: 0.3, l: 'Right knee', p: { pin: ['hN', 40, -5], t: 108, hd: -8, aN: [0, 0], lN: [40, -100, -30], lF: [-62, -62, 15] } },
+          { d: 0.3, l: 'Left knee', p: { pin: ['hN', 40, -5], t: 108, hd: -8, aN: [0, 0], lN: [-62, -62, 15], lF: [40, -100, -30] } }
         ]
       }
     },
     {
-      id: 'high_knees', name: 'Tek na mestu z visokimi koleni', equip: ['floor'], type: 'cardio', unit: 'min',
-      muscles: 'Srce, upogibalke kolka, meča', tempo: 'Hitro',
-      cues: ['Kolena do višine bokov', 'Pristanek na prstih, mehko', 'Roke nihajo kot pri šprintu'],
-      mistakes: ['Pristanek na petah', 'Nagib nazaj'],
+      id: 'high_knees', name: 'High knees', equip: ['floor'], type: 'cardio', unit: 'min',
+      muscles: 'Cardio, hip flexors, calves', tempo: 'Fast',
+      cues: ['Knees to hip height', 'Land softly on the balls of the feet', 'Arms pump like a sprint'],
+      mistakes: ['Landing on the heels', 'Leaning back'],
       anim: {
-        focus: ['thigh'], period: 0.6, label: 'Kolena visoko',
+        focus: ['thigh'], period: 0.6, label: 'Knees high',
         fn: function (u) {
           var a = Math.sin(u * Math.PI * 2), s1 = Math.max(0, a), s2 = Math.max(0, -a);
           return {
@@ -1172,16 +1172,16 @@
 
   // Focus groups per exercise — primary group first. Drives library filters and the session builder.
   var FOCUS = {
-    noge: { name: 'Noge', icon: '🦵' },
-    zadnjica: { name: 'Zadnjica', icon: '🍑' },
-    prsa: { name: 'Prsa', icon: '🫁' },
-    hrbet: { name: 'Hrbet', icon: '🔙' },
-    rame: { name: 'Rame', icon: '🤷' },
-    roke: { name: 'Roke', icon: '💪' },
-    trup: { name: 'Trup', icon: '🎯' },
-    kardio: { name: 'Kardio', icon: '❤️' },
+    noge: { name: 'Legs', icon: '🦵' },
+    zadnjica: { name: 'Glutes', icon: '🍑' },
+    prsa: { name: 'Chest', icon: '🫁' },
+    hrbet: { name: 'Back', icon: '🔙' },
+    rame: { name: 'Shoulders', icon: '🤷' },
+    roke: { name: 'Arms', icon: '💪' },
+    trup: { name: 'Core', icon: '🎯' },
+    kardio: { name: 'Cardio', icon: '❤️' },
     hyrox: { name: 'HYROX', icon: '🏁' },
-    mobilnost: { name: 'Mobilnost', icon: '🧘' }
+    mobilnost: { name: 'Mobility', icon: '🧘' }
   };
   var GROUPS = {
     bike_z2: ['kardio', 'noge'], bike_hiit: ['kardio', 'noge'], row_hiit: ['kardio', 'hrbet'],
