@@ -22,6 +22,24 @@
     var t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
     document.body.appendChild(t); setTimeout(function () { t.remove(); }, 2600);
   }
+  // In-app confirm (native confirm() is unavailable in embedded viewers and ugly on TV)
+  function ask(msg, yes, onYes) {
+    closeAsk();
+    var prev = document.activeElement;
+    var d = document.createElement('div'); d.className = 'dlg';
+    d.innerHTML = '<div class="dlg-box" role="alertdialog" aria-modal="true"><p>' + esc(msg) + '</p><div class="dlg-row">' +
+      '<button class="btn ghost focusable" data-a="no">Prekliči</button><button class="btn primary focusable" data-a="yes">' + esc(yes) + '</button></div></div>';
+    d.onclick = function (e) {
+      var a = e.target.closest('[data-a]');
+      if (!a && e.target !== d) return;
+      closeAsk();
+      if (a && a.getAttribute('data-a') === 'yes') onYes();
+      else if (prev && prev.isConnected && prev.focus) prev.focus();
+    };
+    document.body.appendChild(d);
+    $('[data-a="yes"]', d).focus();
+  }
+  function closeAsk() { var d = $('.dlg'); if (d) d.remove(); }
   var DAYN = ['Ne', 'Po', 'To', 'Sr', 'Če', 'Pe', 'So'];
   // Slovenian plural forms: [1, 2, 3–4, 5+]
   function pl(n, f) { var k = Math.abs(n) % 100; return n + ' ' + (k === 1 ? f[0] : k === 2 ? f[1] : k === 3 || k === 4 ? f[2] : f[3]); }
@@ -79,7 +97,7 @@
   function isKey(code, k) { return KEY[k].indexOf(code) >= 0; }
 
   function focusables() {
-    var scope = $('.player') || root;
+    var scope = $('.dlg') || $('.player') || root;
     return $$('.focusable', scope).filter(function (e) { return e.offsetParent !== null || e.getClientRects().length; });
   }
   function center(r) { return [r.left + r.width / 2, r.top + r.height / 2]; }
@@ -117,7 +135,8 @@
       else if (isKey(code, 'BACK') && code !== 8) back();
       return;
     }
-    if (activeSession && activeSession.onKey && activeSession.onKey(code, e)) { e.preventDefault(); return; }
+    if ($('.dlg') && isKey(code, 'BACK')) { closeAsk(); e.preventDefault(); return; }
+    if (!$('.dlg') && activeSession && activeSession.onKey && activeSession.onKey(code, e)) { e.preventDefault(); return; }
     if (isKey(code, 'LEFT')) { move('LEFT'); e.preventDefault(); }
     else if (isKey(code, 'RIGHT')) { move('RIGHT'); e.preventDefault(); }
     else if (isKey(code, 'UP')) { move('UP'); e.preventDefault(); }
@@ -141,6 +160,7 @@
     cleanup = [];
     if (activeSession) { activeSession.destroy(); activeSession = null; }
     var pl = $('.player'); if (pl) pl.remove();
+    closeAsk();
     root.innerHTML = '';
     keepAwake(false);
   }
@@ -160,7 +180,10 @@
   }
   function resetTo(screen, params) { stack = []; go(screen, params); }
   function back() {
-    if (activeSession && activeSession.confirmExit && !activeSession.confirmExit()) return;
+    if (activeSession && activeSession.confirmExit) { activeSession.confirmExit(popScreen); return; }
+    popScreen();
+  }
+  function popScreen() {
     if (stack.length <= 1) return;
     stack.pop();
     render(true);
@@ -582,7 +605,7 @@
       f.text().then(function (t) { try { Store.importJSON(t); toast('Uvoženo – izberi osebo'); resetTo('profiles'); } catch (err) { toast('Napaka: ' + err.message); } });
     };
     $('#rst').onclick = function () {
-      if (confirm('Res izbrišem vso zgodovino in teže za ' + state.name + '?')) { Store.resetProgress(state); toast('Ponastavljeno'); resetTo('home'); }
+      ask('Res izbrišem vso zgodovino in teže za ' + state.name + '?', 'Ponastavi', function () { Store.resetProgress(state); toast('Ponastavljeno'); resetTo('home'); });
     };
   };
 
@@ -931,14 +954,14 @@
       el.classList.toggle('paused', paused);
       if (paused) pl.stop(); else pl.start();
     };
-    $('#wExit').onclick = function () { if (confirm('Končam trening in shranim opravljene serije?')) finish(); };
+    $('#wExit').onclick = function () { ask('Končam trening in shranim opravljene serije?', 'Končaj', finish); };
 
     activeSession = {
       onKey: function (code) {
         if (isKey(code, 'PLAY')) { $('#wPause').click(); return true; }
         return false;
       },
-      confirmExit: function () { return confirm('Zapustim trening? Neshranjene serije se izgubijo.'); },
+      confirmExit: function (leave) { ask('Zapustim trening? Neshranjene serije se izgubijo.', 'Zapusti', leave); },
       destroy: function () { clearInterval(iv); el.remove(); if ('speechSynthesis' in window) speechSynthesis.cancel(); }
     };
     enter(0);
@@ -1062,10 +1085,11 @@
     };
     if ($('#pCancel')) $('#pCancel').onclick = function () { pdraft = null; back(); };
     if ($('#pDel')) $('#pDel').onclick = function () {
-      if (!confirm('Izbrišem profil ' + existing.name + ' in vso njegovo zgodovino?')) return;
-      Store.removeProfile(existing.id);
-      pdraft = null; state = null;
-      resetTo('profiles');
+      ask('Izbrišem profil ' + existing.name + ' in vso njegovo zgodovino?', 'Izbriši', function () {
+        Store.removeProfile(existing.id);
+        pdraft = null; state = null;
+        resetTo('profiles');
+      });
     };
   };
 

@@ -495,3 +495,9 @@ h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -.015em; }
 .exd .controls { position: sticky; bottom: -2rem; background: linear-gradient(0deg, var(--bg-2) 75%, transparent); padding: 1rem 0 2rem; margin-top: .4rem; }
 .exd .side::-webkit-scrollbar { display: none; }
 .preview .side { overflow-y: auto; scrollbar-width: none; }
+
+/* in-app confirm */
+.dlg { position: fixed; inset: 0; z-index: 120; display: grid; place-items: center; padding: 1rem; background: rgba(2, 6, 4, .72); backdrop-filter: blur(6px); }
+.dlg-box { width: min(30rem, 100%); background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 1.6rem; display: grid; gap: 1.4rem; }
+.dlg-box p { margin: 0; font-size: 1.15rem; line-height: 1.45; }
+.dlg-row { display: flex; gap: .8rem; justify-content: flex-end; flex-wrap: wrap; }
