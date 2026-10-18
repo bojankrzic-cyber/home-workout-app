@@ -164,7 +164,7 @@
   // ---- static scenery -----------------------------------------------------
   var SCENE = {
     floor: function () { return ''; },
-    // NOHrD weight bench (flat or incline). x = pivot (seat rear end), h = pad top height
+    // adjustable weight bench (flat or incline). x = pivot (seat rear end), h = pad top height
     bench: function (o) {
       var h = o.h || 44, x = o.x, s = '';
       var len = o.len || 115;
@@ -181,7 +181,7 @@
       }
       return s;
     },
-    // NOHrD TriaTrainer closed = ab trainer (decline sit-up). x = low end
+    // ab & back-extension bench, closed = ab trainer (decline sit-up). x = low end
     tria_abs: function (o) {
       var x = o.x, s = '';
       var lo = [x, -32], hi = [x + 92, -58];
@@ -193,7 +193,7 @@
       s += circ([x + 112, -72], 6, 'p-roll') + circ([x + 108, -55], 6, 'p-roll');
       return s;
     },
-    // NOHrD TriaTrainer half-open = 45° back extension. hx,hy = hip pad
+    // ab & back-extension bench, half-open = 45° back extension. hx,hy = hip pad
     tria_back: function (o) {
       var s = '';
       var px = o.x, py = o.y;
