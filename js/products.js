@@ -18,15 +18,27 @@
     shop: 'https://www.naturesfinest.si',
     utm: { utm_source: 'nf-app', utm_medium: 'app' },   // name-agnostic: survives app renames
     minAge: 18,
-    disclaimer: 'Food supplements are not a substitute for a varied, balanced diet and a healthy lifestyle.'
+    disclaimer: 'Food supplements are not a substitute for a varied, balanced diet and a healthy lifestyle.',
+    // Health program reward ladder (js/health.js). Pilot: shared codes – before launch replace with unique
+    // per-customer codes created server-side (WooCommerce REST) so codes can't be passed around.
+    // Percentages are a commercial decision (margin) – TODO CEO/commercial.
+    rewards: {
+      // 7: non-cash + tied to a purchase (check-ins are self-reported – a cash code at day 7 invites farming)
+      7: { code: 'FINESTME-SHIP', text: 'Member badge + free shipping on your next reorder' },
+      30: { code: 'FINESTME15', text: '15% off + a free sample chosen for your goal in your next package' },
+      60: { text: 'Free shipping on every order while you stay in the program' },
+      90: { text: 'Your routine price locked + your 90-day story' }
+    }
   };
 
   // goals: muscle | strength | fatloss | endurance | hyrox | general
+  // cartId: WooCommerce product id for one-tap reorder (?add-to-cart=) – TODO verify ids per market
+  // pack.servings: servings per pack from the label – TODO fill for every product (else the user picks 30/60/90)
   // use: default for the daily routine (Today screen). dose MUST match the product label –
   // TODO regulatory: confirm each dose/timing against the current label before going live.
   var ITEMS = [
     {
-      id: 'creatine', sku: 786110, name: 'Creatine Monohydrate', price: 14.99,
+      id: 'creatine', sku: 786110, cartId: 786110, pack: { servings: 85 }, name: 'Creatine Monohydrate', price: 14.99,
       url: '/izdelek/creatine-monohydrate/', img: 'img/products/creatine.webp',
       claim: 'Creatine increases physical performance in successive bursts of short-term, high-intensity exercise.',
       note: 'Beneficial effect with a daily intake of 3 g · 85 servings · vegan',
@@ -34,7 +46,7 @@
       use: { dose: '3 g (1 scoop) in water or a shake', slot: 'morning', days: 'daily', tip: 'Every day, rest days too – consistency matters more than timing.' }
     },
     {
-      id: 'recovery', sku: 567616, name: 'Recovery Shake', price: 9.99,
+      id: 'recovery', sku: 567616, cartId: 567616, name: 'Recovery Shake', price: 9.99,
       url: '/izdelek/recovery-shake/', img: 'img/products/recovery.webp',
       claim: 'Magnesium and calcium contribute to normal muscle function. B vitamins contribute to the reduction of tiredness and fatigue.',
       note: 'Whey protein + carbs 3:1 + electrolytes · rated 4.9/5',
@@ -42,7 +54,7 @@
       use: { dose: '1 serving in water', slot: 'post', days: 'training', tip: 'Within an hour after training.' }
     },
     {
-      id: 'protein', sku: 978562, name: 'Bio Vegan Protein – Matcha & Vanilla', price: 14.59,
+      id: 'protein', sku: 978562, cartId: 978562, name: 'Bio Vegan Protein – Matcha & Vanilla', price: 14.59,
       url: '/izdelek/bio-vegan-protein-matcha-vanilla/', img: 'img/products/protein.webp',
       claim: '19 g plant protein (pea, rice, chia) and 2.7 g BCAA per serving, no added sugar.',
       note: 'Organic · vegan',
@@ -50,7 +62,7 @@
       use: { dose: '1 scoop in water or plant milk', slot: 'post', days: 'daily', tip: 'After training, or between meals on rest days.' }
     },
     {
-      id: 'hydration', sku: 804496, name: 'Hydration + Energy', price: 22.27,
+      id: 'hydration', sku: 804496, cartId: 804496, name: 'Hydration + Energy', price: 22.27,
       url: '/izdelek/hydration-energy-for-hot-weather/', img: 'img/products/hydration.webp',
       claim: 'Magnesium contributes to electrolyte balance and normal muscle function, and to the reduction of tiredness and fatigue.',
       note: 'Magnesium + B vitamins · dissolves fully · rated 4.9/5',
@@ -58,7 +70,7 @@
       use: { dose: '1 serving in 500 ml water', slot: 'pre', days: 'training', tip: 'Sip it during longer or hot sessions.' }
     },
     {
-      id: 'magnesium', sku: 852097, name: 'Magnesium (citrate)', price: 6.99,
+      id: 'magnesium', sku: 852097, cartId: 852097, name: 'Magnesium (citrate)', price: 6.99,
       url: '/izdelek/magnezij-kapsule/', img: 'img/products/magnesium.webp',
       claim: 'Magnesium contributes to normal muscle function and to the reduction of tiredness and fatigue.',
       note: 'Premium citrate form · vegan',
@@ -66,7 +78,7 @@
       use: { dose: '1 capsule', slot: 'evening', days: 'daily', tip: 'Evenings suit most people.' }
     },
     {
-      id: 'vitd3', sku: 852053, name: 'Vitamin D3 2000 IU', price: 9.99,
+      id: 'vitd3', sku: 852053, cartId: 852053, name: 'Vitamin D3 2000 IU', price: 9.99,
       url: '/izdelek/vitamin-d3-kapsule/', img: 'img/products/vitd3.webp',
       claim: 'Vitamin D contributes to the maintenance of normal muscle function and normal bones.',
       note: 'Especially relevant October–April',

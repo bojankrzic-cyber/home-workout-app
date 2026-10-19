@@ -56,6 +56,7 @@
           }).join('') + '</div><div class="acct-or">or with e-mail</div>' +
           '<input class="field focusable wide" id="acEmail" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" value="' + esc(p.email || '') + '">' +
           '<label class="check"><input type="checkbox" id="acHealth" class="focusable"' + (p.health ? ' checked' : '') + '><span><b>Required:</b> I agree that Nature’s Finest stores my training, activity and body data (this includes health data) in my account so the app works across my devices. I can withdraw at any time by deleting my account. <a href="' + esc(PRIVACY) + '" target="_blank" rel="noopener">Privacy policy</a></span></label>' +
+          '<label class="check"><input type="checkbox" id="acRem" class="focusable"' + (p.rem ? ' checked' : '') + '><span>Optional: remind me about my supplement routine and before I run out (e-mail, later WhatsApp).</span></label>' +
           '<label class="check"><input type="checkbox" id="acMkt" class="focusable"' + (p.mkt ? ' checked' : '') + '><span>Optional: send me training tips and offers from Nature’s Finest by e-mail.</span></label>' +
           '<button class="btn primary focusable" id="acSend">Send sign-in e-mail</button>'
           :
@@ -69,7 +70,7 @@
           b.onclick = function () {
             if (!$('#acHealth').checked) { App.toast('Please accept data storage first – the account can’t work without it'); $('#acHealth').focus(); return; }
             b.disabled = true;
-            C.signInOAuth(b.getAttribute('data-oauth'), { health_data: true, marketing_email: $('#acMkt').checked })
+            C.signInOAuth(b.getAttribute('data-oauth'), { health_data: true, marketing_email: $('#acMkt').checked, reminders: $('#acRem').checked })
               .catch(function (e) { b.disabled = false; App.toast('Couldn’t open sign-in: ' + (e.message || 'try again')); });
           };
         });
@@ -78,7 +79,7 @@
           if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { App.toast('Enter a valid e-mail'); return; }
           if (!health) { App.toast('Please accept data storage – the account can’t work without it'); return; }
           this.disabled = true; this.textContent = 'Sending…';
-          C.signIn(email, { health_data: true, marketing_email: mkt }).then(function () {
+          C.signIn(email, { health_data: true, marketing_email: mkt, reminders: $('#acRem').checked }).then(function () {
             App.go('account', { sent: true, email: email }, true);
           }).catch(function (e) { App.toast('Couldn’t send: ' + (e.message || 'try again')); App.refresh({ email: email, health: health, mkt: mkt }); });
         };
@@ -108,6 +109,7 @@
       '<div class="act-foot"><button class="btn focusable" id="acSync">Sync now</button><button class="btn ghost focusable" id="acOut">Sign out</button></div></div>' +
       '<div class="panel"><h3>Your Nature’s Finest orders</h3><div id="acOrders" class="hint">Loading…</div></div></div>' +
       '<div class="panel"><h3>Privacy & consent</h3>' +
+      '<label class="check"><input type="checkbox" id="acRem2" class="focusable"><span>Routine reminders and “running low” alerts (e-mail, later WhatsApp)</span></label>' +
       '<label class="check"><input type="checkbox" id="acMkt2" class="focusable"><span>Send me training tips and offers by e-mail</span></label>' +
       '<div class="hint">Health & training data is stored because you agreed when you created the account. To withdraw that, delete the account – it erases your cloud data. <a href="' + esc(PRIVACY) + '" target="_blank" rel="noopener">Privacy policy</a></div>' +
       '<div class="act-foot"><button class="btn ghost focusable danger" id="acDel">Delete account & cloud data</button></div></div></div>';
@@ -122,6 +124,8 @@
       });
     };
     C.consents().then(function (c) {
+      var rb = $('#acRem2');
+      if (rb) { rb.checked = !!c.reminders; rb.onchange = function () { C.setConsent('reminders', rb.checked).then(function () { App.toast(rb.checked ? 'Reminders on' : 'Reminders off'); }); }; }
       var box = $('#acMkt2'); if (!box) return;
       box.checked = !!c.marketing_email;
       box.onchange = function () {

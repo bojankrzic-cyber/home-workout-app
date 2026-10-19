@@ -262,6 +262,17 @@
       return sb.auth.signInWithOAuth({ provider: provider, options: { redirectTo: back, queryParams: provider === 'google' ? { prompt: 'select_account' } : undefined } })
         .then(function (r) { if (r.error) throw r.error; });
     },
+    // Health program events → app_events (Klaviyo reminders server-side, consent-gated)
+    event: function (name, props, memberId) {
+      if (!sb || !user) return Promise.resolve();
+      return sb.from('app_events').insert({ user_id: user.id, member_id: memberId || null, name: name, props: props || {} }).then(function () {}, function () {});
+    },
+    // QR scan from a pack or flyer (allowed before sign-in)
+    scan: function (sku, src, batch) {
+      if (!configured()) return Promise.resolve();
+      if (!sb) { var self = this; return loadLib().then(function (c) { sb = c; return self.scan(sku, src, batch); }).catch(function () {}); }
+      return sb.from('product_scans').insert({ sku: String(sku), src: src || 'qr', batch: batch || null, user_id: user ? user.id : null }).then(function () {}, function () {});
+    },
     providers: function () { return (CFG.authProviders || ['google']).slice(); },
     verifyCode: function (email, code) {
       return sb.auth.verifyOtp({ email: email, token: code, type: 'email' }).then(function (r) { if (r.error) throw r.error; });

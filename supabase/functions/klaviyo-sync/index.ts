@@ -1,4 +1,4 @@
-// Platform → Klaviyo. Called by Supabase Database Webhooks (INSERT on consents, workouts, activities).
+// Platform → Klaviyo. Called by Supabase Database Webhooks (INSERT on consents, workouts, activities, app_events).
 //
 //   consents.marketing_email  → subscribe / unsubscribe the e-mail on the Klaviyo list (double opt-in
 //                               follows the list's own setting)
@@ -7,6 +7,11 @@
 //                               Never for activities from Apple HealthKit or Android Health Connect
 //                               (data.source or data.origin 'apple_health' / 'health_connect'): Apple's and
 //                               Google's platform policies forbid using that data for marketing/advertising.
+//   consents.reminders        → profile property finestme_reminders (true/false) so reminder flows can filter on it
+//   app_events                → Health program events ("App Supply Low", "App Reward Unlocked" …) that start
+//                               reminder flows (e-mail / SMS / WhatsApp). Only whitelisted props are sent.
+//                               Routine reminders need the 'reminders' OR 'marketing_email' consent; rewards and
+//                               product suggestions need 'marketing_email'. No consent → nothing is sent.
 //
 // Secrets: KLAVIYO_API_KEY (private key, scopes: profiles:write, lists:write, subscriptions:write, events:write),
 //          KLAVIYO_LIST_ID, WEBHOOK_TOKEN (shared secret the database webhook sends as "Authorization: Bearer …")
@@ -27,6 +32,31 @@ async function marketingOk(userId: string): Promise<boolean> {
   const { data } = await db.from('current_consents').select('granted').eq('user_id', userId).eq('kind', 'marketing_email').maybeSingle();
   return !!data?.granted;
 }
+async function consentOk(userId: string, kinds: string[]): Promise<boolean> {
+  const { data } = await db.from('current_consents').select('kind,granted').eq('user_id', userId).in('kind', kinds);
+  return (data ?? []).some((c: { granted?: boolean }) => !!c.granted);
+}
+// Health program events: name → consents that allow it (any one is enough)
+const REMIND = ['reminders', 'marketing_email'], MARKETING = ['marketing_email'];
+const APP_EVENTS: Record<string, string[]> = {
+  routine_started: REMIND, checkin_streak: REMIND, supply_low: REMIND, reorder_clicked: REMIND,
+  checkins_missed: REMIND, weekly_review: REMIND, program_paused: REMIND,
+  reward_unlocked: MARKETING, complement_suggested: MARKETING,
+};
+const APP_PROPS = ['product', 'product_id', 'sku', 'days_left', 'reorder_url', 'reward', 'code', 'checkins', 'streak',
+  'missed', 'week', 'adherence', 'energy', 'sleep', 'mood', 'checkin_time', 'until'];
+const appMetric = (name: string) => 'App ' + name.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+// only whitelisted keys with plain values (string / number / boolean) – never nested objects
+function appProps(p: unknown): Record<string, string | number | boolean> {
+  const out: Record<string, string | number | boolean> = {};
+  if (!p || typeof p !== 'object' || Array.isArray(p)) return out;
+  for (const k of APP_PROPS) {
+    const v = (p as Record<string, unknown>)[k];
+    if (typeof v === 'string' || typeof v === 'boolean' || (typeof v === 'number' && isFinite(v))) out[k] = v;
+  }
+  return out;
+}
+
 // Apple HealthKit / Android Health Connect data must never reach marketing tools
 const RESTRICTED = ['apple_health', 'health_connect'];
 const restricted = (r: { data?: { source?: string; origin?: string } }) =>
@@ -52,6 +82,27 @@ Deno.serve(async (req) => {
     } else {
       await klaviyo('/profile-subscription-bulk-delete-jobs', { data: { type: 'profile-subscription-bulk-delete-job', attributes: { profiles: { data: [{ type: 'profile', attributes: { email, subscriptions: { email: { marketing: { consent: 'UNSUBSCRIBED' } } } } }] } }, relationships: { list: { data: { type: 'list', id: LIST } } } } });
     }
+    return new Response('ok');
+  }
+  if (ev.table === 'consents' && r.kind === 'reminders') {
+    await klaviyo('/profile-import', { data: { type: 'profile', attributes: { email, properties: { finestme_reminders: !!r.granted } } } });
+    return new Response('ok');
+  }
+
+  if (ev.table === 'app_events') {
+    const allowed = APP_EVENTS[r.name];
+    if (!allowed) return new Response('unknown event');
+    // a reminder that arrives days late (webhook retries) is worse than none
+    const at = Date.parse(r.created_at ?? '');
+    if (isFinite(at) && Date.now() - at > 3 * 864e5) return new Response('stale – no event');
+    if (!await consentOk(r.user_id, allowed)) return new Response('no consent');
+    await klaviyo('/events', { data: { type: 'event', attributes: {
+      metric: { data: { type: 'metric', attributes: { name: appMetric(r.name) } } },
+      profile: { data: { type: 'profile', attributes: { email } } },
+      properties: appProps(r.props),
+      time: r.created_at ?? new Date().toISOString(),
+      unique_id: `app_events:${r.id}`,
+    } } });
     return new Response('ok');
   }
 

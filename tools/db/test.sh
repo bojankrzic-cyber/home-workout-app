@@ -14,4 +14,5 @@ P="psql -X -q -h $DIR -p $PORT -U postgres -d postgres -v ON_ERROR_STOP=1"
 $P -f tools/db/auth_stub.sql
 for f in supabase/migrations/*.sql; do $P -f "$f"; done
 $P -t -A -f tools/db/rls_test.sql >/dev/null
-$P -t -A -f tools/db/devices_test.sql | tail -1
+$P -t -A -f tools/db/devices_test.sql >/dev/null
+$P -t -A -f tools/db/program_events_test.sql | tail -1
