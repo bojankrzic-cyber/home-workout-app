@@ -3,3 +3,4 @@ node_modules/
 !icons/*.png
 !img/**
 .DS_Store
+!tools/fixtures/*.png
