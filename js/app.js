@@ -557,6 +557,26 @@
   // ---------------------------------------------------------------- screens
   var SCREENS = {};
 
+  // Platform navigation: training, library, the sport tracker (centre), progress and "me".
+  // Modules (window.FS_MODULES) plug their screens and home/progress panels in through window.App.
+  function navBar() {
+    var I = {
+      build: '<path d="M12 5v14M5 12h14"/>',
+      library: '<rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/>',
+      record: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/>',
+      progress: '<path d="M4 19h16M6 15l4-4 3 3 5-6"/>',
+      me: '<circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c.8-3.6 3.6-5.6 7-5.6s6.2 2 7 5.6"/>'
+    };
+    function b(go, ico, label, cls) {
+      return '<button class="btn sm ' + (cls || 'ghost') + ' focusable" data-go="' + go + '"><i><svg viewBox="0 0 24 24">' + I[ico] + '</svg></i><span>' + label + '</span></button>';
+    }
+    return '<nav class="main-nav">' + b('builder', 'build', 'Build', ' ') + b('library', 'library', 'Library') +
+      (SCREENS.record ? b('record', 'record', 'Record', 'rec-tab') : '') + b('history', 'progress', 'Progress') + b('settings', 'me', 'Me') + '</nav>';
+  }
+  function hookHtml(where) {
+    return App.hooks[where].map(function (f) { try { return f() || ''; } catch (e) { console.error(e); return ''; } }).join('');
+  }
+
   SCREENS.home = function () {
     var plan = Program.PLANS[state.settings.days];
     var nextKey = Program.nextSessionKey(state);
@@ -573,7 +593,7 @@
     for (var i = 0; i < 7; i++) {
       var d = new Date(monday); d.setDate(monday.getDate() + i);
       var ds = d.toISOString().slice(0, 10);
-      var done = state.log.some(function (l) { return l.date.slice(0, 10) === ds; });
+      var done = state.log.some(function (l) { return l.date.slice(0, 10) === ds; }) || (state.activities || []).some(function (a) { return a.start.slice(0, 10) === ds; });
       if (done) weekDone++;
       var pref = state.settings.prefDays || [];
       var planned = pref.length ? pref.indexOf(d.getDay()) >= 0 : plan.days.indexOf((i + 1) % 7) >= 0;
@@ -594,10 +614,7 @@
     root.innerHTML =
       '<div class="screen">' +
       '<div class="topbar">' + brandMark() + '<span class="chip on">' + esc(sess.weekInfo.label) + '</span><div class="spacer"></div>' +
-      '<nav class="main-nav"><button class="btn sm focusable" data-go="builder"><i><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></i><span>Build</span></button>' +
-      '<button class="btn sm ghost focusable" data-go="library"><i><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg></i><span>Library</span></button>' +
-      '<button class="btn sm ghost focusable" data-go="history"><i><svg viewBox="0 0 24 24"><path d="M4 19h16M6 15l4-4 3 3 5-6"/></svg></i><span>Progress</span></button>' +
-      '<button class="btn sm ghost focusable" data-go="settings"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg></i><span>Settings</span></button></nav>' +
+      navBar() +
       '<button class="btn sm ghost focusable who" data-go="profiles" title="Switch person" aria-label="Switch person">' + avatar(state) + '<span class="who-name">' + esc(state.name) + '</span></button></div>' +
       '<div class="hero"><div class="hero-card' + (heroPhoto ? ' has-photo' : '') + '"' + photoBg(heroPhoto) + '><div class="eyebrow">Today’s workout · ' + esc(sess.weekInfo.label) + '</div>' +
       '<h1>' + esc(sess.name) + '</h1>' +
@@ -611,6 +628,7 @@
       '<div class="stats"><div class="stat"><b>' + state.log.length + '</b><span>total workouts</span></div>' +
       '<div class="stat"><b>' + Math.round(totalMin / 60) + ' h</b><span>total time</span></div>' +
       '<div class="stat"><b>' + streak + '</b><span>week streak</span></div></div></div></div>' +
+      hookHtml('home') +
       '<div class="section-title"><h2>Your program</h2><span>' + plan.order.length + ' workouts in rotation · a missed day won’t derail your plan</span></div>' +
       '<div class="row">' + cards + '</div>' +
       homeProducts() +
@@ -813,7 +831,7 @@
         var s = Program.get(state, l.session);
         return '<div class="hist-item"><div class="d">' + new Date(l.date).toLocaleDateString('en-GB') + '</div><div style="flex:1">' + esc(l.name || (s ? s.name : 'Workout')) + '</div><div>' + l.min + ' min · ' + l.sets.length + (l.sets.length === 1 ? ' set' : ' sets') + '</div></div>';
       }).join('') || '<div class="hint">No workouts logged yet.</div>') + '</div></div></div>' +
-      weightPanel +
+      hookHtml('progress') + weightPanel +
       '<div class="panel"><h3>Current working weights (double progression)</h3><div class="hist">' + (prs || '<div class="hint">After your first workout, weights and reps for each exercise show up here.</div>') + '</div></div></div>';
     var wv = bs.weight || 75;
     $$('[data-wl]').forEach(function (b) {
@@ -1804,6 +1822,16 @@
     navigator.serviceWorker.register('sw.js').catch(function () {});
   }
   window.__go = function (screen, params) { go(screen, params); };   // test hook (tools/*.cjs)
+  // module API: feature modules (sport tracker now; body tracker, supplement routine next) register
+  // screens and home/progress panels without touching the core
+  var App = window.App = {
+    SCREENS: SCREENS, hooks: { home: [], progress: [] },
+    go: go, back: back, refresh: refresh, resetTo: resetTo, toast: toast, ask: ask, esc: esc, fmt: fmt, pl: pl, $: $, $$: $$,
+    state: function () { return state; }, save: function () { Store.save(); },
+    keepAwake: keepAwake, say: function (t) { Voice.say(t); }, beep: function (f, d) { Audio.beep(f, d); },
+    session: function (o) { activeSession = o; }, onCleanup: function (f) { cleanup.push(f); }, isKey: isKey, TOUCH: TOUCH
+  };
+  (window.FS_MODULES || []).forEach(function (m) { try { m(App); } catch (e) { console.error(e); } });
   (function boot() {
     // Fast login: this device remembers who trained last – straight in (or straight to their PIN)
     var list = Store.list(), last = Store.active();

@@ -34,14 +34,15 @@
       log: [],      // [{ date, session, name, min, sets: [{ id, reps, load }] }]
       ex: {},       // per-exercise progression: { load, reps: [..], fails, date }
       customs: {},  // custom sessions by key (built in the session builder)
-      saved: []     // keys of customs the user saved as favourites
+      saved: [],    // keys of customs the user saved as favourites
+      activities: [] // sport tracker: GPS / imported / manual activities (js/track.js), newest first
     };
   }
 
   function normalize(p) {
     var d = newProfile();
     p.settings = Object.assign(d.settings, p.settings || {});
-    p.log = p.log || []; p.ex = p.ex || {}; p.customs = p.customs || {}; p.saved = p.saved || [];
+    p.log = p.log || []; p.activities = p.activities || []; p.ex = p.ex || {}; p.customs = p.customs || {}; p.saved = p.saved || [];
     p.color = p.color || COLORS[0]; p.name = p.name || 'Me';
     return p;
   }
