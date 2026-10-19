@@ -1,7 +1,7 @@
 {
-  "name": "Finest Daily – by Nature's Finest",
-  "short_name": "Finest Daily",
-  "description": "Your daily well-being companion: workouts, activities, supplement routine and progress.",
+  "name": "FinestMe – by Nature's Finest",
+  "short_name": "FinestMe",
+  "description": "Your personal well-being coach: personal goals, workouts, activities, supplement routine and progress.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

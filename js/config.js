@@ -6,5 +6,5 @@
 window.FS_CONFIG = Object.assign({
   supabaseUrl: '',          // https://<project-ref>.supabase.co  – EU (Frankfurt) project
   supabaseAnonKey: '',      // Project Settings → API → anon public
-  privacyUrl: 'https://www.naturesfinest.si'   // TODO: exact privacy-policy page incl. the Finest Daily section
+  privacyUrl: 'https://www.naturesfinest.si'   // TODO: exact privacy-policy page incl. the FinestMe section
 }, window.FS_CONFIG || {});
