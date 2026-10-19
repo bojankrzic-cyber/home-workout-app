@@ -920,7 +920,7 @@
 
     // ------------------------------------------------------------ BODYWEIGHT
     {
-      id: 'pushup', name: 'Push-up', equip: ['floor'], type: 'strength', unit: 'bw', load: 0, inc: 0,
+      id: 'pushup', name: 'Push-up', equip: ['floor'], type: 'strength', unit: 'bw', load: 0, inc: 0, secPerRep: 3,
       muscles: 'Chest, triceps, core', tempo: '2-0-1',
       cues: ['Hands under shoulders, body in a straight plank', 'Elbows back at ~45°', 'Chest to just above the floor, then press'],
       mistakes: ['Sagging hips', 'Head jutting forward'],
@@ -1383,7 +1383,7 @@
 
     // ------------------------------------------------------------ BODYWEIGHT ONLY (no equipment at all)
     {
-      id: 'knee_pushup', name: 'Knee push-up', equip: ['floor'], type: 'strength', unit: 'bw', load: 0, inc: 0,
+      id: 'knee_pushup', name: 'Knee push-up', equip: ['floor'], type: 'strength', unit: 'bw', load: 0, inc: 0, secPerRep: 3,
       muscles: 'Chest, triceps, core', tempo: '2-0-1',
       cues: ['Knees down, hands just wider than the shoulders', 'Straight line from the knees to the head', 'Lower the chest between the hands, then press away'],
       mistakes: ['Hips piking up toward the ceiling', 'Elbows flaring straight out to the sides'],

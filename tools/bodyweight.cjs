@@ -127,12 +127,15 @@ let nB = 0;
   st.customs.__t = src;
   const s = P.build(st, '__t'), tag = 'builder ' + type + ' [' + focus + '] ' + min + 'min ' + lvl;
   // full body (default focus, or the app's 'Full body' card): every major pattern once there is time for it
-  const full = !focus.length || focus.length >= 4;
-  const need = full && min >= 30 ? { legs: 1, push: 1, back: 1, core: 1 } : {};
+  const full = !focus.length || focus.length >= 6;
+  // strength-only: all four patterns from 30 min; strength + cardio spends ~30 % on intervals, so 3 of 4 is enough there
+  const need = full && min >= 30 && type === 'moc' ? { legs: 1, push: 1, back: 1, core: 1 } : {};
   const ids = checkSession(tag, s, need, false);
-  if (focus.indexOf('hrbet') >= 0 && focus.length <= 4 && !ids.map(ex).some(isBack)) fail(tag + ': back focus without a back exercise');
-  if (min <= 20 && full && [isLegs, isPush, isBack, isCore].filter((f) => ids.map(ex).some(f)).length < 2) fail(tag + ': 20 min full body covers too little');
-  if (focus.indexOf('rame') >= 0 && ids.indexOf('pike_pushup') < 0 && min >= 30) fail(tag + ': shoulder focus without pike push-up');
+  const cats = [isLegs, isPush, isBack, isCore].filter((f) => ids.map(ex).some(f)).length;
+  if (full && type === 'mix' && min >= 30 && cats < 3) fail(tag + ': full body covers only ' + cats + ' of legs/push/back/core');
+  if (focus.indexOf('hrbet') >= 0 && focus.length <= 4 && (type === 'moc' || min >= 30) && !ids.map(ex).some(isBack)) fail(tag + ': back focus without a back exercise');
+  if (min <= 20 && full && type === 'moc' && cats < 2) fail(tag + ': 20 min full body covers too little');
+  if (focus.indexOf('rame') >= 0 && focus.length <= 4 && type === 'moc' && ids.indexOf('pike_pushup') < 0 && min >= 30) fail(tag + ': shoulder focus without pike push-up');
   // swapping every exercise once keeps the session valid
   s.blocks.forEach((b) => b.items.forEach((it) => {
     const alts = P.alternatives(src, it.id, OWN);

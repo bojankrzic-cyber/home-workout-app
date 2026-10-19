@@ -476,16 +476,24 @@
     // add exercises in priority order while the estimated session still fits the chosen duration
     var order = strengthOrder(focus, opts.exclude || [], opts.owned || Exercises.HOME_GYM);
     var sets = min <= 30 ? 2 : 3;
-    // beginners get one set less in build(), so budget with the sets they will actually do
-    var realSets = opts.level === 'beg' ? Math.max(2, sets - 1) : opts.level === 'adv' ? sets + 1 : sets;
+    // build() gives beginners one set less and advanced lifters one more on the main block – budget with the sets they will actually do
+    function realBlocks(bl) {
+      return bl.map(function (b) {
+        var main = /Main|Superset A/.test(b.title);
+        return { title: b.title, items: b.items.map(function (it) {
+          var n = opts.level === 'beg' ? Math.max(Math.min(2, it.sets), it.sets - 1) : opts.level === 'adv' && main ? it.sets + 1 : it.sets;
+          return Object.assign({}, it, { sets: n });
+        }) };
+      });
+    }
     // an exercise that no longer fits is skipped, a shorter one further down the list may still fit (e.g. core)
-    var best = null, picked = [], misses = 0;
-    for (var n = 0; n < order.length && misses < 3; n++) {
+    var best = null, picked = [];
+    for (var n = 0; n < order.length; n++) {
       var items = sortForSession(picked.concat(order[n]).map(function (id) { return prescribe(id, sets); }));
       var cand = { blocks: head.concat(groupBlocks(items), tail) };
-      var probe = { blocks: head.concat(groupBlocks(items.map(function (it) { return Object.assign({}, it, { sets: realSets }); })), tail) };
-      if (best && estimateMin(probe) > min + 1) { misses++; continue; }
-      picked.push(order[n]); best = cand; misses = 0;
+      var probe = { blocks: head.concat(realBlocks(groupBlocks(items)), tail) };
+      if (best && estimateMin(probe) > min + 1) continue;
+      picked.push(order[n]); best = cand;
     }
     return {
       name: (opts.type === 'mix' ? 'Strength + Cardio: ' : 'Strength: ') + focus.map(function (f) { return Exercises.FOCUS[f].name; }).join(', '),
