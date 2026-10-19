@@ -123,6 +123,7 @@
       '<div class="buddy"><div class="buddy-face">' + BUDDY + '</div><div class="buddy-talk"><div class="buddy-hello">' + b.hello + '</div><div class="buddy-line">' + b.line + '</div>' +
       (b.badge ? '<span class="buddy-badge">' + esc(b.badge) + '</span>' : '') + '</div>' +
       '<div class="day-ring" title="' + plan.done + ' of ' + n + ' done"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" class="dr-bg"/><circle cx="32" cy="32" r="26" class="dr-fg" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + (C * (1 - pct)).toFixed(1) + '"/></svg><b>' + plan.done + '/' + n + '</b><span>today</span></div></div>' +
+      (window.Scan && Scan.hero ? Scan.hero(s, 'home') : '') +
       (rec ? '<div class="t-banner focusable" tabindex="0" data-go="record">● Your ' + esc(T.TYPES[rec.type].name.toLowerCase()) + ' is paused at ' + T.km(rec.d) + ' km – tap to resume</div>' : '') +
       (window.Health && Health.todayCard ? Health.todayCard(s) : '') + (window.FinestQR && FinestQR.homeCard ? FinestQR.homeCard(s) : '') +
       '<div class="section-title"><h2>Today’s plan</h2><span>' + (plan.training ? 'training day' : 'rest day') + ' · ' + new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }) + '</span></div>' +
@@ -163,7 +164,7 @@
   // ---------------------------------------------------------------- ＋ Start: Trail · Gym · Health
   var SHEETS = {
     start: function () {
-      return '<h3>What are we doing?</h3><div class="sh-worlds">' +
+      return '<h3>What are we doing?</h3>' + (window.Scan && Scan.hero ? Scan.hero(st(), 'sheet') : '') + '<div class="sh-worlds">' +
         world('trail', '🌲', 'Trail', 'run · walk · hike · ride · any sport') +
         world('gym', '🏋️', 'Gym', 'today’s workout · pick one · build your own') +
         world('health', '🌿', 'Health', 'supplements · body weight') + '</div>';
@@ -185,7 +186,6 @@
     health: function () {
       var s = st(), plan = dayPlan(s), left = plan.items.filter(function (i) { return i.kind === 'supp' && !i.done; });
       return head('🌿 Health', 'Your daily routine and body') + '<div class="sh-list">' +
-        line('scan', {}, '📷', 'Scan a product', 'QR code on your Nature’s Finest pack → how to use it + your routine', !routine(s).length) +
         (left.length ? '<button class="sh-line focusable primary" data-take-all><span class="ico">💊</span><span><b>Take ' + (left.length === 1 ? left[0].title : 'my supplements now') + '</b><small>' + esc(left.map(function (i) { return i.title; }).join(', ')) + '</small></span></button>' : '') +
         (routine(s).length ? line('program', {}, '🏅', 'My program', window.Health ? Health.count(s) + ' check-ins · rewards · supply · weekly progress' : '') : '') +
         line('routine', {}, '🗓️', 'My supplement routine', routine(s).length ? routine(s).length + ' in your routine · times and reminders' : 'set up – pick from Nature’s Finest or add your own') +

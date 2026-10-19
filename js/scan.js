@@ -35,11 +35,31 @@
       return words.every(function (w) { return hay.indexOf(w) >= 0; });
     }).sort(function (a, b) { return (cat[b].k === 'supplement') - (cat[a].k === 'supplement') || cat[a].n.localeCompare(cat[b].n); }).slice(0, n || 12);
   }
-  global.Scan = { resolve: resolve, search: search };
+  // The way in – the scanner is shown where the customer is: Today (under the greeting), the ＋ menu and
+  // My program. One component, three sizes; first-time wording until a routine exists.
+  var QR_ART = '<svg viewBox="0 0 48 48" aria-hidden="true"><g fill="currentColor"><path d="M4 4h14v14H4zm4 4v6h6V8zM30 4h14v14H30zm4 4v6h6V8zM4 30h14v14H4zm4 4v6h6v-6z"/>' +
+    '<path d="M22 4h4v4h-4zm0 8h4v6h-4zm8 14h4v4h-4zm8 0h6v4h-6zm-16 0h4v8h-4zm8 8h4v4h-4zm8 0h6v4h-6zm-8 8h4v6h-4zm8 0h4v6h-4zM4 22h6v4H4zm10 0h4v4h-4z"/></g></svg>';
+  function hero(s, where) {
+    var first = !(s && s.settings && (s.settings.routine || []).length);
+    if (where === 'sheet') return '<button class="scan-line focusable" data-sgo="scan" data-p=\'{}\'><span class="scan-art">' + QR_ART + '<i></i></span><span><b>Scan a product</b><small>QR code on your Nature’s Finest pack → how to use it + your routine</small></span><span class="scan-go">📷</span></button>';
+    if (where === 'small') return '<button class="btn focusable scan-small" data-go="scan">📷 Scan a pack</button>';
+    return '<div class="scan-hero' + (first ? ' first' : '') + '"><div class="scan-art">' + QR_ART + '<i></i></div><div class="scan-txt">' +
+      (first ? '<div class="kicker">Bought Nature’s Finest?</div><h3>Scan your product</h3><p>How to use exactly your product, your daily routine and rewards – in 10 seconds.</p>'
+        : '<h3>New pack or another product?</h3><p>Scan the QR on the pack – your routine and rewards keep counting.</p>') +
+      '</div><button class="btn primary focusable scan-btn" data-go="scan">📷 Scan now</button></div>';
+  }
+  global.Scan = { resolve: resolve, search: search, hero: hero };
   if (!global.FS_MODULES) return;
 
   global.FS_MODULES.push(function (App) {
     var $ = App.$, esc = App.esc;
+    // My program: scan a new pack / another product right at the top
+    var program = App.SCREENS.program;
+    if (program) App.SCREENS.program = function (p) {
+      program(p);
+      var bar = document.querySelector('.screen .topbar'); if (!bar || bar.querySelector('.scan-small')) return;
+      bar.insertAdjacentHTML('beforeend', hero(App.state(), 'small'));
+    };
     function loadJsQR() {
       return new Promise(function (ok, no) {
         if (global.jsQR) return ok(global.jsQR);
