@@ -87,6 +87,19 @@ Vzorci iz [Ladder](https://mobbin.com/screens/d1169c75-4219-4bf1-aa2c-f5eb8fc018
 - **Hitri treningi** na domačem zaslonu (celo telo, noge & zadnjica, zgornji del, trup, kardio intervali, cona 2).
 - **Knjižnica**: filter po fokusu in opremi; pri vsaki vaji gumb **"Treniraj to vajo"**.
 
+### Sport tracker (GPS)
+- **Record** (rdeč gumb na sredini navigacije): tek, hoja, pohod, kolo. Prikazuje živ zemljevid, gibalni čas, razdaljo, trenutni in povprečni tempo (oz. hitrost pri kolesu) ter vzpon. Ob vsakem km je pisk in glasovni povzetek.
+- **Kako deluje:** zgladi GPS šum, zavrže slabe meritve in nemogoče skoke ter se samodejno ustavi (auto-pause), ko stojiš. Ročna pavza ne riše črte čez pavzo. Krog (lap) se doda na zahtevo. Zaključek je z zadržanjem gumba ("hold to finish"), da se v žepu ne konča po nesreči.
+- **iPhone ob zaklenjenem zaslonu ustavi GPS.** Snemanje zato drži zaslon prižgan, kratke vrzeli pa premosti z ravno črto, če je hitrost realna.
+- **Snemanje preživi** osvežitev ali zaprt zavihek: povzetek se shrani vsakih ~4 s, domača stran pokaže "Recording paused – Resume".
+- **Povzetek:** zemljevid, km splits, graf tempa in višine, best efforts (400 m … maraton) s PR oznako, napor 1–10 in opombe.
+- **Ostalo:**
+  - ročni vnos katerega koli športa (nogomet, tenis, padel, plavanje, joga …);
+  - uvoz GPX iz ure ali druge aplikacije;
+  - seznam aktivnosti;
+  - v Progress tedenski volumen in tekaški rekordi;
+  - aktivnosti štejejo v tedenski trak na domači strani.
+
 ---
 
 ## Kako jo naložiš na TV
@@ -154,7 +167,9 @@ js/figure.js          animacijski engine: FK + 2-kostna IK + "pin" kontakta s tl
 js/exercises.js       knjižnica 36 vaj (keyframe animacije, navodila, napake, mišice, tempo, začetno breme)
 js/program.js         programi, 4-tedenski bloki, dvojna progresija, generator treningov po fokusu, sploščitev v korake (supersets)
 js/store.js           profili (localStorage), PIN, migracija v1→v2, izvoz/uvoz JSON
-js/app.js             zasloni, prostorska navigacija za daljinec, vodeni trening, TV predogled
+js/app.js             jedro: zasloni, navigacija (tudi daljinec), vodeni trening, TV predogled + modulni API (window.App)
+js/track.js           sport tracker engine (GPS filtri, auto-pause, splits, best efforts, GPX, kalorije) – brez DOM, testiran v Node
+js/sport.js           modul sport trackerja: Record, aktivnost, seznam, ročni vnos/GPX, paneli na Home in Progress
 sw.js                 offline cache
 tools/                razvojna orodja (contact sheet vseh animacij, UI smoke test)
 ```
@@ -176,6 +191,18 @@ NODE_PATH=$(npm root -g) node tools/snap.cjs c.png kb_swing "&h=520&labels=1"   
 
 Nova vaja = en objekt v `js/exercises.js` (+ vnos v `js/program.js`, če naj bo v programu).
 
+**Moduli platforme:**
+- Vsak nov sklop (sport tracker; naslednji: body tracker, rutina prehranskih dopolnil s QR) je svoja datoteka.
+- Datoteka se registrira prek `window.FS_MODULES` in dobi `App`.
+- Prek `App` doda zaslone (`App.SCREENS.x`) in panele na Home in Progress (`App.hooks.home` / `.progress`).
+- Jedra se ne spreminja.
+
+```bash
+node tools/track.cjs                                               # GPS engine: razdalja, auto-pause, splits, GPX, rekordi
+NODE_PATH=$(npm root -g) node tools/sport.cjs ./out                # sport tracker E2E s simuliranim GPS (telefon)
+NODE_PATH=$(npm root -g) node tools/mobile.cjs ./out               # vsi zasloni na telefonu: preliv, gumb Back
+```
+
 ---
 
 ## Omejitve (odkrito)
@@ -183,4 +210,6 @@ Nova vaja = en objekt v `js/exercises.js` (+ vnos v `js/program.js`, če naj bo 
 - Animacije so stilizirana **2D stranska projekcija**, ne video. Rotacijske vaje (sekanje drv) so prikazane v projekciji — besedilna navodila to dopolnjujejo.
 - Profili in podatki so shranjeni **na napravi** (TV ≠ telefon) – ni oblačne prijave. Za prenos uporabi izvoz/uvoz v Nastavitvah (izvoz vsebuje vse profile).
 - Aplikacija je v angleščini (vmesnik in govor). Če naprava nima angleškega glasu, uporabi zvočne signale.
+- Sport tracker v brskalniku: ob zaklenjenem zaslonu iPhone ne beleži GPS (vrzel se premosti z ravno črto). Srčnega utripa iz ure ne bere (iOS v brskalniku nima Bluetooth); ura → GPX uvoz. Rešitev za oboje je nativna ovojnica (Capacitor) z ozadnim GPS in HealthKit / Health Connect.
+- Zemljevid uporablja OpenStreetMap ploščice (pilot). Za produkcijo potreben komercialni ponudnik (MapTiler/Stadia/Mapbox) – sprememba ene vrstice v `js/sport.js`.
 - Začetne teže so ocena; prvi teden jih prilagodi (aplikacija si jih nato zapomni).
