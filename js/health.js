@@ -26,7 +26,7 @@
   // starter products (js/products.js) first, then the full label catalog behind the QR codes (js/catalog.js)
   function catalog(pid) {
     var c = P() && P().ITEMS.filter(function (x) { return x.id === pid; })[0], e = !c && pid != null && global.FS_CATALOG && global.FS_CATALOG[pid];
-    return c || (e ? { id: String(pid), sku: String(pid), name: e.n, kind: e.k, pack: e.days ? { servings: e.days } : null } : null);
+    return c || (e ? { id: String(pid), sku: String(pid), name: e.n, kind: e.k, img: e.img || null, pack: e.days ? { servings: e.days } : null } : null);
   }
 
   // reward ladder: the first reward inside one week, then proof, then habit
@@ -211,8 +211,11 @@
     if (p.cross.last && (now - new Date(p.cross.last)) / DAY < 30) return null;
     var have = items(s).map(function (x) { return x.pid; }), compl = global.HEALTH_COMPLEMENTS || {};
     var cand = [];
-    have.forEach(function (pid) { ((compl[pid] || {}).complements || []).forEach(function (c) { cand.push(c.id); }); });
-    if (P()) cand = cand.concat(P().ITEMS.slice().sort(function (a, b) { return ((b.goals || {})[s.settings.goal] || 0) - ((a.goals || {})[s.settings.goal] || 0); }).map(function (c) { return c.id; }));
+    have.forEach(function (pid) {
+      ((compl[pid] || {}).complements || []).forEach(function (c) { cand.push(c.id); });
+      var e = global.FS_CATALOG && global.FS_CATALOG[pid]; if (e && e.x) e.x.forEach(function (x) { cand.push(x); });   // catalog products: from order data
+    });
+    if (P() && !cand.length) cand = cand.concat(P().ITEMS.slice().sort(function (a, b) { return ((b.goals || {})[s.settings.goal] || 0) - ((a.goals || {})[s.settings.goal] || 0); }).map(function (c) { return c.id; }));
     var pick = cand.filter(function (id, i) { return cand.indexOf(id) === i && have.indexOf(id) < 0 && p.cross.dismissed.indexOf(id) < 0 && catalog(id); })[0];
     return pick ? catalog(pick) : null;
   }

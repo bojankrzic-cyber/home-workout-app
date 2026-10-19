@@ -890,6 +890,7 @@
       group('Health & routine',
         link('📷', 'Scan a product', 'QR code on your Nature’s Finest pack → how to use it + your routine', 'scan') +
         (hasRoutine ? link('🏅', 'My program & reminders', 'check-ins, rewards, supply, reminder time', 'program') : '') +
+        (hasRoutine ? link('📦', 'My shelf', 'what’s left in each pack · reorder · never run out', 'shelf') : '') +
         link('🗓️', 'My supplement routine', hasRoutine ? (s.routine.length + ' in your routine') : 'pick from Nature’s Finest or add your own', 'routine') +
         row('💡', 'Nature’s Finest product tips', Products.eligible(state) ? 'Goal-based tips on Today and after workouts – matched on this device only' : 'Shown only to adults – add your age in your profile', tipChip(true, 'On') + tipChip(false, 'Off'))) +
       group('Training',

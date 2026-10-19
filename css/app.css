@@ -1284,3 +1284,20 @@ a.btn { text-decoration: none; }
 .inst-arrow { position: fixed; left: 50%; bottom: calc(.4rem + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); font-size: 2.6rem; color: #0a84ff; z-index: 120; animation: instBounce 1.1s ease-in-out infinite; text-shadow: 0 0 18px rgba(10, 132, 255, .7); pointer-events: none; }
 @keyframes instBounce { 0%, 100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, 10px); } }
 .inst-wrap .inst-sheet { padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px)); }
+
+/* My shelf (js/shelf.js) */
+.shelf-list { display: flex; flex-direction: column; gap: .7rem; }
+.shelf-item { display: grid; grid-template-columns: 4.6rem minmax(0, 1fr); gap: .9rem; align-items: start; padding: .9rem 1rem; border-radius: 20px; background: var(--card); border: 1px solid var(--line); }
+.shelf-item.low { border-color: rgba(252, 185, 0, .55); background: linear-gradient(135deg, rgba(252, 185, 0, .1), transparent 60%), var(--card); }
+.shelf-img { width: 4.6rem; height: 4.6rem; object-fit: contain; border-radius: 14px; background: #f4f8f5; padding: .25rem; box-sizing: border-box; }
+.shelf-img.ico { display: grid; place-items: center; font-size: 2rem; background: var(--card-2); }
+.shelf-body { display: flex; flex-direction: column; gap: .35rem; min-width: 0; } .shelf-body b { font-size: 1.05rem; } .shelf-body small { color: var(--muted); }
+.shelf-bar { height: .5rem; border-radius: 99px; background: var(--card-2); overflow: hidden; } .shelf-bar i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+.shelf-item.low .shelf-bar i { background: #fcb900; }
+.shelf-acts { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: .15rem; }
+.shelf-sub { font: inherit; text-align: left; color: var(--text); background: rgba(62, 196, 109, .12); border: 1px dashed rgba(62, 196, 109, .55); border-radius: 12px; padding: .55rem .7rem; font-size: .85rem; cursor: pointer; }
+.shelf-cross { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .9rem; align-items: start; } .shelf-cross h3 { margin: .1rem 0 .2rem; }
+.shelf-strip { font: inherit; color: var(--text); width: 100%; display: flex; align-items: center; gap: .7rem; padding: .7rem 1rem; border-radius: 16px; background: var(--card); border: 1px solid var(--line); cursor: pointer; text-align: left; }
+.shelf-pills { display: flex; gap: .35rem; flex: 1; min-width: 0; overflow: hidden; flex-wrap: wrap; }
+.shelf-pill { font-size: .78rem; padding: .2rem .55rem; border-radius: 99px; background: var(--card-2); white-space: nowrap; } .shelf-pill.low { background: rgba(252, 185, 0, .2); color: #fcd34d; }
+.shelf-link { margin-left: .4rem; }
