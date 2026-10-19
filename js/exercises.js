@@ -186,6 +186,37 @@
 
   function quad(aN, aF, lN, lF) { return { r: [0, -51], t: 99, hd: -20, aN: aN, aF: aF, lN: lN, lF: lF }; }
 
+  // ------------------------------------------------------------ bodyweight-only helpers
+  // knee push-up: knees pinned on the floor, thighs in line with the torso, hands fixed
+  function kneePush(t) { return { t: t, hd: -6, pin: ['kN', -40, -6], lN: [t - 180, -115, -100], ik: { hN: [46, -5], hF: [43, -5] } }; }
+  // pike push-up: feet and hands fixed, hips high; smaller t = head closer to the floor
+  function pike(k) {
+    return { r: [-20 + 12 * k, -84 + 10 * k], t: 60 - 30 * k, hd: -16 * k, lN: [0, 0, 90], ik: { hN: [10, -5], hF: [7, -5], fN: [-64, -6], fF: [-66, -6] } };
+  }
+  // face down on the floor; chest / legs / arms lift 0..1
+  function prone(chest, legs, arms) {
+    var a = arms === undefined ? legs : arms;
+    return { r: [0, -11], t: 90 + 9 * chest, hd: -3 * chest, aN: [90 + 18 * a, 90 + 18 * a], aF: [88 + 18 * a, 88 + 18 * a], lN: [-90 - 9 * legs, -90 - 9 * legs, -80 - 6 * legs], lF: [-90 - 8 * legs, -90 - 8 * legs, -80 - 6 * legs] };
+  }
+  // side plank seen from the front: forearm on the floor, top arm to the ceiling
+  function sidePlank(t, l) { return { t: t, hd: -6, lN: [l, l, 15], aN: [-2, 92], aF: [176, 178], pin: PUSH_FEET }; }
+  var WALL_PLAIN = { type: 'wallplain', x: -32 };
+  function wallSit(k, breathe) {
+    return { r: [-21, -82 + 32 * k], t: breathe ? 179 : 180, hd: breathe ? -2 : 0, aN: [24, 156], aF: [20, 152], ik: { fN: [24, -6], fF: [21, -6] } };
+  }
+  function hollow(k) { return { r: [0, -13], t: -103 - 2 * k, hd: -20, aN: [-114 - 2 * k, -114 - 2 * k], aF: [-112 - 2 * k, -112 - 2 * k], lN: [101 + k, 101 + k, 112], lF: [101 + k, 101 + k, 112] }; }
+  // single-leg bridge: the free leg stays straight – level with the working thigh at the bottom, in line with the body at the top
+  function slBridge(k) {
+    var t = k ? -62 : -88;
+    var p = { t: t, hd: k ? -26 : 0, pin: ['sho', -42, -11], aN: [k ? 96 : 92, k ? 96 : 92], lN: [0, 0, 80], ik: { fN: [52, -6] } };
+    var la = k ? t + 180 : Figure.solve(p).ang.lN[0];
+    p.lF = [la, la, la + 40];
+    return p;
+  }
+  function seatFold(k) {
+    return { r: [0, -11], t: k ? 116 : 174, hd: k ? 8 : 0, lN: [90, 90, 172], ik: k ? { hN: [84, -16], hF: [81, -16] } : { hN: [38, -20], hF: [35, -20] } };
+  }
+
 
   // ------------------------------------------------------------ hybrid race substitutes
   // Standing heavy climb on the bike (sled-push substitute): hips out of the saddle, bob with the stroke
@@ -889,7 +920,7 @@
 
     // ------------------------------------------------------------ BODYWEIGHT
     {
-      id: 'pushup', name: 'Push-up', equip: ['floor'], type: 'strength', unit: 'bw', load: 0, inc: 0,
+      id: 'pushup', name: 'Push-up', equip: ['floor'], type: 'strength', unit: 'bw', load: 0, inc: 0, secPerRep: 3,
       muscles: 'Chest, triceps, core', tempo: '2-0-1',
       cues: ['Hands under shoulders, body in a straight plank', 'Elbows back at ~45°', 'Chest to just above the floor, then press'],
       mistakes: ['Sagging hips', 'Head jutting forward'],
@@ -1313,8 +1344,8 @@
         focus: ['glute', 'thigh'],
         frames: [
           { d: 0.9, l: 'Hips up', p: { t: -88, hd: 0, pin: ['sho', -42, -11], aN: [92, 92], lN: [0, 0, 80], ik: { fN: [52, -6], fF: [49, -6] } } },
-          { d: 1.2, l: 'Squeeze 2 s', p: { t: -62, hd: 20, pin: ['sho', -42, -11], aN: [96, 96], lN: [0, 0, 80], ik: { fN: [52, -6], fF: [49, -6] } } },
-          { d: 1.5, l: 'Slowly down', p: { t: -62, hd: 20, pin: ['sho', -42, -11], aN: [96, 96], lN: [0, 0, 80], ik: { fN: [52, -6], fF: [49, -6] } } },
+          { d: 1.2, l: 'Squeeze 2 s', p: { t: -62, hd: -26, pin: ['sho', -42, -11], aN: [96, 96], lN: [0, 0, 80], ik: { fN: [52, -6], fF: [49, -6] } } },
+          { d: 1.5, l: 'Slowly down', p: { t: -62, hd: -26, pin: ['sho', -42, -11], aN: [96, 96], lN: [0, 0, 80], ik: { fN: [52, -6], fF: [49, -6] } } },
           { d: 0.2, l: '', p: { t: -88, hd: 0, pin: ['sho', -42, -11], aN: [92, 92], lN: [0, 0, 80], ik: { fN: [52, -6], fF: [49, -6] } } }
         ]
       }
@@ -1347,6 +1378,173 @@
             aN: [40 * (s1 - s2), 40 * (s1 - s2) + 90], aF: [40 * (s2 - s1), 40 * (s2 - s1) + 90]
           };
         }
+      }
+    },
+
+    // ------------------------------------------------------------ BODYWEIGHT ONLY (no equipment at all)
+    {
+      id: 'knee_pushup', name: 'Knee push-up', equip: ['floor'], type: 'strength', unit: 'bw', load: 0, inc: 0, secPerRep: 3,
+      muscles: 'Chest, triceps, core', tempo: '2-0-1',
+      cues: ['Knees down, hands just wider than the shoulders', 'Straight line from the knees to the head', 'Lower the chest between the hands, then press away'],
+      mistakes: ['Hips piking up toward the ceiling', 'Elbows flaring straight out to the sides'],
+      anim: {
+        focus: ['torso', 'upper'],
+        frames: [
+          { d: 1.5, l: 'Lower', p: kneePush(121) },
+          { d: 0.2, l: 'Bottom', p: kneePush(102) },
+          { d: 0.8, l: 'Press', p: kneePush(102) },
+          { d: 0.4, l: '', p: kneePush(121) }
+        ]
+      }
+    },
+    {
+      id: 'pike_pushup', name: 'Pike push-up', equip: ['floor'], type: 'strength', unit: 'bw', load: 0, inc: 0,
+      muscles: 'Shoulders, triceps', tempo: '2-0-1',
+      cues: ['Hips high in an upside-down V, hands shoulder-width', 'Bend the elbows and lower the top of the head toward the floor', 'Press back up until the arms are straight'],
+      mistakes: ['Hips dropping into a regular push-up', 'Elbows flaring straight out'],
+      anim: {
+        focus: ['upper', 'torso'],
+        frames: [
+          { d: 1.4, l: 'Head toward the floor', p: pike(0) },
+          { d: 0.2, l: 'Bottom', p: pike(1) },
+          { d: 0.8, l: 'Press up', p: pike(1) },
+          { d: 0.4, l: '', p: pike(0) }
+        ]
+      }
+    },
+    {
+      id: 'superman', name: 'Superman', equip: ['floor'], type: 'strength', unit: 'bw', load: 0, inc: 0,
+      muscles: 'Lower back, glutes, upper back', tempo: '1-2-2',
+      cues: ['Lie face down, arms long in front of you', 'Lift arms, chest and legs a few centimetres together', 'Hold for two seconds, eyes on the floor, then lower slowly'],
+      mistakes: ['Cranking the head up to look forward', 'Jerking up instead of lifting smoothly'],
+      anim: {
+        focus: ['torso', 'glute'],
+        frames: [
+          { d: 0.9, l: 'Lift', p: prone(0, 0) },
+          { d: 1.4, l: 'Hold 2 s', p: prone(1, 1) },
+          { d: 1.2, l: 'Lower slowly', p: prone(1, 1) },
+          { d: 0.4, l: '', p: prone(0, 0) }
+        ]
+      }
+    },
+    {
+      id: 'prone_y_raise', name: 'Prone Y raise', equip: ['floor'], type: 'strength', unit: 'bw', load: 0, inc: 0,
+      muscles: 'Upper back, rear shoulders', tempo: '1-2-2',
+      cues: ['Lie face down, arms overhead in a Y, thumbs up', 'Squeeze the shoulder blades down and back to lift the arms', 'Legs and forehead stay relaxed near the floor'],
+      mistakes: ['Shrugging the shoulders to the ears', 'Arching the lower back to get higher'],
+      anim: {
+        focus: ['upper', 'torso'],
+        frames: [
+          { d: 0.9, l: 'Lift the arms', p: prone(0, 0, 0) },
+          { d: 1.4, l: 'Hold 2 s', p: prone(0.35, 0, 1) },
+          { d: 1.2, l: 'Lower slowly', p: prone(0.35, 0, 1) },
+          { d: 0.4, l: '', p: prone(0, 0, 0) }
+        ]
+      }
+    },
+    {
+      id: 'side_plank', name: 'Side plank', equip: ['floor'], type: 'core', unit: 's', perSide: true,
+      muscles: 'Obliques, core, glutes', tempo: 'Static hold',
+      cues: ['Elbow under the shoulder, feet stacked', 'Lift the hips until the body is one straight line', 'Top arm to the ceiling, breathe steadily'],
+      mistakes: ['Hips sagging toward the floor', 'Rolling the chest toward the floor'],
+      anim: {
+        focus: ['torso', 'glute'],
+        frames: [
+          { d: 1.2, l: 'Hips up', p: sidePlank(109, -83) },
+          { d: 2, l: 'Hold – straight line', p: sidePlank(101, -79) },
+          { d: 2, l: 'Breathe', p: sidePlank(101.5, -79.5) },
+          { d: 0.8, l: '', p: sidePlank(101, -79) }
+        ]
+      }
+    },
+    {
+      id: 'wall_sit', name: 'Wall sit', equip: ['floor'], type: 'strength', unit: 's',
+      muscles: 'Quads, glutes', tempo: 'Static hold',
+      cues: ['Back flat on the wall, feet a step out in front', 'Slide down until the thighs are parallel to the floor', 'Knees over the ankles, breathe and hold'],
+      mistakes: ['Knees drifting past the toes', 'Hands pushing on the thighs'],
+      anim: {
+        scene: [WALL_PLAIN], focus: ['thigh', 'glute'],
+        frames: [
+          { d: 1.4, l: 'Slide down the wall', p: wallSit(0) },
+          { d: 2.2, l: 'Hold – thighs parallel', p: wallSit(1) },
+          { d: 2.2, l: 'Breathe', p: wallSit(1, true) },
+          { d: 1.2, l: 'Slide up', p: wallSit(1) }
+        ]
+      }
+    },
+    {
+      id: 'jump_squat', name: 'Jump squat', equip: ['floor'], type: 'strength', unit: 'bw', load: 0, inc: 0, secPerRep: 3,
+      muscles: 'Quads, glutes, calves', tempo: 'Explosive',
+      cues: ['Squat down with the arms swinging back', 'Jump straight up, arms drive overhead', 'Land softly on the balls of the feet and sink into the next squat'],
+      mistakes: ['Landing with stiff, locked knees', 'Knees caving in on the landing'],
+      anim: {
+        focus: ['thigh', 'glute'],
+        frames: [
+          { d: 0.7, l: 'Squat down', p: stand({ aN: [8, 8] }) },
+          { d: 0.22, l: 'Load', p: stand({ t: 142, lN: [96, -32, 90], aN: [-46, -34], hd: 12 }) },
+          { d: 0.3, l: 'Explode up', p: m(stand({ t: 178, lN: [4, 0, 28], lF: [-2, -6, 24], aN: [168, 172], hd: -4 }), { pin: ['fN', 2, -40] }) },
+          { d: 0.4, l: 'Soft landing', p: stand({ t: 150, lN: [72, -26, 90], aN: [62, 76], hd: 6 }) }
+        ]
+      }
+    },
+    {
+      id: 'burpee', name: 'Burpee', equip: ['floor'], type: 'cardio', unit: 'bw', load: 0, inc: 0, secPerRep: 4, iv: [30, 30],
+      muscles: 'Full body, heart', tempo: 'Steady',
+      cues: ['Squat and place the hands on the floor', 'Jump the feet back to a plank and lower the chest', 'Feet back under you, then jump up with the arms overhead'],
+      mistakes: ['Hips sagging in the plank', 'Landing with locked knees'],
+      anim: {
+        focus: ['thigh', 'torso'],
+        frames: [
+          { d: 0.35, l: 'Squat down', p: stand({ aN: [6, 6] }) },
+          { d: 0.25, l: 'Hands down', p: { pin: ['fN', 0, -6], t: 125, hd: 15, lN: [95, -35], ik: { hN: [34, -5], hF: [31, -5] } } },
+          { d: 0.35, l: 'Jump feet back', p: { pin: ['fN', -78, -6], t: 112, hd: -5, lN: [-68, -68, 15], ik: { hN: [34, -5], hF: [31, -5] } } },
+          { d: 0.3, l: 'Chest to floor', p: { pin: ['fN', -78, -6], t: 96, hd: -5, lN: [-84, -84, 15], ik: { hN: [38, -5], hF: [35, -5] } } },
+          { d: 0.3, l: 'Feet under body', p: { pin: ['fN', 0, -6], t: 125, hd: 15, lN: [95, -35], ik: { hN: [34, -5], hF: [31, -5] } } },
+          { d: 0.25, l: 'Jump up', p: stand({ t: 146, lN: [80, -30, 90], aN: [40, 50], hd: 8 }) },
+          { d: 0.3, l: 'Arms overhead', p: m(stand({ t: 179, lN: [4, 0, 28], lF: [-2, -6, 24], aN: [172, 174], hd: -4 }), { pin: ['fN', 1, -36] }) },
+          { d: 0.4, l: 'Soft landing', p: stand({ t: 156, lN: [60, -22, 90], aN: [50, 60], hd: 6 }) }
+        ]
+      }
+    },
+    {
+      id: 'hollow_hold', name: 'Hollow hold', equip: ['floor'], type: 'core', unit: 's',
+      muscles: 'Abs, deep core', tempo: 'Static hold',
+      cues: ['Lie on your back and press the lower back into the floor', 'Lift the shoulders and straight legs a little off the floor', 'Arms long past the ears – bend the knees to make it easier'],
+      mistakes: ['Lower back peeling off the floor', 'Holding the breath'],
+      anim: {
+        focus: ['torso'],
+        frames: [
+          { d: 2, l: 'Inhale – back flat', p: hollow(0) },
+          { d: 2, l: 'Exhale – brace', p: hollow(1) }
+        ]
+      }
+    },
+    {
+      id: 'sl_glute_bridge', name: 'Single-leg glute bridge', equip: ['floor'], type: 'strength', unit: 'bw', load: 0, inc: 0, perSide: true,
+      muscles: 'Glutes, hamstrings', tempo: '1-2-2',
+      cues: ['One foot flat near the glutes, the other leg straight', 'Drive the hips up through the heel of the planted foot', 'Keep the hips level, squeeze at the top, lower slowly'],
+      mistakes: ['Hips tilting to one side', 'Pushing from the lower back instead of the glute'],
+      anim: {
+        focus: ['glute', 'thigh'],
+        frames: [
+          { d: 0.9, l: 'Hips up', p: slBridge(0) },
+          { d: 1.2, l: 'Squeeze 2 s', p: slBridge(1) },
+          { d: 1.5, l: 'Slowly down', p: slBridge(1) },
+          { d: 0.2, l: '', p: slBridge(0) }
+        ]
+      }
+    },
+    {
+      id: 'hamstring_floor', name: 'Seated hamstring stretch', equip: ['floor'], type: 'mobility', unit: 's',
+      muscles: 'Hamstrings, calves, lower back', tempo: 'Breathe',
+      cues: ['Sit tall with the legs straight out in front, toes up', 'Hinge forward from the hips and reach toward the feet', 'Relax a little deeper on each exhale'],
+      mistakes: ['Rounding hard through the upper back', 'Bouncing'],
+      anim: {
+        focus: ['thigh'],
+        frames: [
+          { d: 2.4, l: 'Inhale – sit tall', p: seatFold(0) },
+          { d: 2.4, l: 'Exhale – fold forward', p: seatFold(1) }
+        ]
       }
     },
 
@@ -1617,60 +1815,65 @@
     susp_row: ['hrbet', 'roke', 'trup'], susp_pushup: ['prsa', 'roke', 'trup'], susp_squat: ['noge', 'zadnjica'], susp_fallout: ['trup', 'rame'],
     abwheel_rollout: ['trup'], ball_slam: ['kardio', 'trup', 'rame'], ball_rot_slam: ['trup', 'kardio'], rope_waves: ['kardio', 'rame', 'roke'],
     roll_tspine: ['mobilnost', 'hrbet'], roll_quads: ['mobilnost', 'noge'], dips: ['roke', 'prsa', 'rame'], lsit: ['trup', 'roke'],
-    landmine_press: ['rame', 'prsa', 'roke'], landmine_row: ['hrbet', 'roke'], airbike_sprint: ['kardio', 'noge', 'roke'], airbike_z2: ['kardio', 'noge']
+    landmine_press: ['rame', 'prsa', 'roke'], landmine_row: ['hrbet', 'roke'], airbike_sprint: ['kardio', 'noge', 'roke'], airbike_z2: ['kardio', 'noge'],
+    knee_pushup: ['prsa', 'roke', 'trup'], pike_pushup: ['rame', 'roke'], superman: ['hrbet', 'zadnjica'], prone_y_raise: ['hrbet', 'rame'],
+    side_plank: ['trup'], wall_sit: ['noge', 'zadnjica'], jump_squat: ['noge', 'zadnjica', 'kardio'], burpee: ['kardio', 'prsa', 'noge'],
+    hollow_hold: ['trup'], sl_glute_bridge: ['zadnjica', 'noge'], hamstring_floor: ['mobilnost', 'noge']
   };
   // Multi-joint lifts go first in a generated session
   var COMPOUND = ['bb_squat', 'bb_deadlift', 'bb_bench', 'kb_goblet_squat', 'kb_deadlift', 'db_rdl', 'db_bulgarian', 'db_hip_thrust', 'kb_swing', 'db_bench', 'db_incline', 'pullup',
     'db_row', 'k_pulldown', 'db_shoulder_press', 'kb_press', 'k_chest_press', 'k_row', 'db_stepup', 'pushup', 'k_pullthrough', 'back_ext',
-    'landmine_row', 'landmine_press', 'dips', 'susp_row', 'susp_pushup', 'susp_squat'];
+    'landmine_row', 'landmine_press', 'dips', 'susp_row', 'susp_pushup', 'susp_squat', 'pike_pushup'];
 
   // Movement patterns, each list in preference order. Used to substitute exercises
   // when a profile lacks equipment, and to upgrade hybrid race substitutes to the real station.
   var PATTERNS = {
-    squat: ['bb_squat', 'kb_goblet_squat', 'bw_squat', 'susp_squat'],
-    hinge: ['bb_deadlift', 'kb_deadlift', 'db_rdl', 'glute_bridge'],
-    swing: ['kb_swing', 'k_pullthrough', 'db_rdl', 'glute_bridge'],
-    bridge: ['db_hip_thrust', 'glute_bridge'],
-    lunge: ['db_bulgarian', 'db_stepup', 'kb_lunge', 'sandbag_lunge', 'bw_lunge'],
-    stepup: ['db_stepup', 'box_jump', 'db_bulgarian', 'bw_lunge'],
-    backext: ['back_ext', 'k_pullthrough', 'glute_bridge', 'bird_dog'],
-    hpush: ['db_bench', 'bb_bench', 'k_chest_press', 'pushup', 'susp_pushup', 'dips'],
-    incline: ['db_incline', 'k_chest_press', 'bb_bench', 'pushup', 'landmine_press', 'susp_pushup'],
-    vpush: ['db_shoulder_press', 'kb_press', 'pushup', 'landmine_press'],
-    hpull: ['db_row', 'k_row', 'band_row', 'pullup', 'landmine_row', 'susp_row'],
-    vpull: ['pullup', 'k_pulldown', 'band_row', 'db_row', 'susp_row', 'landmine_row'],
-    rear: ['k_face_pull', 'band_row', 'db_row', 'susp_row'],
+    squat: ['bb_squat', 'kb_goblet_squat', 'bw_squat', 'jump_squat', 'wall_sit', 'susp_squat'],
+    hinge: ['bb_deadlift', 'kb_deadlift', 'db_rdl', 'glute_bridge', 'sl_glute_bridge'],
+    swing: ['kb_swing', 'k_pullthrough', 'db_rdl', 'jump_squat', 'glute_bridge', 'sl_glute_bridge'],
+    bridge: ['db_hip_thrust', 'glute_bridge', 'sl_glute_bridge'],
+    lunge: ['db_bulgarian', 'db_stepup', 'kb_lunge', 'sandbag_lunge', 'bw_lunge', 'jump_squat', 'wall_sit'],
+    stepup: ['db_stepup', 'box_jump', 'db_bulgarian', 'bw_lunge', 'jump_squat', 'wall_sit'],
+    backext: ['back_ext', 'superman', 'k_pullthrough', 'glute_bridge', 'bird_dog'],
+    hpush: ['db_bench', 'bb_bench', 'k_chest_press', 'pushup', 'susp_pushup', 'dips', 'knee_pushup'],
+    incline: ['db_incline', 'k_chest_press', 'bb_bench', 'pushup', 'landmine_press', 'susp_pushup', 'knee_pushup'],
+    vpush: ['db_shoulder_press', 'kb_press', 'pike_pushup', 'pushup', 'landmine_press', 'knee_pushup'],
+    hpull: ['db_row', 'k_row', 'band_row', 'pullup', 'landmine_row', 'susp_row', 'superman', 'prone_y_raise'],
+    vpull: ['pullup', 'k_pulldown', 'band_row', 'db_row', 'susp_row', 'landmine_row', 'superman', 'prone_y_raise'],
+    rear: ['k_face_pull', 'band_row', 'db_row', 'susp_row', 'prone_y_raise', 'superman'],
     curl: ['db_curl', 'band_row'],
-    triceps: ['k_pushdown', 'band_pushdown', 'pushup', 'dips'],
-    corehang: ['hang_knee_raise', 'hang_leg_raise', 'situp', 'dead_bug', 'lsit', 'abwheel_rollout'],
-    coreflex: ['situp', 'hang_knee_raise', 'dead_bug', 'abwheel_rollout', 'susp_fallout'],
-    corerot: ['k_woodchop', 'bird_dog', 'plank', 'ball_rot_slam'],
+    triceps: ['k_pushdown', 'band_pushdown', 'pushup', 'dips', 'knee_pushup'],
+    corehang: ['hang_knee_raise', 'hang_leg_raise', 'situp', 'dead_bug', 'lsit', 'abwheel_rollout', 'hollow_hold'],
+    coreflex: ['situp', 'hang_knee_raise', 'dead_bug', 'abwheel_rollout', 'susp_fallout', 'hollow_hold'],
+    corerot: ['k_woodchop', 'side_plank', 'bird_dog', 'plank', 'ball_rot_slam'],
     hang: ['dead_hang', 'hip_flexor', 'roll_tspine'],
-    stretch: ['hamstring_bench', 'hip_flexor'],
+    stretch: ['hamstring_bench', 'hamstring_floor', 'hip_flexor'],
     thruster: ['db_thruster', 'wall_ball', 'kb_goblet_squat', 'bw_squat'],
-    carry: ['kb_farmers', 'db_farmers', 'plank'],
+    carry: ['kb_farmers', 'db_farmers', 'plank', 'side_plank'],
     steady: ['bike_z2', 'row_steady', 'treadmill_run', 'skierg', 'jump_rope', 'high_knees', 'airbike_z2'],
     steadyRow: ['row_steady', 'skierg', 'bike_z2', 'treadmill_run', 'high_knees', 'airbike_z2'],
-    intervals: ['bike_hiit', 'row_hiit', 'treadmill_run', 'skierg', 'jump_rope', 'high_knees', 'mountain_climber', 'airbike_sprint', 'rope_waves', 'ball_slam'],
-    intervalsRow: ['row_hiit', 'skierg', 'bike_hiit', 'treadmill_run', 'jump_rope', 'high_knees', 'airbike_sprint', 'rope_waves'],
+    intervals: ['bike_hiit', 'row_hiit', 'treadmill_run', 'skierg', 'jump_rope', 'high_knees', 'mountain_climber', 'airbike_sprint', 'rope_waves', 'ball_slam', 'burpee'],
+    intervalsRow: ['row_hiit', 'skierg', 'bike_hiit', 'treadmill_run', 'jump_rope', 'high_knees', 'airbike_sprint', 'rope_waves', 'mountain_climber', 'burpee'],
     hxrun: ['treadmill_run', 'hx_bike_run', 'row_steady', 'high_knees'],
     hxski: ['skierg', 'k_ski', 'row_steady', 'mountain_climber'],
     hxpush: ['sled_push', 'bike_sled', 'mountain_climber'],
-    hxpull: ['sled_pull', 'k_sled_pull', 'band_row', 'db_row'],
-    hxwb: ['wall_ball', 'db_thruster', 'bw_squat'],
+    hxpull: ['sled_pull', 'k_sled_pull', 'band_row', 'db_row', 'superman'],
+    hxwb: ['wall_ball', 'db_thruster', 'bw_squat', 'jump_squat'],
     hxlunge: ['sandbag_lunge', 'kb_lunge', 'bw_lunge'],
     hxcarry: ['kb_farmers', 'db_farmers'],
     hxrow: ['row_steady', 'skierg', 'bike_z2', 'airbike_z2'],
-    burpee: ['burpee_bj', 'mountain_climber', 'ball_slam'],
-    plank: ['plank', 'dead_bug', 'abwheel_rollout', 'susp_fallout'], deadbug: ['dead_bug', 'plank'], birddog: ['bird_dog', 'dead_bug'], pushup: ['pushup', 'k_chest_press', 'susp_pushup'], hipflex: ['hip_flexor', 'roll_quads'],
+    burpee: ['burpee_bj', 'burpee', 'mountain_climber', 'ball_slam'],
+    plank: ['plank', 'dead_bug', 'abwheel_rollout', 'susp_fallout', 'side_plank', 'hollow_hold'], deadbug: ['dead_bug', 'plank', 'hollow_hold'], birddog: ['bird_dog', 'dead_bug', 'side_plank'], pushup: ['pushup', 'k_chest_press', 'susp_pushup', 'knee_pushup'], hipflex: ['hip_flexor', 'roll_quads'],
     // patterns introduced with the extra equipment
     rollout: ['abwheel_rollout', 'susp_fallout', 'plank', 'dead_bug'], lsit: ['lsit', 'hang_leg_raise', 'hang_knee_raise', 'plank'],
-    dip: ['dips', 'db_bench', 'k_chest_press', 'pushup', 'k_pushdown'], landmine: ['landmine_press', 'db_shoulder_press', 'kb_press', 'pushup'],
-    slam: ['ball_slam', 'kb_swing', 'burpee_bj', 'mountain_climber'], rotslam: ['ball_rot_slam', 'k_woodchop', 'bird_dog'],
+    dip: ['dips', 'db_bench', 'k_chest_press', 'pushup', 'k_pushdown', 'knee_pushup'], landmine: ['landmine_press', 'db_shoulder_press', 'kb_press', 'pike_pushup', 'pushup'],
+    slam: ['ball_slam', 'kb_swing', 'burpee', 'burpee_bj', 'mountain_climber'], rotslam: ['ball_rot_slam', 'k_woodchop', 'bird_dog'],
     ropes: ['rope_waves', 'ball_slam', 'mountain_climber', 'high_knees'], foam: ['roll_tspine', 'dead_hang'], foamq: ['roll_quads', 'hip_flexor'],
     airhiit: ['airbike_sprint', 'bike_hiit', 'row_hiit', 'skierg', 'mountain_climber'], airz2: ['airbike_z2', 'bike_z2', 'row_steady', 'high_knees'],
     susprow: ['susp_row', 'db_row', 'k_row', 'band_row'], susppush: ['susp_pushup', 'pushup', 'k_chest_press'], suspsquat: ['susp_squat', 'kb_goblet_squat', 'bw_squat'],
-    lmrow: ['landmine_row', 'db_row', 'k_row', 'band_row']
+    lmrow: ['landmine_row', 'db_row', 'k_row', 'band_row', 'superman', 'prone_y_raise'],
+    // bodyweight-only additions
+    superman: ['superman', 'prone_y_raise', 'bird_dog']
   };
   var PATTERN_OF = {
     kb_goblet_squat: 'squat', bb_squat: 'squat', bw_squat: 'squat', kb_deadlift: 'hinge', bb_deadlift: 'hinge', db_rdl: 'hinge', kb_swing: 'swing', k_pullthrough: 'swing',
@@ -1684,7 +1887,9 @@
     jump_rope: 'intervals', high_knees: 'intervals', mountain_climber: 'intervals',
     susp_row: 'susprow', susp_pushup: 'susppush', susp_squat: 'suspsquat', susp_fallout: 'rollout', abwheel_rollout: 'rollout', lsit: 'lsit', dips: 'dip',
     landmine_press: 'landmine', landmine_row: 'lmrow', ball_slam: 'slam', ball_rot_slam: 'rotslam', rope_waves: 'ropes',
-    roll_tspine: 'foam', roll_quads: 'foamq', airbike_sprint: 'airhiit', airbike_z2: 'airz2'
+    roll_tspine: 'foam', roll_quads: 'foamq', airbike_sprint: 'airhiit', airbike_z2: 'airz2',
+    knee_pushup: 'pushup', pike_pushup: 'vpush', superman: 'superman', prone_y_raise: 'rear', side_plank: 'corerot', wall_sit: 'squat',
+    jump_squat: 'squat', burpee: 'burpee', hollow_hold: 'coreflex', sl_glute_bridge: 'bridge', hamstring_floor: 'stretch'
   };
 
   // Working muscles per exercise: [primary, secondary]. Drives the glowing muscles on the figure,
@@ -1719,7 +1924,12 @@
     rope_waves: [['delts', 'forearms'], ['abs', 'biceps', 'quads']], roll_tspine: [['traps'], ['lats', 'lowback']], roll_quads: [['quads'], ['hipflex']],
     dips: [['triceps', 'chest'], ['delts']], lsit: [['abs', 'hipflex'], ['triceps', 'quads']],
     landmine_press: [['delts', 'chest'], ['triceps', 'abs']], landmine_row: [['lats', 'traps'], ['biceps', 'lowback', 'hams']],
-    airbike_sprint: [['quads', 'glutes', 'lats'], ['delts', 'triceps', 'calves']], airbike_z2: [['quads'], ['glutes', 'lats', 'delts']]
+    airbike_sprint: [['quads', 'glutes', 'lats'], ['delts', 'triceps', 'calves']], airbike_z2: [['quads'], ['glutes', 'lats', 'delts']],
+    knee_pushup: [['chest', 'triceps'], ['delts', 'abs']], pike_pushup: [['delts', 'triceps'], ['traps', 'chest']],
+    superman: [['lowback', 'glutes'], ['hams', 'traps', 'delts']], prone_y_raise: [['traps', 'delts'], ['lowback']],
+    side_plank: [['obliques'], ['abs', 'glutes', 'delts']], wall_sit: [['quads'], ['glutes', 'calves']], jump_squat: [['quads', 'glutes'], ['calves', 'hams']],
+    burpee: [['quads', 'chest'], ['glutes', 'triceps', 'abs', 'delts']], hollow_hold: [['abs'], ['hipflex', 'obliques']],
+    sl_glute_bridge: [['glutes'], ['hams', 'abs']], hamstring_floor: [['hams'], ['calves', 'lowback']]
   };
   // which joint checkpoints teach the movement best
   function guidesFor(e, mus) {

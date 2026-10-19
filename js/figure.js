@@ -289,6 +289,8 @@
       return s;
     },
     // wall with a wall-ball target at height y
+    // plain wall (wall sit): o.x = wall surface, the wall extends behind it
+    wallplain: function (o) { return rect(o.x - 12, -190, 12, 190, 'p-wall'); },
     target: function (o) {
       return rect(o.x, o.y - 40, 14, -o.y + 40, 'p-wall') + circ([o.x - 2, o.y], 13, 'p-target') + circ([o.x - 2, o.y], 5, 'p-target-in');
     },
@@ -718,6 +720,7 @@
     skierg: function (o) { return [o.x - 32, -224, o.x + 42, 0]; },
     sled: function (o) { return [o.x - 18, -114, o.x + 80, 0]; },
     box: function (o) { return [o.x, -o.h, o.x + o.w, 0]; },
+    wallplain: function (o) { return [o.x - 12, -190, o.x, 0]; },
     target: function (o) { return [o.x - 16, o.y - 20, o.x + 14, 0]; },
     rack: function (o) { return [o.x - 40, -234, o.x + 40, 0]; },
     anchor: function (o) { return [o.x - 6, o.y - 10, o.x + 8, 0]; },
