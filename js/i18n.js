@@ -141,8 +141,10 @@
   }
   function walk(el) {
     if (el.nodeType === 3) return textNode(el);
-    if (el.nodeType !== 1 || skipEl(el)) return;
-    if (el.attributes && el.attributes.length) attrs(el);
+    if (el.nodeType !== 1) return;
+    // placeholders / titles of inputs too (the element's own text is never touched)
+    if (el.attributes && el.attributes.length && el.getAttribute('translate') !== 'no') attrs(el);
+    if (skipEl(el)) return;
     if (el.firstChild && el.firstChild !== el.lastChild && isUnit(el) && wordy(directText(el))) {
       var tags = [], nums = [], raw = ser(el, tags, nums), k = raw.replace(/\s+/g, ' ').trim();
       if (tags.length) {
