@@ -1,6 +1,6 @@
 /* ===== Design tokens ===================================================== */
-/* dark is the base; the workout player and photo heroes keep it in the light theme too (focus mode, TV, gym photos) */
-:root, :root[data-theme="light"] .player, :root[data-theme="light"] .hero-card.has-photo {
+/* dark is the base */
+:root {
   /* Nature's Finest palette, tuned for a dark 10-foot UI */
   --bg: #050a07;
   --bg-2: #0b130e;
@@ -45,7 +45,6 @@
   --font-sport: 'Barlow Condensed', 'Arial Narrow', 'Rethink Sans', sans-serif;
   font-size: var(--fs);
 }
-:root[data-theme="light"] .player, :root[data-theme="light"] .hero-card.has-photo { color: var(--text); }   /* re-resolve inherited text colour */
 /* light theme: white app, same brand greens deepened for contrast on white */
 :root[data-theme="light"] {
   --bg: #f5f7f4;
@@ -293,7 +292,7 @@ h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -.015em; }
 .player { position: fixed; inset: 0; display: grid; grid-template-columns: 1fr 34%; grid-template-rows: 1fr auto; background: var(--bg); z-index: 10; }
 .stage { position: relative; min-height: 0; overflow: hidden; background: radial-gradient(90% 90% at 50% 40%, var(--stage-glow) 0%, var(--bg) 72%); }
 .stage .fig { position: absolute; inset: 1.5rem 1.5rem 3.5rem; }
-.stage .phase { position: absolute; left: 50%; bottom: 1.4rem; transform: translateX(-50%); background: rgba(0, 0, 0, .55); border: 1px solid var(--line); padding: .55rem 1.4rem; border-radius: 999px; font-weight: 600; font-size: 1.3rem; color: var(--accent); white-space: nowrap; backdrop-filter: blur(6px); }
+.stage .phase { position: absolute; left: 50%; bottom: 1.4rem; transform: translateX(-50%); background: var(--glass); border: 1px solid var(--line); padding: .55rem 1.4rem; border-radius: 999px; font-weight: 600; font-size: 1.3rem; color: var(--accent); white-space: nowrap; backdrop-filter: blur(6px); }
 .stage .badge-top { position: absolute; left: 1.8rem; top: 1.5rem; display: flex; gap: .6rem; }
 .side { background: var(--bg-2); padding: 2rem 2.2rem; display: flex; flex-direction: column; gap: 1.1rem; min-height: 0; overflow: hidden; }
 .side .kicker { color: var(--accent); font-weight: 600; letter-spacing: .12em; font-size: .8rem; text-transform: uppercase; }
@@ -527,7 +526,7 @@ h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -.015em; }
 
 /* ===== Photos, muscle map, technique steps ================================== */
 .hero-card.has-photo { background-size: cover; background-position: center right; min-height: 24rem; }
-.hero-card.has-photo h1 { text-shadow: 0 2px 30px rgba(0, 0, 0, .5); }
+.hero-card.has-photo h1 { text-shadow: 0 2px 30px rgba(var(--scrim), .5); }
 .session-card.photo-card { background-size: cover; background-position: center 35%; min-height: 12rem; justify-content: flex-end; }
 .session-card.photo-card p { color: rgba(238, 244, 239, .78); }
 .ph-thumb { position: relative; }

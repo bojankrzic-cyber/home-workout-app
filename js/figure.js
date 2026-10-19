@@ -633,10 +633,11 @@
   };
   // label bubble at (x, y) with a leader line back to the muscle point
   function labelSvg(pt, txt, x, y, left) {
-    var w = txt.length * 4.6 + 12, bx = left ? x - w : x;
+    txt = global.I18N && I18N.t ? I18N.t(txt) : txt;   // size the bubble to the shown language
+    var w = txt.length * 4.4 + 12, bx = left ? x - w : x;
     return line(pt, [x, y], 1, 'lbl-line') + circ(pt, 2, 'lbl-dot') +
       '<rect x="' + f1(bx) + '" y="' + f1(y - 7) + '" width="' + f1(w) + '" height="14" rx="7" class="lbl-bg"/>' +
-      '<text x="' + f1(bx + w / 2) + '" y="' + f1(y + 3.2) + '" class="lbl-txt">' + txt + '</text>';
+      '<text x="' + f1(bx + w / 2) + '" y="' + f1(y + 3.2) + '" class="lbl-txt" translate="no">' + txt + '</text>';
   }
   // Up to 3 primary muscles, labelled on the side of the body they sit on; labels on the same
   // side are stacked with a fixed gap so they never overlap each other, whatever the pose.

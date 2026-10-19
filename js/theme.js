@@ -2,7 +2,7 @@
  * Light / dark theme – runs in <head> before the first paint.
  *   choice: localStorage fs.theme = 'system' (default) | 'light' | 'dark'
  *   <html data-theme> always holds the resolved theme, so CSS only needs :root[data-theme="light"]
- *   'system' follows the phone setting live (prefers-color-scheme); the workout player stays dark in both.
+ *   'system' follows the phone setting live (prefers-color-scheme); applies everywhere, incl. the workout player and Trail.
  */
 (function (global) {
   'use strict';
