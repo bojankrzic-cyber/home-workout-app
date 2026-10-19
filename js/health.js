@@ -23,7 +23,11 @@
   function parse(ds) { var p = ds.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
   function addDays(d, n) { var x = new Date(d); x.setDate(x.getDate() + n); return x; }
   function P() { return global.Products; }
-  function catalog(pid) { return P() && P().ITEMS.filter(function (x) { return x.id === pid; })[0]; }
+  // starter products (js/products.js) first, then the full label catalog behind the QR codes (js/catalog.js)
+  function catalog(pid) {
+    var c = P() && P().ITEMS.filter(function (x) { return x.id === pid; })[0], e = !c && pid != null && global.FS_CATALOG && global.FS_CATALOG[pid];
+    return c || (e ? { id: String(pid), sku: String(pid), name: e.n, kind: e.k, pack: e.days ? { servings: e.days } : null } : null);
+  }
 
   // reward ladder: the first reward inside one week, then proof, then habit
   var LADDER = [
@@ -146,7 +150,9 @@
   function reorderUrl(it, code, campaign) {
     var c = it.pid && catalog(it.pid), cfg = P() && P().CONFIG;
     if (!c || !cfg) return null;
-    var u = cfg.shop + (c.cartId ? '/?add-to-cart=' + c.cartId + '&quantity=1' : c.url + '?');
+    // catalog products: ids differ per market, so reorder searches the customer's own shop (until cartIds are mapped)
+    var shop = c.url || c.cartId ? cfg.shop : (global.FS_MARKET && global.FS_MARKET.shop) || cfg.shop;
+    var u = shop + (c.cartId ? '/?add-to-cart=' + c.cartId + '&quantity=1' : c.url ? c.url + '?' : '/?s=' + encodeURIComponent(c.name) + '&post_type=product');
     var q = ['utm_source=nf-app', 'utm_medium=app', 'utm_campaign=' + (campaign || 'reorder'), 'utm_content=' + c.id];
     if (code) q.push('coupon=' + encodeURIComponent(code));
     return u + (u.slice(-1) === '?' ? '' : '&') + q.join('&');

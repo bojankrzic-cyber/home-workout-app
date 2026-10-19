@@ -1153,3 +1153,30 @@ a.btn { text-decoration: none; }
 .how { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .45rem 1rem; margin: 0 0 .8rem; }
 .how dt { color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .1em; font-weight: 600; align-self: center; }
 .how dd { margin: 0; font-weight: 600; font-size: 1.05rem; }
+
+/* QR on the pack → product guide → day 1 (js/qr.js) */
+.qr-screen { gap: 1rem; }
+.qr-screen .topbar { gap: .8rem; }
+.qr-lang { background: var(--card); color: var(--text, #e8f1ea); border: 1px solid var(--line); border-radius: 999px; padding: .45rem .8rem; font: inherit; font-size: .85rem; max-width: 9.5rem; }
+.qr-hero { display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); gap: 1.1rem; align-items: start; background: linear-gradient(135deg, rgba(62, 196, 109, .12), transparent 60%), var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.2rem; }
+.qr-ico { width: 5.5rem; height: 5.5rem; border-radius: 22px; display: grid; place-items: center; font-size: 2.6rem; background: var(--card-2); }
+.qr-hero h2 { margin: .2rem 0 .7rem; }
+.qr-label .k { color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .1em; font-weight: 600; }
+.qr-use { font-size: 1.05rem; line-height: 1.55; margin: .4rem 0 .6rem; }
+.qr-label details summary, .qr-warn details summary { cursor: pointer; color: var(--muted); font-weight: 600; font-size: .9rem; }
+.qr-label details p, .qr-warn details p { line-height: 1.55; white-space: pre-line; }
+.qr-cta { flex-direction: column; align-items: stretch; }
+.qr-cta .btn { justify-content: center; }
+.qr-cta .hint { text-align: center; }
+.qr-pdf { align-self: center; color: var(--text); }
+.qr-anchor { justify-content: flex-start; width: 100%; font-size: 1.05rem; }
+.qr-done { display: flex; flex-direction: column; align-items: center; text-align: center; gap: .5rem; padding: 1rem 0 .4rem; }
+.qr-done h2 { margin: .4rem 0 0; } .qr-done p { margin: 0; color: var(--muted); max-width: 30rem; line-height: 1.5; }
+.qr-ring { --p: 4; width: 7.5rem; height: 7.5rem; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--accent) calc(var(--p) * 1%), var(--card-2) 0); animation: qrPop .5s cubic-bezier(.2, 1.4, .4, 1); }
+.qr-ring span { width: 6rem; height: 6rem; border-radius: 50%; background: var(--bg); display: grid; place-items: center; font: 600 3rem var(--font-sport); color: var(--accent); }
+.qr-done .qr-reward { color: var(--text, #e8f1ea); background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: .6rem .9rem; }
+.qr-save, .qr-inst { display: flex; flex-direction: column; gap: .5rem; }
+.qr-save h3, .qr-inst h3 { margin: 0; }
+.qr-ask .btn { flex: none; }
+@keyframes qrPop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@media (max-width: 600px) { .qr-hero { grid-template-columns: 4rem minmax(0, 1fr); } .qr-ico { width: 4rem; height: 4rem; font-size: 2rem; border-radius: 16px; } }

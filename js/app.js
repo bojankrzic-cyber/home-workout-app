@@ -1855,8 +1855,11 @@
   if (!SCREENS.home) SCREENS.home = SCREENS.train;
   (function boot() {
     // Fast login: this device remembers who trained last – straight in (or straight to their PIN)
-    var list = Store.list(), last = Store.active();
-    if (!list.length) go('profileEdit', {});
+    var list = Store.list(), last = Store.active(), qr = null;
+    try { qr = sessionStorage.getItem('fs.product'); } catch (e) {}
+    // value before account: a scanned pack opens its guide at once – a quiet local profile is made for the routine
+    if (!list.length && qr) { var me = Store.addProfile(Store.newProfile('Me')); me.settings.qr = true; Store.save(); state = Store.setActive(me.id); resetTo('home'); }
+    else if (!list.length) go('profileEdit', {});
     else if (last && !last.pin) { state = last; go(window.__HOME || 'home'); }
     else if (last) go('pin', { id: last.id, quick: true });
     else if (list.length === 1 && !list[0].pin) { state = Store.setActive(list[0].id); go(window.__HOME || 'home'); }

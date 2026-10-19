@@ -257,3 +257,6 @@ sh tools/db/test.sh                                                # migracija +
 - Sport tracker v brskalniku: ob zaklenjenem zaslonu iPhone ne beleži GPS (vrzel se premosti z ravno črto). Srčnega utripa iz ure ne bere (iOS v brskalniku nima Bluetooth); ura → GPX uvoz. Rešitev za oboje je nativna ovojnica (Capacitor) z ozadnim GPS in HealthKit / Health Connect.
 - Zemljevid uporablja OpenStreetMap ploščice (pilot). Za produkcijo potreben komercialni ponudnik (MapTiler/Stadia/Mapbox) – sprememba ene vrstice v `js/sport.js`.
 - Začetne teže so ocena; prvi teden jih prilagodi (aplikacija si jih nato zapomni).
+
+## QR on the pack
+Every product QR (dynamic, QRCode Studio) can point to `?p=<SKU>&src=qr`: the guide opens instantly in the phone's language from the official label (`data/labels/`, 17 languages), one tap starts the routine with day 1 already ticked, then the account / home-screen asks. Catalog: `tools/catalog/fetch_labels.py` + `build_catalog.py` → `js/catalog.js`, `data/labels/`, `docs/qr-audit.csv`. Strategy: `docs/qr-strategy.md`. Test: `tools/qr.cjs`.

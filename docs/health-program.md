@@ -5,7 +5,7 @@ Stanje: zgrajeno v aplikaciji (`js/health.js`) in testirano (`tools/health.cjs`,
 ## Kaj stranka doživi
 | Faza | V aplikaciji | Strežnik → Klaviyo |
 |---|---|---|
-| QR na embalaži / letaku | `?p=<izdelek>&src=pack` odpre vodič izdelka (odmerek, čas, kako pogosto) → "Začni rutino – paket odprt danes". Nov uporabnik najprej naredi profil, nato se vodič odpre sam | `product_scans` (tudi brez prijave) |
+| QR na embalaži / letaku | `?p=<SKU>&src=qr` odpre vodič izdelka v jeziku telefona (etiketa, 325 SKU) → "Začni 25-dnevno rutino" (1. dan že ✓) → sidro → povabilo v račun. Brez profilnega obrazca – glej `docs/qr-strategy.md` | `product_scans`, `guide_viewed`, `routine_started` |
 | Aktivacija | izbira trenutka: ☕ ob kavi / 🍳 ob zajtrku / 🥗 ob kosilu / 🌙 zvečer | `routine_started` |
 | Vsak dan | Today: "Took your supplements today?" **[✅ Done] [⏰ Later] [Not today]**, en tap za vse izdelke. Ob tem vrstica z napredkom "še 4 do prve nagrade" | `checkin_streak` |
 | Prvi teden | 7 kljukic → 🎁 značka + brezplačna dostava ob naslednjem ponaročilu (koda). Opomniki se nato znižajo na 3× tedensko ("gre ti že samo") | `reward_unlocked` |
@@ -56,7 +56,7 @@ Stanje: zgrajeno v aplikaciji (`js/health.js`) in testirano (`tools/health.cjs`,
 | Unikatne kode nagrad prek WooCommerce REST (strežniška funkcija) | razvoj |
 | `?coupon=` v URL-ju (vtičnik ali lastna koda) in povezava "add to cart" za vse trge | webshop |
 | Klaviyo flowi po dogodkih (opisano v `docs/platform-setup.md`) | marketing / CRM |
-| QR kode na embalaži in letakih: `https://app.naturesfinest.eu/?p=<id>&src=pack&b=<serija>` | packaging |
+| Preusmeritev dinamičnih QR kod (QRCode Studio) na `https://app.naturesfinest.eu/?p=<SKU>&src=qr` – pilot po `docs/qr-strategy.md` | e-commerce / packaging |
 | Vklop računov (Supabase), brez katerega ni opomnikov po e-pošti | razvoj |
 
 ## KPI (vsak mehanizem z 5–10 % kontrolno skupino)
