@@ -22,6 +22,11 @@
     // Health program reward ladder (js/health.js). Pilot: shared codes – before launch replace with unique
     // per-customer codes created server-side (WooCommerce REST) so codes can't be passed around.
     // Percentages are a commercial decision (margin) – TODO CEO/commercial.
+    // "never run out": subscription at reorder. live:false = the app shows it and counts interest
+    // (event subscription_interest) until the webshop can take subscriptions – TODO commercial: discount
+    subscription: { live: false, discount: 10 },
+    // free sample of the suggested complement in the next package (webshop reads ?fm_sample=<sku>) – TODO ops
+    sample: true,
     rewards: {
       // 7: non-cash + tied to a purchase (check-ins are self-reported – a cash code at day 7 invites farming)
       7: { code: 'FINESTME-SHIP', text: 'Member badge + free shipping on your next reorder' },

@@ -1,0 +1,19 @@
+{
+  "_source": "TrackDaddy orders 2026-01-01..2026-10-19, completed/processing: what customers who first bought A bought in a later order within 180 days (share of A customers in brackets); kept only pairs that make sense for the same need. Pairs marked * are the reverse of a measured pair. Earlier lift analysis (docs/health-complements.md): D3 + ImunUp, Cellulite + Bronze, Hair + Kolagen.",
+  "5634": ["5642", "5703"],
+  "5642": ["5634", "5725"],
+  "5176": ["5465"],
+  "5465": ["5176", "5581"],
+  "5581": ["5465", "5176"],
+  "5580": ["5642", "5634"],
+  "5703": ["5634", "5817"],
+  "5482": ["5587", "5492"],
+  "5492": ["5482"],
+  "5676": ["5675", "5642"],
+  "5675": ["5676"],
+  "5491": ["5547"],
+  "5547": ["5491"],
+  "5587": ["5482"],
+  "5467": ["5492"],
+  "5725": ["5642"]
+}

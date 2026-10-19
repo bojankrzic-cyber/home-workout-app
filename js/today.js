@@ -187,6 +187,7 @@
       var s = st(), plan = dayPlan(s), left = plan.items.filter(function (i) { return i.kind === 'supp' && !i.done; });
       return head('🌿 Health', 'Your daily routine and body') + '<div class="sh-list">' +
         (left.length ? '<button class="sh-line focusable primary" data-take-all><span class="ico">💊</span><span><b>Take ' + (left.length === 1 ? left[0].title : 'my supplements now') + '</b><small>' + esc(left.map(function (i) { return i.title; }).join(', ')) + '</small></span></button>' : '') +
+        (routine(s).length ? line('shelf', {}, '📦', 'My shelf', 'what’s left in each pack · reorder') : '') +
         (routine(s).length ? line('program', {}, '🏅', 'My program', window.Health ? Health.count(s) + ' check-ins · rewards · supply · weekly progress' : '') : '') +
         line('routine', {}, '🗓️', 'My supplement routine', routine(s).length ? routine(s).length + ' in your routine · times and reminders' : 'set up – pick from Nature’s Finest or add your own') +
         '<button class="sh-line focusable" data-sheet="weight"><span class="ico">⚖️</span><span><b>Log body weight</b><small>' + (s.settings.weight ? 'last: ' + s.settings.weight + ' kg' : 'track your trend toward your goal') + '</small></span></button>' +

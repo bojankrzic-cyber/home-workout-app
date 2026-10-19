@@ -14,6 +14,9 @@ import csv, json, os, re, sys
 
 cache, repo = sys.argv[1], sys.argv[2]
 rows = json.load(open(cache + '/rows.json'))
+HERE = os.path.dirname(os.path.abspath(__file__))
+def side(name): return json.load(open(os.path.join(HERE, name))) if os.path.exists(os.path.join(HERE, name)) else {}
+IMAGES, COMPL = side('images.json'), {k: v for k, v in side('complements.json').items() if not k.startswith('_')}
 EANS = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ean.json'))) if os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ean.json')) else {}
 LANG = {'SI': 'sl', 'CZ': 'cs', 'GR': 'el', 'SE': 'sv', 'DK': 'da', 'DA': 'da', 'EE': 'et', 'ET': 'et'}
 USE = {
@@ -210,6 +213,8 @@ for sku, r in sorted(best.items()):
     # EAN barcodes from the ERP (Pantheon tHE_SetItem.acCode by ident = SKU): the scanner reads them too
     bs = sorted(k for k, v in EANS.items() if v == sku)
     if bs: e['b'] = bs
+    if IMAGES.get(sku): e['img'] = IMAGES[sku]                       # pack shot from the webshop (TrackDaddy products)
+    if COMPL.get(sku): e['x'] = COMPL[sku]                           # what customers add next (complements.json)
     if chk: e['chk'] = 1
     index[sku] = e
     if txt:

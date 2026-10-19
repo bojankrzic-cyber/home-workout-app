@@ -80,7 +80,7 @@ alter table public.app_events drop constraint if exists app_events_name_check;
 alter table public.app_events add constraint app_events_name_check check (name in (
   'routine_started', 'checkin_streak', 'supply_low', 'reorder_clicked', 'reward_unlocked', 'checkins_missed',
   'weekly_review', 'program_paused', 'complement_suggested',
-  'guide_viewed', 'account_prompt_shown', 'install_prompt', 'install_transfer', 'reminders_on', 'reminder_due'));
+  'guide_viewed', 'account_prompt_shown', 'install_prompt', 'install_transfer', 'reminders_on', 'reminder_due', 'subscription_interest', 'complement_sample'));
 
 -- ---------------------------------------------------------------- schedule: every 15 minutes
 -- Needs pg_cron + pg_net (Database → Extensions) and two Vault secrets:
