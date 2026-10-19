@@ -864,6 +864,7 @@
     var voiceInfo = !('speechSynthesis' in window) ? 'This browser has no speech – using beeps.' : Voice.v ? 'Voice: ' + Voice.v.name : 'Uses the device’s default English voice.';
     root.innerHTML = '<div class="screen"><div class="topbar"><h1>Settings</h1><div class="spacer"></div>' +
       '<button class="btn sm ghost focusable who" data-go="profiles">' + avatar(state) + 'Switch person</button></div>' +
+      hookHtml('settings') +
       '<div class="panel"><h3>Profile</h3><div class="opt-row">' + avatar(state, true) + '<div style="flex:1"><b style="font-size:1.3rem">' + esc(state.name) + '</b><div class="hint">' +
       (GOAL_BY[s.goal] || GOAL_BY.general).ico + ' ' + esc((GOAL_BY[s.goal] || GOAL_BY.general).name) +
       (Me.age(s) ? ' · ' + Me.age(s) + ' y' : '') + (s.height ? ' · ' + s.height + ' cm' : '') + (s.weight ? ' · ' + s.weight + ' kg' : '') +
@@ -1825,9 +1826,11 @@
   // module API: feature modules (sport tracker now; body tracker, supplement routine next) register
   // screens and home/progress panels without touching the core
   var App = window.App = {
-    SCREENS: SCREENS, hooks: { home: [], progress: [] },
+    SCREENS: SCREENS, hooks: { home: [], progress: [], settings: [] },
     go: go, back: back, refresh: refresh, resetTo: resetTo, toast: toast, ask: ask, esc: esc, fmt: fmt, pl: pl, $: $, $$: $$,
     state: function () { return state; }, save: function () { Store.save(); },
+    // after cloud data arrived: re-pick the active person and redraw (the profile object may be new)
+    reload: function () { state = Store.active() || Store.list()[0] || null; if (state) Store.setActive(state.id); if (!state) resetTo('profileEdit', {}); else if (stack.length) refresh(); },
     keepAwake: keepAwake, say: function (t) { Voice.say(t); }, beep: function (f, d) { Audio.beep(f, d); },
     session: function (o) { activeSession = o; }, onCleanup: function (f) { cleanup.push(f); }, isKey: isKey, TOUCH: TOUCH
   };

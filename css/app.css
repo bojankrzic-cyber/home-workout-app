@@ -908,3 +908,16 @@ textarea.field { width: 100%; resize: vertical; font: inherit; min-height: 3.2re
   .act-tt h1 { font-size: 1.6rem; }
   .rpe { gap: .25rem; } .rpe button { padding: .55rem 0; font-size: .9rem; }
 }
+
+/* ===== Account (js/account.js) ============================================== */
+.acct-cta { flex-direction: row; align-items: center; gap: 1.2rem; flex-wrap: wrap; background: linear-gradient(135deg, rgba(62, 196, 109, .12), transparent 60%), var(--card); border: 1px solid rgba(62, 196, 109, .3); }
+.acct-cta > div { flex: 1 1 18rem; display: flex; flex-direction: column; gap: .3rem; }
+.acct-cta.on { background: var(--card); border-color: var(--line); }
+.acct-why { margin: 0; padding-left: 1.2rem; color: var(--muted); line-height: 1.6; }
+.check { display: flex; gap: .7rem; align-items: flex-start; font-size: .9rem; line-height: 1.45; color: var(--muted); cursor: pointer; }
+.check input { width: 1.3rem; height: 1.3rem; flex: none; margin-top: .1rem; accent-color: var(--accent); }
+.check b, .check a { color: var(--text); }
+.code-in { font-size: 2rem; letter-spacing: .5em; text-align: center; max-width: 14rem; font-variant-numeric: tabular-nums; }
+.sy { display: inline-block; width: .55rem; height: .55rem; border-radius: 50%; background: var(--muted); margin-right: .4rem; vertical-align: .05em; }
+.sy.ok { background: var(--accent); } .sy.busy { background: var(--accent-2); animation: mpulse 1s infinite; } .sy.off { background: #fcb900; } .sy.err { background: var(--danger); }
+.btn.danger { color: var(--danger); border-color: rgba(255, 107, 107, .45); }

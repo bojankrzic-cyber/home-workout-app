@@ -1,0 +1,17 @@
+# Supabase CLI project settings (deploy: supabase link --project-ref <ref> && supabase db push && supabase functions deploy)
+[auth]
+site_url = "https://app.naturesfinest.eu"
+additional_redirect_urls = ["https://bojankrzic-cyber.github.io/home-workout-app/"]
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+otp_length = 6
+otp_expiry = 900
+
+[functions.shop-order]
+verify_jwt = false
+
+[functions.klaviyo-sync]
+verify_jwt = false
