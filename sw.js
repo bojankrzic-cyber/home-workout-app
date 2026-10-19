@@ -1,6 +1,6 @@
 /* Offline cache: app works without internet once loaded (TV / gym corner with weak Wi-Fi). */
-var CACHE = 'finestme-v29';
-var FILES = ['./', 'index.html', 'css/app.css', 'js/config.js', 'js/photos.js', 'js/products.js', 'js/voiceclips.js', 'js/figure.js', 'js/exercises.js', 'js/program.js', 'js/store.js', 'js/cloud.js', 'js/track.js', 'js/sport.js', 'js/today.js', 'js/account.js', 'js/app.js', 'manifest.webmanifest', 'icons/icon.svg'];
+var CACHE = 'finestme-v30';
+var FILES = ['./', 'index.html', 'css/app.css', 'js/config.js', 'js/photos.js', 'js/products.js', 'js/voiceclips.js', 'js/figure.js', 'js/exercises.js', 'js/program.js', 'js/store.js', 'js/cloud.js', 'js/track.js', 'js/imports.js', 'js/sport.js', 'js/today.js', 'js/devices.js', 'js/share.js', 'js/account.js', 'js/app.js', 'manifest.webmanifest', 'icons/icon.svg'];
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(FILES); }).then(function () { return self.skipWaiting(); }));
 });

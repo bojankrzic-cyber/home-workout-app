@@ -3,7 +3,10 @@
 //   consents.marketing_email  → subscribe / unsubscribe the e-mail on the Klaviyo list (double opt-in
 //                               follows the list's own setting)
 //   workouts / activities     → engagement events WITHOUT health details (type, minutes, km only),
-//                               and only for people whose current marketing consent is granted
+//                               and only for people whose current marketing consent is granted.
+//                               Never for activities from Apple HealthKit or Android Health Connect
+//                               (data.source or data.origin 'apple_health' / 'health_connect'): Apple's and
+//                               Google's platform policies forbid using that data for marketing/advertising.
 //
 // Secrets: KLAVIYO_API_KEY (private key, scopes: profiles:write, lists:write, subscriptions:write, events:write),
 //          KLAVIYO_LIST_ID, WEBHOOK_TOKEN (shared secret the database webhook sends as "Authorization: Bearer …")
@@ -24,6 +27,11 @@ async function marketingOk(userId: string): Promise<boolean> {
   const { data } = await db.from('current_consents').select('granted').eq('user_id', userId).eq('kind', 'marketing_email').maybeSingle();
   return !!data?.granted;
 }
+// Apple HealthKit / Android Health Connect data must never reach marketing tools
+const RESTRICTED = ['apple_health', 'health_connect'];
+const restricted = (r: { data?: { source?: string; origin?: string } }) =>
+  RESTRICTED.includes(r.data?.source ?? '') || RESTRICTED.includes(r.data?.origin ?? '');
+
 async function klaviyo(path: string, payload: unknown) {
   const r = await fetch(`${API}${path}`, { method: 'POST', headers: HEAD, body: JSON.stringify(payload) });
   if (!r.ok && r.status !== 409) throw new Error(`Klaviyo ${path} ${r.status}: ${await r.text()}`);
@@ -47,6 +55,10 @@ Deno.serve(async (req) => {
     return new Response('ok');
   }
 
+  if (ev.table === 'activities' && restricted(r)) return new Response('restricted source');
+  // connecting a watch backfills its history – only fresh activities (last 3 days) become marketing events
+  const when = Date.parse((ev.table === 'activities' ? r.started_at : r.done_at) ?? '');
+  if (isFinite(when) && Date.now() - when > 3 * 864e5) return new Response('backfill – no event');
   if ((ev.table === 'workouts' || ev.table === 'activities') && !r.deleted && await marketingOk(r.user_id)) {
     const isAct = ev.table === 'activities';
     await klaviyo('/events', { data: { type: 'event', attributes: {

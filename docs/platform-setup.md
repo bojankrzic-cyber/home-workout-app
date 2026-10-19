@@ -23,7 +23,7 @@ Arhitektura (potrjeno 19. 10. 2026):
 2. Shema:
    ```bash
    supabase link --project-ref <ref>
-   supabase db push              # supabase/migrations/20261019000000_platform_init.sql
+   supabase db push              # supabase/migrations/*.sql (platform_init, devices)
    ```
 3. **Auth → URL configuration**:
    - Site URL `https://app.naturesfinest.eu`;
@@ -40,6 +40,19 @@ Arhitektura (potrjeno 19. 10. 2026):
    ```
 7. **Database → Webhooks** (INSERT na `consents`, `workouts`, `activities`) → `https://<ref>.supabase.co/functions/v1/klaviyo-sync`, header `Authorization: Bearer <WEBHOOK_TOKEN>`.
 8. V `js/config.js` vpiši `supabaseUrl` in `supabaseAnonKey`. Anon ključ je javen po zasnovi. `privacyUrl` nastavi na točno stran politike zasebnosti.
+
+### Prijava z Googlom
+1. Google Cloud Console (projekt podjetja) → **APIs & Services → OAuth consent screen**:
+   - tip External;
+   - ime aplikacije FinestMe, logotip in domena `naturesfinest.eu`;
+   - povezava na politiko zasebnosti;
+   - scope samo `email`, `profile`, `openid`.
+2. **Credentials → Create OAuth client ID** (Web application) → Authorized redirect URI: `https://<ref>.supabase.co/auth/v1/callback`.
+3. Supabase → Authentication → Providers → **Google**: vpiši Client ID in Secret ter vklopi.
+4. V aplikaciji je gumb "Continue with Google" že pripravljen (`authProviders: ['google']` v `js/config.js`). Privolitev za podatke je obvezna tudi tu; shrani se pred preusmeritvijo.
+5. Ko izide iOS aplikacija z Google prijavo, App Store zahteva še **Sign in with Apple**:
+   - v `authProviders` dodaj `'apple'`;
+   - v Supabase vklopi Apple (Services ID + ključ iz Apple Developer).
 
 ## 3. WooCommerce (webshop)
 - WooCommerce → Settings → Advanced → Webhooks → dodaj **Order created** in **Order updated**:
@@ -61,7 +74,30 @@ Arhitektura (potrjeno 19. 10. 2026):
   - "7 dni brez aktivnosti" (winback);
   - "zaloga izdelka gre h koncu" (naslednji korak: rutina dopolnil × datum naročila).
 
-## 5. Domena `app.naturesfinest.eu`
+## 5. Pametne naprave (samodejna sinhronizacija)
+Ure, zapestnice in tehtnice pošiljajo aktivnosti in meritve v aplikacijo samodejno, brez ročnega uvoza.
+
+**Kaj je pripravljeno (neodvisno od ponudnika):**
+- tabela `device_connections`: kateri račun pri ponudniku (Garmin, Polar …) pripada kateremu članu gospodinjstva. Uporabnik povezave vidi in jih lahko prekine (izbriše), ustvari pa jih samo strežnik (OAuth callback);
+- tabela `body_measurements`: teža, % maščobe, mišična masa (pametne tehtnice, kasneje body tracker);
+- funkcija `device-ingest`: edina vstopna točka za vse ponudnike. Aktivnosti zapiše v `activities`, zato se v aplikaciji pokažejo kot vse ostale. Če je uporabnik aktivnost izbrisal v aplikaciji, je ponovna sinhronizacija ne vrne.
+
+**Pogodba za adapterje:**
+- Adapter = tanek strežniški del (webhook agregatorja ali Garmin API), ki podatke pretvori v obliko aplikacije in pokliče `POST https://<ref>.supabase.co/functions/v1/device-ingest`.
+- Header `Authorization: Bearer <INGEST_TOKEN>`. Skrivnost poznajo samo adapterji: `supabase secrets set INGEST_TOKEN=…`, `supabase functions deploy device-ingest --no-verify-jwt`.
+- Telo: `{ provider, external_user_id, activities: [...], measurements: [...] }`, največ 500 aktivnosti na klic. Neznana ali prekinjena povezava → 404, napačni podatki → 400.
+
+**Priporočilo:**
+- **En agregator z gostovanjem v EU in DPA** (Thryve ali Terra) za Garmin, Polar, Suunto, Coros, Fitbit, Oura, Whoop in Withings. Ena integracija namesto osmih; adapter je ena funkcija.
+- **Garmin Connect Developer Program** (brezplačen, odobritev za podjetja) za Garmin Training API: pošiljanje FinestMe treningov na uro.
+- **Apple Health in Health Connect** samo prek nativne aplikacije (spletna aplikacija do njiju nima dostopa).
+
+**Omejitve in privolitve:**
+- Podatkov iz Apple HealthKit in Android Health Connect po pravilih Apple in Google ne smemo uporabiti za marketing ali oglaševanje. `klaviyo-sync` takih aktivnosti ne pošlje v Klaviyo.
+- Za vsako povezano napravo **ločena privolitev** (kateri podatki, kateremu članu, namen). Prekinitev povezave ustavi sinhronizacijo; podatki ostanejo, dokler jih uporabnik ne izbriše.
+- Agregator je obdelovalec zdravstvenih podatkov: DPA in vpis v DPIA (poglavje 7).
+
+## 6. Domena `app.naturesfinest.eu`
 1. DNS (pri registrarju za `naturesfinest.eu`): `CNAME app → bojankrzic-cyber.github.io`. Po prenosu v organizacijo: `<org>.github.io`.
 2. GitHub → repo Settings → Pages → Custom domain `app.naturesfinest.eu` → **Enforce HTTPS**.
 3. **Pozor, podatki na napravi:** stara github.io povezava in nova domena sta za brskalnik dve različni "stranki", zato podatki na napravi ne preidejo sami. Pravilni vrstni red:
@@ -71,15 +107,15 @@ Arhitektura (potrjeno 19. 10. 2026):
 
    Alternativa: Settings → Backup → Export/Import.
 
-## 6. Pravno (DPO / pravna služba) – pred javnim zagonom
+## 7. Pravno (DPO / pravna služba) – pred javnim zagonom
 - **Posebna kategorija osebnih podatkov (čl. 9 GDPR):** podatki o vadbi, telesu in zdravju. Pravna podlaga je izrecna privolitev. Ta je v aplikaciji obvezna ob ustvarjanju računa in shranjena z različico besedila (`consents`, `v1-2026-10`).
 - **DPIA** za aplikacijo (zdravstveni podatki + lokacija/GPS).
-- **Pogodbi o obdelavi (DPA):** s Supabase in z e-poštnim ponudnikom (SMTP). Klaviyo DPA že obstaja.
+- **Pogodbe o obdelavi (DPA):** s Supabase, z e-poštnim ponudnikom (SMTP) in z agregatorjem pametnih naprav. Klaviyo DPA že obstaja.
 - **Politika zasebnosti:** nov razdelek "FinestMe aplikacija" (namen, hramba, pravice, brisanje). Povezava gre v `privacyUrl`.
 - **Pravica do izbrisa:** gumb "Delete account & cloud data" izbriše račun in vse podatke aplikacije. Naročila ostanejo zaradi računovodstva, vendar brez povezave na račun.
 - **Navodila za uporabo izdelkov (rutina):** odmerki v `js/products.js` (`use.dose`) se morajo ujemati z etiketo. Regulatorno jih je treba potrditi pred zagonom.
 
-## 7. Stroški (ocena, mesečno)
+## 8. Stroški (ocena, mesečno)
 | Postavka | € |
 |---|---|
 | Supabase Pro | ~25 |

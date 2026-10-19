@@ -1,43 +1,19 @@
 [
  [
-  "cue_hx_bike_run",
-  "A pace you can hold for all eight rounds. Not a sprint."
+  "cue_bike_z2",
+  "Saddle at hip height, slight knee bend at the bottom."
+ ],
+ [
+  "cue_bike_hiit",
+  "Sprint 20 seconds all-out, 40 seconds easy."
  ],
  [
   "cue_row_steady",
   "Legs, then body, then arms. On the way back: arms, body, legs."
  ],
  [
-  "cue_bike_z2",
-  "Saddle at hip height, slight knee bend at the bottom."
- ],
- [
-  "cue_hip_flexor",
-  "Back knee down, squeeze the glute on that side."
- ],
- [
-  "cue_hamstring_bench",
-  "Heel on the bench, toes up, soft knee."
- ],
- [
   "cue_row_hiit",
   "30 seconds hard, 30 seconds easy."
- ],
- [
-  "cue_k_ski",
-  "High pulley in front, handles overhead."
- ],
- [
-  "cue_burpee_bj",
-  "Chest to the floor, then feet under you."
- ],
- [
-  "cue_db_thruster",
-  "Dumbbells on the shoulders, elbows forward."
- ],
- [
-  "cue_bike_hiit",
-  "Sprint 20 seconds all-out, 40 seconds easy."
  ],
  [
   "cue_kb_swing",
@@ -46,6 +22,10 @@
  [
   "cue_kb_goblet_squat",
   "Kettlebell at the chest, elbows down."
+ ],
+ [
+  "cue_kb_deadlift",
+  "Kettlebell between the feet, feet slightly wider than hips."
  ],
  [
   "cue_kb_press",
@@ -72,6 +52,10 @@
   "Rear foot laces-down on the bench."
  ],
  [
+  "cue_db_shoulder_press",
+  "Backrest near upright, back against the pad."
+ ],
+ [
   "cue_db_curl",
   "Elbows pinned to your sides, not drifting forward."
  ],
@@ -82,5 +66,297 @@
  [
   "cue_db_stepup",
   "Whole foot on the bench."
+ ],
+ [
+  "cue_k_chest_press",
+  "Back to the machine, split stance."
+ ],
+ [
+  "cue_k_row",
+  "Facing the machine, soft knees."
+ ],
+ [
+  "cue_k_pulldown",
+  "Half-kneeling, glutes squeezed, torso upright."
+ ],
+ [
+  "cue_k_face_pull",
+  "Handles at face height."
+ ],
+ [
+  "cue_k_pushdown",
+  "Elbows pinned to your sides."
+ ],
+ [
+  "cue_k_pullthrough",
+  "Back to the machine, cable between the legs."
+ ],
+ [
+  "cue_k_woodchop",
+  "Side-on to the machine, arms extended."
+ ],
+ [
+  "cue_pullup",
+  "Start from a dead hang, set the shoulder blades first."
+ ],
+ [
+  "cue_hang_knee_raise",
+  "Active hang. Shoulders away from the ears."
+ ],
+ [
+  "cue_hang_leg_raise",
+  "Legs straight, toes pointed."
+ ],
+ [
+  "cue_dead_hang",
+  "Relax into the hang. Decompress the spine."
+ ],
+ [
+  "cue_back_ext",
+  "Pad just below the hip bones."
+ ],
+ [
+  "cue_situp",
+  "Feet hooked under the rollers."
+ ],
+ [
+  "cue_pushup",
+  "Hands under shoulders, body in a straight plank."
+ ],
+ [
+  "cue_plank",
+  "Elbows under shoulders."
+ ],
+ [
+  "cue_dead_bug",
+  "Lower back pressed into the floor the whole time."
+ ],
+ [
+  "cue_bird_dog",
+  "On all fours, back flat as a table."
+ ],
+ [
+  "cue_hip_flexor",
+  "Back knee down, squeeze the glute on that side."
+ ],
+ [
+  "cue_hamstring_bench",
+  "Heel on the bench, toes up, soft knee."
+ ],
+ [
+  "cue_hx_bike_run",
+  "A pace you can hold for all eight rounds. Not a sprint."
+ ],
+ [
+  "cue_k_ski",
+  "High pulley in front, handles overhead."
+ ],
+ [
+  "cue_bike_sled",
+  "Resistance high enough to drop your cadence below sixty-five."
+ ],
+ [
+  "cue_k_sled_pull",
+  "Low pulley in front, athletic stance, hips back."
+ ],
+ [
+  "cue_burpee_bj",
+  "Chest to the floor, then feet under you."
+ ],
+ [
+  "cue_kb_farmers",
+  "Two kettlebells at your sides, shoulders down and back."
+ ],
+ [
+  "cue_kb_lunge",
+  "Kettlebell held at the chest, goblet style."
+ ],
+ [
+  "cue_db_thruster",
+  "Dumbbells on the shoulders, elbows forward."
+ ],
+ [
+  "cue_treadmill_run",
+  "Tall posture, slight lean from the ankles."
+ ],
+ [
+  "cue_skierg",
+  "Handles overhead, arms slightly bent."
+ ],
+ [
+  "cue_sled_push",
+  "Arms extended on the high handles, body at about forty-five degrees."
+ ],
+ [
+  "cue_sled_pull",
+  "Athletic stance, hips back, weight in the heels."
+ ],
+ [
+  "cue_wall_ball",
+  "Ball under the chin, elbows under the ball."
+ ],
+ [
+  "cue_sandbag_lunge",
+  "Sandbag across the shoulders, behind the neck."
+ ],
+ [
+  "cue_bb_squat",
+  "Bar on the upper traps, elbows under the bar."
+ ],
+ [
+  "cue_bb_deadlift",
+  "Bar over mid-foot, shins touching it."
+ ],
+ [
+  "cue_bb_bench",
+  "Shoulder blades together, feet planted."
+ ],
+ [
+  "cue_box_jump",
+  "Swing the arms and dip quickly."
+ ],
+ [
+  "cue_jump_rope",
+  "Low bounces off the balls of the feet, soft knees."
+ ],
+ [
+  "cue_band_row",
+  "Band anchored at chest height."
+ ],
+ [
+  "cue_band_pushdown",
+  "Band anchored high."
+ ],
+ [
+  "cue_db_farmers",
+  "Dumbbells at your sides, shoulders down and back."
+ ],
+ [
+  "cue_bw_squat",
+  "Feet shoulder-width, arms forward for balance."
+ ],
+ [
+  "cue_bw_lunge",
+  "Hands on hips, torso upright."
+ ],
+ [
+  "cue_glute_bridge",
+  "On your back, feet close to the glutes."
+ ],
+ [
+  "cue_mountain_climber",
+  "Hands under shoulders, hips in line."
+ ],
+ [
+  "cue_high_knees",
+  "Knees to hip height."
+ ],
+ [
+  "cue_knee_pushup",
+  "Knees down, hands just wider than the shoulders."
+ ],
+ [
+  "cue_pike_pushup",
+  "Hips high in an upside-down V, hands shoulder-width."
+ ],
+ [
+  "cue_superman",
+  "Lie face down, arms long in front of you."
+ ],
+ [
+  "cue_prone_y_raise",
+  "Lie face down, arms overhead in a Y, thumbs up."
+ ],
+ [
+  "cue_side_plank",
+  "Elbow under the shoulder, feet stacked."
+ ],
+ [
+  "cue_wall_sit",
+  "Back flat on the wall, feet a step out in front."
+ ],
+ [
+  "cue_jump_squat",
+  "Squat down with the arms swinging back."
+ ],
+ [
+  "cue_burpee",
+  "Squat and place the hands on the floor."
+ ],
+ [
+  "cue_hollow_hold",
+  "Lie on your back and press the lower back into the floor."
+ ],
+ [
+  "cue_sl_glute_bridge",
+  "One foot flat near the glutes, the other leg straight."
+ ],
+ [
+  "cue_hamstring_floor",
+  "Sit tall with the legs straight out in front, toes up."
+ ],
+ [
+  "cue_susp_row",
+  "Walk the feet forward to make it harder, back to make it easier."
+ ],
+ [
+  "cue_susp_pushup",
+  "Face away from the anchor, straps taut, arms straight at chest height."
+ ],
+ [
+  "cue_susp_squat",
+  "Face the anchor, hold the handles, light tension in the straps."
+ ],
+ [
+  "cue_susp_fallout",
+  "Face away from the anchor, arms straight, on the balls of the feet."
+ ],
+ [
+  "cue_abwheel_rollout",
+  "Knees on a pad, wheel under the shoulders, arms straight."
+ ],
+ [
+  "cue_ball_slam",
+  "Reach tall. Ball overhead, up on the toes."
+ ],
+ [
+  "cue_ball_rot_slam",
+  "Ball overhead, then rotate and slam it beside the outside of one foot."
+ ],
+ [
+  "cue_rope_waves",
+  "Athletic half squat. Hips back, chest up, core braced."
+ ],
+ [
+  "cue_roll_tspine",
+  "Roller across the upper back, hands support the head."
+ ],
+ [
+  "cue_roll_quads",
+  "Face down on the forearms, roller under the thighs."
+ ],
+ [
+  "cue_dips",
+  "Arms locked, shoulders down, away from the ears."
+ ],
+ [
+  "cue_lsit",
+  "Arms locked, push the bars down. Shoulders away from the ears."
+ ],
+ [
+  "cue_landmine_press",
+  "Staggered stance, bar end at the shoulder."
+ ],
+ [
+  "cue_landmine_row",
+  "Straddle the bar, grip under the plates."
+ ],
+ [
+  "cue_airbike_sprint",
+  "Push and pull the handles while you pedal. Arms and legs."
+ ],
+ [
+  "cue_airbike_z2",
+  "Even rhythm, arms and legs share the work."
  ]
 ]

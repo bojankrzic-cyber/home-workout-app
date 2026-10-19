@@ -177,6 +177,16 @@
     var a = this.recent[0], b = this.recent[this.recent.length - 1];
     return { sec: b[0] - a[0], m: b[1] - a[1] };
   };
+  // live heart rate (Bluetooth strap / watch broadcasting HR): one sample per ≥5 s, wall-clock seconds
+  Recorder.prototype.addHr = function (bpm, ts) {
+    if (this.state !== 'rec' || !(bpm > 25 && bpm < 250)) return;
+    ts = ts || this.now();
+    var t = Math.round((ts - this.startTs) / 1000);
+    this.hrs = this.hrs || [];
+    var last = this.hrs[this.hrs.length - 1];
+    if (last && t - last[0] < 5) { last[1] = Math.max(last[1], bpm); return; }
+    this.hrs.push([t, Math.round(bpm)]);
+  };
   Recorder.prototype.lap = function () {
     var l = { dist: Math.round(this.d - this.lapFrom.d), sec: Math.round(this.moving - this.lapFrom.t) };
     this.laps.push(l); this.lapFrom = { d: this.d, t: this.moving };
@@ -205,7 +215,7 @@
       type: this.type, start: new Date(this.startTs).toISOString(), elapsed: Math.round(el),
       moving: Math.round(this.moving), dist: Math.round(this.d), gain: Math.round(this.gain),
       pts: this.pts, splits: this.splits.slice(), lastSplit: rest > 50 ? { m: Math.round(rest), sec: Math.round(this.moving - this.splits.reduce(function (s, x) { return s + x; }, 0)) } : null,
-      laps: this.laps.slice(), source: 'gps'
+      laps: this.laps.slice(), source: 'gps', hrs: this.hrs && this.hrs.length ? this.hrs.slice() : undefined
     }, kg);
   };
 
@@ -213,7 +223,12 @@
     a.id = a.id || 'a' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
     a.kcal = kcal(a.type, kg, a.moving || a.elapsed, a.dist);
     a.title = a.title || autoTitle(a);
-    a.best = bestEfforts(a.pts);
+    a.best = a.best || bestEfforts(a.pts);
+    if (a.hrs && a.hrs.length && !a.hr) {
+      a.hr = Math.round(a.hrs.reduce(function (x, h) { return x + h[1]; }, 0) / a.hrs.length);
+      a.hrMax = Math.max.apply(null, a.hrs.map(function (h) { return h[1]; }));
+    }
+    if (!a.hrs) delete a.hrs;
     return a;
   }
   function autoTitle(a) {

@@ -49,7 +49,11 @@
         '<div class="hero acct-hero"><div class="panel">' +
         (step === 1 ?
           '<h3>Sign in with the e-mail you shop with</h3>' +
-          '<ul class="acct-why"><li>Your workouts, runs and progress on every device</li><li>Your Nature’s Finest orders linked automatically – product guides and routines next</li><li>No password – we e-mail you a link and a 6-digit code</li></ul>' +
+          '<ul class="acct-why"><li>Your workouts, runs and progress on every device</li><li>Your Nature’s Finest orders linked automatically – product guides and routines next</li><li>No password – Google, or a link and 6-digit code by e-mail</li></ul>' +
+          '<div class="acct-oauth">' + C.providers().map(function (pv) {
+            return pv === 'google' ? '<button class="btn oauth focusable" data-oauth="google"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.1C12.5 13.6 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.4 5.8c4.3-4 6.9-9.9 6.9-17.2z"/><path fill="#FBBC05" d="M10.6 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.4-5.8c-2.1 1.4-4.8 2.3-8.5 2.3-6.2 0-11.5-4.1-13.4-9.7l-7.9 6.1C6.6 42.6 14.6 48 24 48z"/></svg>Continue with Google</button>'
+              : pv === 'apple' ? '<button class="btn oauth apple focusable" data-oauth="apple"> Continue with Apple</button>' : '';
+          }).join('') + '</div><div class="acct-or">or with e-mail</div>' +
           '<input class="field focusable wide" id="acEmail" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" value="' + esc(p.email || '') + '">' +
           '<label class="check"><input type="checkbox" id="acHealth" class="focusable"' + (p.health ? ' checked' : '') + '><span><b>Required:</b> I agree that Nature’s Finest stores my training, activity and body data (this includes health data) in my account so the app works across my devices. I can withdraw at any time by deleting my account. <a href="' + esc(PRIVACY) + '" target="_blank" rel="noopener">Privacy policy</a></span></label>' +
           '<label class="check"><input type="checkbox" id="acMkt" class="focusable"' + (p.mkt ? ' checked' : '') + '><span>Optional: send me training tips and offers from Nature’s Finest by e-mail.</span></label>' +
@@ -61,6 +65,14 @@
         '</div><div class="panel acct-note"><h3>Your data, your call</h3><div class="hint">Stored in the EU (Frankfurt). Only you can read it. You can export it, and deleting your account erases it from our servers. Your data on this device stays until you clear it.</div></div></div></div>';
       App.$('#app').innerHTML = html;
       if (step === 1) {
+        $$('[data-oauth]').forEach(function (b) {
+          b.onclick = function () {
+            if (!$('#acHealth').checked) { App.toast('Please accept data storage first – the account can’t work without it'); $('#acHealth').focus(); return; }
+            b.disabled = true;
+            C.signInOAuth(b.getAttribute('data-oauth'), { health_data: true, marketing_email: $('#acMkt').checked })
+              .catch(function (e) { b.disabled = false; App.toast('Couldn’t open sign-in: ' + (e.message || 'try again')); });
+          };
+        });
         $('#acSend').onclick = function () {
           var email = $('#acEmail').value.trim(), health = $('#acHealth').checked, mkt = $('#acMkt').checked;
           if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { App.toast('Enter a valid e-mail'); return; }

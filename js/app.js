@@ -1357,10 +1357,18 @@
           var tip = Products.pick(state, 'finish', 1, { cardio: race || /cardio|race/i.test(sess.name) })[0];
           return tip ? '<div class="fin-tip"><div class="label">Recover well</div>' + productCard(tip, 'post_workout', true) + '</div>' : '';
         })() +
-        '<button class="btn primary focusable" id="wHome">Home</button></div>';
+        '<div class="fin-actions">' + (App.share ? '<button class="btn focusable" id="wShare">↗ Share</button>' : '') + '<button class="btn primary focusable" id="wHome">Home</button></div></div>';
       $('.side', el).hidden = true;
       el.classList.add('done');
       $('#wHome').onclick = function () { resetTo(window.__HOME || 'home'); };
+      if ($('#wShare')) $('#wShare').onclick = function () {
+        App.share({ kind: race ? 'race' : 'workout', eyebrow: race ? 'Hybrid race' : 'Workout complete', title: race ? fmt(total) : sess.name.split(' – ')[0],
+          subtitle: race ? sess.name : (sess.name.split(' – ')[1] || '') + (sess.name.indexOf(' – ') > 0 ? ' · ' : '') + new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }),
+          stats: [[fmt(total), 'time'], [logged.length, 'sets'], vol ? [Math.round(vol).toLocaleString('en-GB') + ' kg', 'lifted'] : [reps, 'reps']],
+          badge: prs.length ? '🏆 ' + prs.length + (prs.length === 1 ? ' personal best' : ' personal bests') : '',
+          caption: (race ? 'Hybrid race simulation done in ' + fmt(total) : sess.name + ' done – ' + logged.length + ' sets in ' + fmt(total)) + ' 💪' + (prs.length ? ' New personal best!' : ''),
+          tags: ['#FinestMe', '#NaturesFinest', race ? '#hybridrace' : '#homeworkout'] });
+      };
       $('#wHome').focus();
       activeSession.confirmExit = null;
       i = st.length;
@@ -1836,6 +1844,8 @@
     // after cloud data arrived: re-pick the active person and redraw (the profile object may be new)
     reload: function () { state = Store.active() || Store.list()[0] || null; if (state) Store.setActive(state.id); if (!state) resetTo('profileEdit', {}); else if (stack.length) refresh(); },
     keepAwake: keepAwake, say: function (t) { Voice.say(t); }, beep: function (f, d) { Audio.beep(f, d); },
+    // recorded coach when EVERY clip of the phrase exists (numbers must not have gaps), device voice otherwise
+    cue: function (t, keys) { if (keys.every(function (k) { return Coach.has(k); })) Voice.cue(t, keys); else Voice.say(t); },
     session: function (o) { activeSession = o; }, onCleanup: function (f) { cleanup.push(f); }, isKey: isKey, TOUCH: TOUCH,
     logWeight: function (kg) { logWeight(state, kg); Store.save(); },
     startCustom: startCustom,

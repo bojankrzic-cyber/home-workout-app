@@ -15,3 +15,6 @@ verify_jwt = false
 
 [functions.klaviyo-sync]
 verify_jwt = false
+
+[functions.device-ingest]
+verify_jwt = false

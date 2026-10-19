@@ -255,6 +255,14 @@
       var back = location.href.split('#')[0].split('?')[0];
       return sb.auth.signInWithOtp({ email: email, options: { shouldCreateUser: true, emailRedirectTo: back } }).then(function (r) { if (r.error) throw r.error; });
     },
+    // Google / Apple: same pending-consent flow as the e-mail link; the provider redirects back here
+    signInOAuth: function (provider, consents) {
+      try { localStorage.setItem(PENDING, JSON.stringify({ version: Cloud.CONSENT_VERSION, kinds: consents })); } catch (e) {}
+      var back = location.href.split('#')[0].split('?')[0];
+      return sb.auth.signInWithOAuth({ provider: provider, options: { redirectTo: back, queryParams: provider === 'google' ? { prompt: 'select_account' } : undefined } })
+        .then(function (r) { if (r.error) throw r.error; });
+    },
+    providers: function () { return (CFG.authProviders || ['google']).slice(); },
     verifyCode: function (email, code) {
       return sb.auth.verifyOtp({ email: email, token: code, type: 'email' }).then(function (r) { if (r.error) throw r.error; });
     },
