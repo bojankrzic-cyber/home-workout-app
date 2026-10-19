@@ -30,6 +30,7 @@ const path = require('path');
         onAuthStateChange(f) { subs.push(f); },
         getSession() { return Promise.resolve({ data: { session: T.session } }); },
         signInWithOtp({ email }) { T.otp.push(email); return Promise.resolve({ error: null }); },
+        signInWithOAuth(o) { T.oauth = o; return Promise.resolve({ error: null }); },
         verifyOtp({ email, token }) {
           if (token !== '424242') return Promise.resolve({ error: { message: 'invalid' } });
           T.session = { user: { id: 'u1', email } }; sessionStorage.setItem('fakeSession', JSON.stringify(T.session));
@@ -51,6 +52,15 @@ const path = require('path');
   ok(/Save your progress/.test(await page.textContent('.acct-cta')), 'settings invites to sign in');
   await page.click('.acct-cta [data-go="account"]'); await page.waitForTimeout(300);
   await page.screenshot({ path: out + '/a1-signin.png' });
+  ok(await page.$('[data-oauth="google"]'), 'Google sign-in offered');
+  await page.click('[data-oauth="google"]'); await page.waitForTimeout(200);
+  ok(!(await page.evaluate(() => window.__T.oauth)), 'Google needs the data consent first');
+  await page.check('#acHealth'); await page.click('[data-oauth="google"]'); await page.waitForTimeout(300);
+  const oa = await page.evaluate(() => window.__T.oauth);
+  ok(oa && oa.provider === 'google' && /index\.html$/.test(oa.options.redirectTo), 'Google OAuth started with redirect: ' + JSON.stringify(oa));
+  ok(/health_data/.test(await page.evaluate(() => localStorage.getItem('formshaper.pendingConsents'))), 'consent kept for after the redirect');
+  await page.uncheck('#acHealth');
+  await page.reload(); await page.waitForTimeout(400); await page.evaluate(() => window.__go('account', {})); await page.waitForTimeout(300);
   await page.fill('#acEmail', 'ana@example.com');
   await page.click('#acSend'); await page.waitForTimeout(300);
   ok(!(await page.evaluate(() => window.__T.otp.length)), 'no e-mail without the required consent');

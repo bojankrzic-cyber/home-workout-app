@@ -162,7 +162,7 @@
   // Settings card
   App.hooks.settings.push(function () {
     var b = BY[st().settings.device];
-    return '<div class="panel acct-cta on"><div><h3>Watches & sensors</h3><div class="hint">' + (b ? esc(b.name) + ' · import workouts' + (HeartRate.live() ? ' · ❤ ' + HeartRate.live() + ' bpm live' : '') : 'Garmin, Apple Watch, Polar, Suunto, COROS, Fitbit, heart-rate straps') + '</div></div>' +
+    return '<div class="panel set-cta"><div><h3>Watches & sensors</h3><div class="hint">' + (b ? esc(b.name) + ' · import workouts' + (HeartRate.live() ? ' · ❤ ' + HeartRate.live() + ' bpm live' : '') : 'Garmin, Apple Watch, Polar, Suunto, COROS, Fitbit, heart-rate straps') + '</div></div>' +
       '<button class="btn focusable" data-go="devices">' + (b ? 'Manage →' : 'Connect →') + '</button></div>';
   });
 });

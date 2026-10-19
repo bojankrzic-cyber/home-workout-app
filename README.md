@@ -100,10 +100,26 @@ Vzorci iz [Ladder](https://mobbin.com/screens/d1169c75-4219-4bf1-aa2c-f5eb8fc018
 - Navigacija: **Today · Gym · ＋ Start · Progress · Me**.
 
 ### Račun Nature's Finest (pripravljeno, vklop s konfiguracijo)
-- Prijava brez gesla z e-pošto iz webshopa: povezava ali 6-mestna koda. Koda deluje tudi na TV in v aplikaciji na domačem zaslonu.
+- Prijava z **Googlom** ali brez gesla z e-pošto iz webshopa: povezava ali 6-mestna koda. Koda deluje tudi na TV in v aplikaciji na domačem zaslonu.
 - Sinhronizacija med napravami: profili, treningi, aktivnosti, rutina.
 - Povezana naročila iz webshopa, privolitve (GDPR) in izbris računa.
 - Postavitev: [`docs/platform-setup.md`](docs/platform-setup.md).
+
+### Ure in senzorji (Garmin, Apple Watch, Polar, Suunto, COROS, Fitbit, pasovi)
+- **Uvoz z ure:**
+  - formati FIT, TCX, GPX in ZIP (tudi Garminov "Export Original");
+  - prenese pot, splits in **srčni utrip**;
+  - ista vadba s telefona in z ure se **združi**, ne podvoji.
+- **Srčni utrip v živo** prek Bluetooth: pas ali ura v načinu "broadcast HR" (Android/računalnik). Prikaže se med snemanjem in shrani z aktivnostjo, s conami srčnega utripa.
+- **Navodila po znamki:** Me › Watches & sensors ali Start › Trail › Watch & heart rate.
+- **Samodejna sinhronizacija:** strežniški sloj `device-ingest` je pripravljen za agregatorja ali Garmin API (glej `docs/platform-setup.md`). Apple Health in Health Connect pridejo z nativno aplikacijo.
+
+### Deljenje na družbena omrežja
+- Gumb **↗ Share** je na aktivnosti, na koncu treninga, pri tedenskem pregledu (Today, Progress) in pri rekordih.
+- **Slika:** story 9:16, objava 1:1 ali prosojna nalepka čez lastno fotografijo. Lahko dodaš svojo fotografijo za ozadje.
+- **Share…** odpre sistemski meni telefona (Instagram, TikTok, WhatsApp, Facebook, X …). Na računalniku sliko shraniš ali uporabiš povezave za posamezna omrežja.
+- **Zasebnost:** začetek in konec poti sta privzeto skrita.
+- **Atribucija:** povezava nosi `utm_source=share`.
 
 ### Sport tracker (GPS)
 - **Record** (rdeč gumb na sredini navigacije): tek, hoja, pohod, kolo. Prikazuje živ zemljevid, gibalni čas, razdaljo, trenutni in povprečni tempo (oz. hitrost pri kolesu) ter vzpon. Ob vsakem km je pisk in glasovni povzetek.

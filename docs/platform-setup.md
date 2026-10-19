@@ -41,6 +41,19 @@ Arhitektura (potrjeno 19. 10. 2026):
 7. **Database → Webhooks** (INSERT na `consents`, `workouts`, `activities`) → `https://<ref>.supabase.co/functions/v1/klaviyo-sync`, header `Authorization: Bearer <WEBHOOK_TOKEN>`.
 8. V `js/config.js` vpiši `supabaseUrl` in `supabaseAnonKey`. Anon ključ je javen po zasnovi. `privacyUrl` nastavi na točno stran politike zasebnosti.
 
+### Prijava z Googlom
+1. Google Cloud Console (projekt podjetja) → **APIs & Services → OAuth consent screen**:
+   - tip External;
+   - ime aplikacije FinestMe, logotip in domena `naturesfinest.eu`;
+   - povezava na politiko zasebnosti;
+   - scope samo `email`, `profile`, `openid`.
+2. **Credentials → Create OAuth client ID** (Web application) → Authorized redirect URI: `https://<ref>.supabase.co/auth/v1/callback`.
+3. Supabase → Authentication → Providers → **Google**: vpiši Client ID in Secret ter vklopi.
+4. V aplikaciji je gumb "Continue with Google" že pripravljen (`authProviders: ['google']` v `js/config.js`). Privolitev za podatke je obvezna tudi tu; shrani se pred preusmeritvijo.
+5. Ko izide iOS aplikacija z Google prijavo, App Store zahteva še **Sign in with Apple**:
+   - v `authProviders` dodaj `'apple'`;
+   - v Supabase vklopi Apple (Services ID + ključ iz Apple Developer).
+
 ## 3. WooCommerce (webshop)
 - WooCommerce → Settings → Advanced → Webhooks → dodaj **Order created** in **Order updated**:
   - Delivery URL `https://<ref>.supabase.co/functions/v1/shop-order`;

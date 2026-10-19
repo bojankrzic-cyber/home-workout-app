@@ -14,12 +14,28 @@ import numpy as np
 from faster_whisper import WhisperModel
 
 SR = 16000
-NUM = {'one thousand': '1000', 'two': '2', 'three': '3', 'four': '4', 'five': '5', 'six': '6', 'one': '1'}
+ONES = 'zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen'.split()
+TENS = 'twenty thirty forty fifty sixty seventy eighty ninety'.split()
+
+def words(n):
+    # integer -> English words, so '21' (whisper) and 'twenty-one' (script) compare equal
+    if n < 20: return ONES[n]
+    if n < 100: return TENS[n // 10 - 2] + (' ' + ONES[n % 10] if n % 10 else '')
+    if n < 1000: return ONES[n // 100] + ' hundred' + (' ' + words(n % 100) if n % 100 else '')
+    return words(n // 1000) + ' thousand' + (' ' + words(n % 1000) if n % 1000 else '')
+
+def num(m):
+    d = m.group(0)
+    lead = len(d) - len(d.lstrip('0'))
+    return ' '.join(['oh'] * lead + ([words(int(d))] if d.lstrip('0') else []))
 
 def norm(t):
-    t = t.lower().replace('-', ' ')
-    for w, d in NUM.items(): t = re.sub(r'\b' + w + r'\b', d, t)
-    return re.sub(r'[^a-z0-9 ]', '', re.sub(r'\s+', ' ', t)).strip()
+    t = t.lower().replace('-', ' ').replace('%', ' percent')
+    t = re.sub(r'\d+', num, t.replace(',', ''))
+    t = re.sub(r'\b(o|zero)\b', 'oh', t)
+    t = re.sub(r'metres?\b', lambda m: 'meter' + ('s' if m.group(0).endswith('s') else ''), t)
+    t = re.sub(r'kms?\b', 'kilometers', t)
+    return re.sub(r'[^a-z ]', '', re.sub(r'\s+', ' ', t)).strip()
 
 def pcm(path):
     raw = subprocess.run(['ffmpeg', '-v', 'error', '-i', path, '-f', 's16le', '-ac', '1', '-ar', str(SR), '-'], capture_output=True, check=True).stdout

@@ -127,7 +127,8 @@
       (routine(s).length ? '<button class="t-edit btn sm ghost focusable" data-go="routine">✎ Edit my supplement routine</button>'
         : '<div class="t-item k-setup"><span class="t-check plain">💊</span><div class="t-body"><div class="t-when">Health</div><b>Add your supplements</b><span>pick from Nature’s Finest or add your own – I’ll remind you when to take them</span></div><button class="btn sm primary focusable" data-go="routine">Set up</button></div>') +
       '</div>' +
-      '<div class="t-week"><div class="tw-head"><b>This week</b><span>' + active + ' active ' + (active === 1 ? 'day' : 'days') + ' · goal ' + s.settings.days + '</span></div><div class="tw-days">' + days + '</div>' +
+      '<div class="t-week"><div class="tw-head"><b>This week</b><span>' + active + ' active ' + (active === 1 ? 'day' : 'days') + ' · goal ' + s.settings.days + '</span>' +
+      (App.share && active ? '<button class="btn sm ghost focusable" data-share-week>↗ Share</button>' : '') + '</div><div class="tw-days">' + days + '</div>' +
       '<div class="tw-legend"><span><i class="gym"></i>gym</span><span><i class="trail"></i>trail</span><span><i class="planned"></i>planned</span></div></div>' +
       ((lastA || lastW) ? '<div class="section-title"><h2>Recently</h2></div><div class="row t-recent">' +
         (lastA ? '<div class="session-card focusable last-act" tabindex="0" data-go="activity" data-p=\'{"id":"' + lastA.id + '"}\'><div class="tag">TRAIL · ' + esc(Sport.dateTxt(lastA.start).split(' · ')[0].toUpperCase()) + '</div><h3>' + esc(lastA.title) + '</h3><p>' +
@@ -232,6 +233,21 @@
     };
   }
   App.openSheet = openSheet; App.closeSheet = closeSheet;
+
+  // "my week" share card – gym + trail together
+  function shareWeek() {
+    var s = st(), now = new Date(), mon = new Date(now); mon.setHours(0, 0, 0, 0); mon.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+    var w = s.log.filter(function (l) { return new Date(l.date) >= mon; }), a = (s.activities || []).filter(function (x) { return new Date(x.start) >= mon; });
+    var km = a.reduce(function (x, y) { return x + (y.dist || 0); }, 0) / 1000;
+    var sec = w.reduce(function (x, l) { return x + (l.sec || l.min * 60 || 0); }, 0) + a.reduce(function (x, y) { return x + (y.moving || y.elapsed || 0); }, 0);
+    var streak = U.weeksStreak();
+    App.share({ kind: 'week', eyebrow: 'My week · ' + mon.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }), title: (w.length + a.length) + ((w.length + a.length) === 1 ? ' session' : ' sessions'),
+      subtitle: (w.length ? w.length + ' gym' : '') + (w.length && a.length ? ' · ' : '') + (a.length ? a.length + ' trail' : ''),
+      stats: [[Math.floor(sec / 3600) + 'h ' + Math.round(sec % 3600 / 60) + 'm', 'active time'], [km ? km.toFixed(1) + ' km' : '–', 'distance'], [streak >= 2 ? streak : w.length + a.length, streak >= 2 ? 'week streak' : 'this week']],
+      badge: streak >= 2 ? '🔥 ' + streak + '-week streak' : '',
+      caption: 'My week: ' + (w.length + a.length) + ((w.length + a.length) === 1 ? ' session' : ' sessions') + (km ? ', ' + km.toFixed(1) + ' km' : '') + ' 🔥', tags: ['#FinestMe', '#NaturesFinest', '#consistency'] });
+  }
+  document.addEventListener('click', function (e) { if (e.target.closest('[data-share-week]')) shareWeek(); });
   document.addEventListener('click', function (e) {
     var sb = e.target.closest('[data-sheet]');
     if (sb) { e.preventDefault(); openSheet(sb.getAttribute('data-sheet')); return; }
