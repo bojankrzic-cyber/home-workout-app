@@ -179,13 +179,16 @@
     var lo = item.reps ? item.reps[0] : 0, hi = item.reps ? item.reps[1] : 0;
     var load = h && h.load !== undefined ? h.load : (ex.load || 0);
     if (state.settings.level === 'beg' && !h && ex.unit !== 'bw') load = ex.unit === 'stopnja' ? Math.max(1, load - 2) : Math.max(0, load * 0.75);
-    var reps = lo;
+    var reps = lo, harder = null;
     var why = h ? '' : 'Starting estimate – adjust after the first set';
     if (h && h.reps && h.reps.length) {
       var allTop = h.reps.every(function (r) { return r >= hi; });
       var anyLow = h.reps.some(function (r) { return r < lo; });
       if (allTop) {
-        if (ex.unit === 'bw' || !ex.inc) { reps = hi; why = 'All sets maxed – slow the lowering to 3–4 s or add load (backpack/KB)'; }
+        if (HARDER[item.id] && Exercises.BY_ID[HARDER[item.id]]) {
+          reps = hi; harder = HARDER[item.id];
+          why = '↑ Ready for the next step: try ' + Exercises.BY_ID[harder].name + ' (all sets at ' + hi + ')';
+        } else if (ex.unit === 'bw' || !ex.inc) { reps = hi; why = 'All sets maxed – slow the lowering to 3–4 s or add load (backpack/KB)'; }
         else { load = load + ex.inc; reps = lo; why = '↑ Progress: +' + ex.inc + ' ' + incLabel(ex.unit, ex.inc) + ' (all sets at ' + hi + ')'; }
       } else if (anyLow) {
         reps = lo; why = h.fails >= 1 && ex.inc ? '↓ Drop ' + ex.inc + ' ' + incLabel(ex.unit, ex.inc) : 'Same load – aim for ' + lo + '+';
@@ -196,8 +199,12 @@
       }
     }
     if (ex.unit === 'kg') load = round(load, ex.inc >= 2 ? (ex.id.indexOf('kb_') === 0 ? 4 : 1) : 0.5);
-    return { load: load, reps: reps, why: why };
+    var out = { load: load, reps: reps, why: why };
+    if (harder) out.harder = harder;
+    return out;
   }
+  // Bodyweight progressions: when every set hits the top of the range, the next variant is the way to add load
+  var HARDER = { knee_pushup: 'pushup', glute_bridge: 'sl_glute_bridge', bw_squat: 'jump_squat', bw_lunge: 'jump_squat', dead_bug: 'hollow_hold' };
 
   function incLabel(u, n) { return u === 'stopnja' ? (n === 1 ? 'level' : 'levels') : unitLabel(u); }
   function unitLabel(u) { return { kg: 'kg', stopnja: 'level', bw: '', min: 'min', s: 's' }[u] || ''; }
@@ -212,13 +219,15 @@
 
   // Joint-friendly swaps: exercises that load a sore joint give way to a gentler option from the same pattern
   var LIMITS = {
-    knee: ['box_jump', 'burpee_bj', 'db_bulgarian', 'kb_lunge', 'sandbag_lunge', 'bw_lunge', 'jump_rope', 'high_knees', 'treadmill_run', 'bb_squat', 'wall_ball', 'db_thruster', 'mountain_climber'],
+    knee: ['box_jump', 'burpee_bj', 'db_bulgarian', 'kb_lunge', 'sandbag_lunge', 'bw_lunge', 'jump_rope', 'high_knees', 'treadmill_run', 'bb_squat', 'wall_ball', 'db_thruster', 'mountain_climber',
+      'jump_squat', 'burpee', 'wall_sit'],
     back: ['bb_deadlift', 'bb_squat', 'kb_swing', 'back_ext', 'situp', 'hang_leg_raise', 'burpee_bj', 'sled_pull', 'k_sled_pull',
-      'abwheel_rollout', 'susp_fallout', 'ball_slam', 'ball_rot_slam', 'landmine_row'],
+      'abwheel_rollout', 'susp_fallout', 'ball_slam', 'ball_rot_slam', 'landmine_row', 'superman', 'burpee', 'hollow_hold'],
     // landmine_press is deliberately NOT here: its arc is the shoulder-friendly vertical press
     shoulder: ['db_shoulder_press', 'kb_press', 'bb_bench', 'pullup', 'dead_hang', 'hang_leg_raise', 'hang_knee_raise', 'wall_ball', 'db_thruster', 'pushup', 'skierg', 'k_ski',
-      'dips', 'susp_fallout', 'ball_slam'],
-    wrist: ['pushup', 'plank', 'mountain_climber', 'burpee_bj', 'bb_bench', 'dips', 'lsit', 'abwheel_rollout']
+      'dips', 'susp_fallout', 'ball_slam', 'pike_pushup', 'burpee'],
+    // knee_pushup is deliberately NOT under shoulder: it is the gentler push-up
+    wrist: ['pushup', 'plank', 'mountain_climber', 'burpee_bj', 'bb_bench', 'dips', 'lsit', 'abwheel_rollout', 'knee_pushup', 'pike_pushup', 'burpee']
   };
   function avoided(state) {
     var out = {};
@@ -242,12 +251,15 @@
           if (!pick && Exercises.available(id, own)) pick = id;
         } else {
           pick = Exercises.substitute(id, own, Object.keys(used).filter(function (x) { return x !== id; }));
+          // an earlier swap already put this exercise in the session: take the next one from the pattern, never a duplicate
+          if (pick && used[pick]) pick = (Exercises.PATTERNS[Exercises.PATTERN_OF[id]] || []).filter(function (x) { return !used[x] && Exercises.available(x, own); })[0] || null;
           if (pick && avoid[pick]) {
             var safe = (Exercises.PATTERNS[Exercises.PATTERN_OF[id]] || []).filter(function (x) { return !avoid[x] && !used[x] && Exercises.available(x, own); })[0];
             if (safe) pick = safe;
           }
         }
-        if (!pick) { missing.push(id); return; }
+        // dropped only to avoid a duplicate (the exercise itself is doable) – not a missing-equipment slot
+        if (!pick) { if (!Exercises.available(id, own)) missing.push(id); return; }
         var o = JSON.parse(JSON.stringify(it));
         if (pick !== id) {
           o.id = pick; o.swappedFrom = id;
@@ -262,12 +274,26 @@
           } else if (o.cardio && o.cardio.rounds && Exercises.BY_ID[pick].iv) {
             o.cardio.work = Exercises.BY_ID[pick].iv[0]; o.cardio.easy = Exercises.BY_ID[pick].iv[1];
           }
-          if (o.reps && !o.dist && Exercises.BY_ID[pick].unit === 's') { o.time = 40; delete o.reps; }
+          if (o.reps && !o.dist && Exercises.BY_ID[pick].unit === 's') { o.time = (PRESET[pick] && PRESET[pick].time) || 40; delete o.reps; }
+          // a distance target needs a machine with a monitor – floor work gets the equivalent time instead
+          if (o.dist && !STATION[pick] && Exercises.BY_ID[pick].equip.every(function (k) { return k === 'floor'; })) {
+            o.time = Math.round(o.dist * (Exercises.BY_ID[id].secPerM || 0.27) / 10) * 10; delete o.dist;
+            o.sets = o.sets || 1; o.rest = o.rest || 0;
+          }
+          // a bodyweight move standing in for a loaded lift uses its own rep range (8 supermans or 15 jump squats make no sense)
+          var pre = PRESET[pick];
+          if (!upgrade && o.reps && pre && pre.reps && Exercises.BY_ID[pick].unit === 'bw' &&
+            (Exercises.BY_ID[id].unit !== 'bw' || Exercises.PATTERN_OF[id] !== Exercises.PATTERN_OF[pick])) o.reps = pre.reps.slice();
+          if (o.perSide && !Exercises.BY_ID[pick].perSide && !(PRESET[pick] && PRESET[pick].perSide)) delete o.perSide;
+          if (!o.perSide && PRESET[pick] && PRESET[pick].perSide && o.reps) o.perSide = true;
         }
         if (avoid[o.id]) o.caution = true;   // no gentler option with this equipment – flag it instead
         used[pick] = 1;
         items.push(o);
       });
+      // the exercise that closed a superset round was dropped: the new last one takes over its rest
+      var last = items[items.length - 1], srcLast = b.items[b.items.length - 1];
+      if (!upgrade && last && !last.cardio && !last.rest && (srcLast.rest || items.length === 1)) last.rest = srcLast.rest || 90;
       return { title: b.title, items: items };
     }).filter(function (b) { return b.items.length; });
     return { blocks: blocks, missing: missing };
@@ -410,7 +436,12 @@
     ball_slam: S('ball_slam', 3, [10, 15], 60), ball_rot_slam: S('ball_rot_slam', 3, [6, 8], 60, { perSide: true }), rope_waves: T('rope_waves', 4, 30, 30),
     roll_tspine: T('roll_tspine', 1, 60, 10), roll_quads: T('roll_quads', 1, 60, 10),
     dips: S('dips', 3, [6, 10], 90), lsit: T('lsit', 3, 15, 45),
-    landmine_press: S('landmine_press', 3, [8, 10], 75, { perSide: true }), landmine_row: S('landmine_row', 3, [8, 10], 90)
+    landmine_press: S('landmine_press', 3, [8, 10], 75, { perSide: true }), landmine_row: S('landmine_row', 3, [8, 10], 90),
+    // bodyweight only
+    knee_pushup: S('knee_pushup', 3, [8, 15], 60), pike_pushup: S('pike_pushup', 3, [6, 10], 75), superman: S('superman', 3, [10, 12], 60),
+    prone_y_raise: S('prone_y_raise', 3, [10, 12], 45), side_plank: T('side_plank', 2, 30, 30), wall_sit: T('wall_sit', 3, 40, 60),
+    jump_squat: S('jump_squat', 3, [8, 12], 75), burpee: S('burpee', 3, [8, 12], 60), hollow_hold: T('hollow_hold', 3, 25, 45),
+    sl_glute_bridge: S('sl_glute_bridge', 3, [8, 12], 60, { perSide: true }), hamstring_floor: T('hamstring_floor', 1, 40, 10)
   };
   Object.keys(EXTRA_PRESET).forEach(function (k) { if (!PRESET[k]) PRESET[k] = EXTRA_PRESET[k]; });
   function prescribe(id, sets) {
@@ -426,7 +457,7 @@
   // opts = { type: 'moc'|'kardio'|'mix', focus: [group..], min: 20..60, machine: 'bike'|'rower'|'both', intensity: 'z2'|'hiit'|'mix', exclude: [id] }
   function generate(opts) {
     var min = opts.min || 45;
-    var focus = (opts.focus && opts.focus.length) ? opts.focus : ['noge', 'zadnjica', 'prsa', 'hrbet', 'rame', 'trup'];
+    var focus = (opts.focus && opts.focus.length) ? opts.focus : ['noge', 'prsa', 'hrbet', 'trup', 'zadnjica', 'rame'];
     var lower = focus.some(function (f) { return LOWER.indexOf(f) >= 0; });
     if (opts.type === 'kardio') return cardioSession(opts, min);
     if (opts.type === 'hyrox') {
@@ -447,13 +478,14 @@
     var sets = min <= 30 ? 2 : 3;
     // beginners get one set less in build(), so budget with the sets they will actually do
     var realSets = opts.level === 'beg' ? Math.max(2, sets - 1) : opts.level === 'adv' ? sets + 1 : sets;
-    var best = null;
-    for (var n = 1; n <= order.length; n++) {
-      var items = sortForSession(order.slice(0, n).map(function (id) { return prescribe(id, sets); }));
+    // an exercise that no longer fits is skipped, a shorter one further down the list may still fit (e.g. core)
+    var best = null, picked = [], misses = 0;
+    for (var n = 0; n < order.length && misses < 3; n++) {
+      var items = sortForSession(picked.concat(order[n]).map(function (id) { return prescribe(id, sets); }));
       var cand = { blocks: head.concat(groupBlocks(items), tail) };
       var probe = { blocks: head.concat(groupBlocks(items.map(function (it) { return Object.assign({}, it, { sets: realSets }); })), tail) };
-      if (best && estimateMin(probe) > min + 1) break;
-      best = cand;
+      if (best && estimateMin(probe) > min + 1) { misses++; continue; }
+      picked.push(order[n]); best = cand; misses = 0;
     }
     return {
       name: (opts.type === 'mix' ? 'Strength + Cardio: ' : 'Strength: ') + focus.map(function (f) { return Exercises.FOCUS[f].name; }).join(', '),
@@ -519,7 +551,7 @@
     treadmill: { z2: 'treadmill_run', hiit: 'treadmill_run', work: 30, easy: 60, name: 'Treadmill' },
     skierg: { z2: 'skierg', hiit: 'skierg', work: 30, easy: 30, name: 'Ski machine' },
     rope: { z2: 'jump_rope', hiit: 'jump_rope', work: 40, easy: 20, name: 'Jump Rope' },
-    floor: { z2: 'high_knees', hiit: 'high_knees', work: 30, easy: 30, name: 'Bodyweight' },
+    floor: { z2: 'high_knees', hiit: 'high_knees', work: 30, easy: 30, name: 'Bodyweight', circuit: ['burpee', 'mountain_climber', 'jump_squat'] },
     airbike: { z2: 'airbike_z2', hiit: 'airbike_sprint', work: 20, easy: 40, name: 'Air bike' },
     // conditioning tools: intervals only (no Zone 2 on ropes or slams)
     ropes: { z2: null, hiit: 'rope_waves', work: 30, easy: 30, name: 'Battle ropes', hiitOnly: true },
@@ -548,6 +580,15 @@
       var rounds = Math.max(3, Math.round(per * 60 / (M.work + M.easy)));
       // ropes / slams are brutal on the grip and shoulders: cap the number of rounds
       if (M.hiitOnly) blocks.push({ title: 'Intervals' + label, items: [I(M.hiit, Math.min(10, rounds), M.work, M.easy)] });
+      else if (M.circuit && inten !== 'z2') {
+        // bodyweight: Zone 2 first (mix), then short interval blocks of different moves
+        var ivMin = inten === 'hiit' ? per : per - Math.max(3, Math.round(per / 2));
+        if (inten !== 'hiit') blocks.push({ title: 'Zone 2' + label, items: [C(M.z2, per - ivMin)] });
+        var nB = Math.max(1, Math.min(M.circuit.length, Math.round(ivMin / 5)));
+        M.circuit.slice(0, nB).forEach(function (id) {
+          blocks.push({ title: 'Intervals – ' + Exercises.BY_ID[id].name, items: [I(id, Math.max(3, Math.round(ivMin * 60 / nB / (M.work + M.easy))), M.work, M.easy)] });
+        });
+      }
       else if (inten === 'z2') blocks.push({ title: 'Zone 2' + label, items: [C(M.z2, per)] });
       else if (inten === 'hiit') blocks.push({ title: 'Intervals' + label, items: [I(M.hiit, rounds, M.work, M.easy)] });
       else {
