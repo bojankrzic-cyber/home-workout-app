@@ -27,8 +27,7 @@ const fs = require('fs');
   await page.goto(url);
   await page.evaluate(() => localStorage.clear()); await page.reload(); await page.waitForTimeout(300);
   await page.fill('#pName', 'Runner'); await page.click('#pSave'); await page.waitForTimeout(500);
-  ok(await page.$('.main-nav [data-go="record"]'), 'Record in the nav');
-  ok(await page.$('.rec-card'), 'home shows the Record card');
+  ok(await page.$('.main-nav [data-sheet="start"]'), 'Start in the nav');
   await page.screenshot({ path: out + '/s1-home.png' });
 
   const M = 1 / 111195;
@@ -38,7 +37,8 @@ const fs = require('fs');
       for (let i = 0; i < n; i++) window.__gps(46.05 + (from + i * step) * M, 14.5 + Math.sin(i / 7) * 2 * M, 6, t0 + i * 1000, 300 + i * 0.02);
     }, [from, n, step, t0, M]);
   }
-  await page.click('.main-nav [data-go="record"]'); await page.waitForTimeout(400);
+  await page.click('.main-nav [data-sheet="start"]'); await page.waitForTimeout(300); await page.click('.sh-world.w-trail'); await page.waitForTimeout(300);
+  await page.click('[data-sgo="record"][data-p*="run"]'); await page.waitForTimeout(400);
   const t0 = Date.now();
   await page.evaluate(([M, t]) => window.__gps(46.05, 14.5, 5, t), [M, t0]);
   ok(/GPS ready/.test(await page.textContent('#rGps')), 'GPS ready status');
@@ -72,15 +72,15 @@ const fs = require('fs');
   ok(saved.rpe === 7 && saved.splits.length === 2 && saved.pts.length > 100, 'activity stored with rpe, splits, points');
 
   // crash recovery: start, move 500 m, reload, come back → resumes
-  await page.click('.main-nav [data-go="record"]'); await page.waitForTimeout(300);
+  await page.evaluate(() => window.__go('record')); await page.waitForTimeout(300);
   const t1 = Date.now();
   await page.evaluate(t => window.__gps(46.06, 14.5, 5, t), t1);
   await page.click('#rStart'); await run(0, 170, 3, t1 + 1000);
   await page.waitForTimeout(4500);
   await run(510, 5, 3, t1 + 172000);   // triggers the periodic snapshot
   await page.reload(); await page.waitForTimeout(500);
-  ok(/RECORDING PAUSED/.test(await page.textContent('.rec-card')), 'home flags the unfinished recording');
-  await page.click('.rec-card'); await page.waitForTimeout(400);
+  ok(/paused at/.test(await page.textContent('.t-banner')), 'Today flags the unfinished recording');
+  await page.click('.t-banner'); await page.waitForTimeout(400);
   ok(await page.$('#rResume'), 'recovered recording offers Resume');
   ok(parseFloat(await page.textContent('#rDist')) > 0.4, 'recovered distance kept');
   // back while recording → discard dialog

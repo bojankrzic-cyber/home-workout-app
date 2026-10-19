@@ -10,6 +10,7 @@ const path = require('path');
   const log = (...a) => console.log(...a);
   for (const [w, h, tag] of [[1920, 1080, 'tv'], [390, 844, 'phone']]) {
     const p = await browser.newPage({ viewport: { width: w, height: h } });
+    await p.addInitScript(() => { window.__HOME = 'train'; });   // these tests cover the Gym tab
     p.on('pageerror', e => errs.push(e.message));
     await p.goto(url); await p.evaluate(() => localStorage.clear()); await p.reload(); await p.waitForTimeout(300);
     await p.keyboard.type('Bojan'); await p.click('#pSave'); await p.waitForTimeout(400);

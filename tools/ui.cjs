@@ -5,6 +5,7 @@ const path = require('path');
   const out = process.argv[2] || '.';
   const browser = await chromium.launch({ executablePath: process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
   const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
+  await page.addInitScript(() => { window.__HOME = 'train'; });   // these tests cover the Gym tab
   const errs = [];
   page.on('pageerror', e => errs.push(e.message));
   page.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });

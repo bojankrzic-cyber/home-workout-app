@@ -561,23 +561,26 @@
   // Modules (window.FS_MODULES) plug their screens and home/progress panels in through window.App.
   function navBar() {
     var I = {
-      build: '<path d="M12 5v14M5 12h14"/>',
-      library: '<rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/>',
-      record: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/>',
+      today: '<path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5h-5v5H5a1 1 0 0 1-1-1z"/>',
+      gym: '<path d="M6.5 8v8M17.5 8v8M3.5 10v4M20.5 10v4M6.5 12h11"/>',
+      start: '<path d="M12 6v12M6 12h12"/>',
       progress: '<path d="M4 19h16M6 15l4-4 3 3 5-6"/>',
       me: '<circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c.8-3.6 3.6-5.6 7-5.6s6.2 2 7 5.6"/>'
     };
-    function b(go, ico, label, cls) {
-      return '<button class="btn sm ' + (cls || 'ghost') + ' focusable" data-go="' + go + '"><i><svg viewBox="0 0 24 24">' + I[ico] + '</svg></i><span>' + label + '</span></button>';
+    var cur = stack.length ? stack[stack.length - 1].screen : '';
+    function b(go, ico, label) {
+      return '<button class="btn sm ghost focusable' + (cur === go ? ' here' : '') + '" data-go="' + go + '"><i><svg viewBox="0 0 24 24">' + I[ico] + '</svg></i><span>' + label + '</span></button>';
     }
-    return '<nav class="main-nav">' + b('builder', 'build', 'Build', ' ') + b('library', 'library', 'Library') +
-      (SCREENS.record ? b('record', 'record', 'Record', 'rec-tab') : '') + b('history', 'progress', 'Progress') + b('settings', 'me', 'Me') + '</nav>';
+    return '<nav class="main-nav">' + b('home', 'today', 'Today') + b('train', 'gym', 'Gym') +
+      '<button class="btn sm focusable start-tab" data-sheet="start" aria-label="Start"><i><svg viewBox="0 0 24 24">' + I.start + '</svg></i><span>Start</span></button>' +
+      b('history', 'progress', 'Progress') + b('settings', 'me', 'Me') + '</nav>';
   }
   function hookHtml(where) {
     return App.hooks[where].map(function (f) { try { return f() || ''; } catch (e) { console.error(e); return ''; } }).join('');
   }
 
-  SCREENS.home = function () {
+  // Gym: the training hub (program, quick workouts, hybrid race, saved). Home = Today (js/today.js).
+  SCREENS.train = function () {
     var plan = Program.PLANS[state.settings.days];
     var nextKey = Program.nextSessionKey(state);
     var sess = Program.build(state, nextKey);
@@ -613,7 +616,8 @@
 
     root.innerHTML =
       '<div class="screen">' +
-      '<div class="topbar">' + brandMark() + '<span class="chip on">' + esc(sess.weekInfo.label) + '</span><div class="spacer"></div>' +
+      '<div class="topbar">' + brandMark() + '<span class="chip on">' + esc(sess.weekInfo.label) + '</span>' +
+      '<button class="btn sm ghost focusable gym-lib" data-go="library">Library</button><button class="btn sm ghost focusable gym-lib" data-go="builder">＋ Build</button><div class="spacer"></div>' +
       navBar() +
       '<button class="btn sm ghost focusable who" data-go="profiles" title="Switch person" aria-label="Switch person">' + avatar(state) + '<span class="who-name">' + esc(state.name) + '</span></button></div>' +
       '<div class="hero"><div class="hero-card' + (heroPhoto ? ' has-photo' : '') + '"' + photoBg(heroPhoto) + '><div class="eyebrow">Today’s workout · ' + esc(sess.weekInfo.label) + '</div>' +
@@ -628,7 +632,7 @@
       '<div class="stats"><div class="stat"><b>' + state.log.length + '</b><span>total workouts</span></div>' +
       '<div class="stat"><b>' + Math.round(totalMin / 60) + ' h</b><span>total time</span></div>' +
       '<div class="stat"><b>' + streak + '</b><span>week streak</span></div></div></div></div>' +
-      hookHtml('home') +
+      hookHtml('train') +
       '<div class="section-title"><h2>Your program</h2><span>' + plan.order.length + ' workouts in rotation · a missed day won’t derail your plan</span></div>' +
       '<div class="row">' + cards + '</div>' +
       homeProducts() +
@@ -864,6 +868,7 @@
     var voiceInfo = !('speechSynthesis' in window) ? 'This browser has no speech – using beeps.' : Voice.v ? 'Voice: ' + Voice.v.name : 'Uses the device’s default English voice.';
     root.innerHTML = '<div class="screen"><div class="topbar"><h1>Settings</h1><div class="spacer"></div>' +
       '<button class="btn sm ghost focusable who" data-go="profiles">' + avatar(state) + 'Switch person</button></div>' +
+      hookHtml('settings') +
       '<div class="panel"><h3>Profile</h3><div class="opt-row">' + avatar(state, true) + '<div style="flex:1"><b style="font-size:1.3rem">' + esc(state.name) + '</b><div class="hint">' +
       (GOAL_BY[s.goal] || GOAL_BY.general).ico + ' ' + esc((GOAL_BY[s.goal] || GOAL_BY.general).name) +
       (Me.age(s) ? ' · ' + Me.age(s) + ' y' : '') + (s.height ? ' · ' + s.height + ' cm' : '') + (s.weight ? ' · ' + s.weight + ' kg' : '') +
@@ -918,7 +923,7 @@
       f.text().then(function (t) { try { Store.importJSON(t); toast('Imported – choose a person'); resetTo('profiles'); } catch (err) { toast('Error: ' + err.message); } });
     };
     $('#rst').onclick = function () {
-      ask('Delete all history and weights for ' + state.name + '?', 'Reset', function () { Store.resetProgress(state); toast('Progress reset'); resetTo('home'); });
+      ask('Delete all history and weights for ' + state.name + '?', 'Reset', function () { Store.resetProgress(state); toast('Progress reset'); resetTo(window.__HOME || 'home'); });
     };
   };
 
@@ -1355,7 +1360,7 @@
         '<button class="btn primary focusable" id="wHome">Home</button></div>';
       $('.side', el).hidden = true;
       el.classList.add('done');
-      $('#wHome').onclick = function () { resetTo('home'); };
+      $('#wHome').onclick = function () { resetTo(window.__HOME || 'home'); };
       $('#wHome').focus();
       activeSession.confirmExit = null;
       i = st.length;
@@ -1407,7 +1412,7 @@
 
   function activate(pr) {
     state = Store.setActive(pr.id);
-    resetTo('home');
+    resetTo(window.__HOME || 'home');   // __HOME: test hook – the Gym tests start on the Gym tab
     toast('Hi, ' + pr.name + '!');
   }
 
@@ -1712,7 +1717,7 @@
       target.equipment = list.slice();
       eqDraft = null;
       if (!p.draft) { Store.save(); toast('Equipment saved · ' + pl(unlocked(list), VAJ) + ' available'); }
-      if (p.onboard) resetTo('home'); else back();
+      if (p.onboard) resetTo(window.__HOME || 'home'); else back();
     };
   };
 
@@ -1825,20 +1830,26 @@
   // module API: feature modules (sport tracker now; body tracker, supplement routine next) register
   // screens and home/progress panels without touching the core
   var App = window.App = {
-    SCREENS: SCREENS, hooks: { home: [], progress: [] },
+    SCREENS: SCREENS, hooks: { train: [], progress: [], settings: [] },
     go: go, back: back, refresh: refresh, resetTo: resetTo, toast: toast, ask: ask, esc: esc, fmt: fmt, pl: pl, $: $, $$: $$,
     state: function () { return state; }, save: function () { Store.save(); },
+    // after cloud data arrived: re-pick the active person and redraw (the profile object may be new)
+    reload: function () { state = Store.active() || Store.list()[0] || null; if (state) Store.setActive(state.id); if (!state) resetTo('profileEdit', {}); else if (stack.length) refresh(); },
     keepAwake: keepAwake, say: function (t) { Voice.say(t); }, beep: function (f, d) { Audio.beep(f, d); },
-    session: function (o) { activeSession = o; }, onCleanup: function (f) { cleanup.push(f); }, isKey: isKey, TOUCH: TOUCH
+    session: function (o) { activeSession = o; }, onCleanup: function (f) { cleanup.push(f); }, isKey: isKey, TOUCH: TOUCH,
+    logWeight: function (kg) { logWeight(state, kg); Store.save(); },
+    startCustom: startCustom,
+    ui: { navBar: navBar, avatar: avatar, brandMark: brandMark, homeProducts: homeProducts, goalLine: goalLine, weeksStreak: weeksStreak, photo: photo, sessionPhoto: sessionPhoto, DAYN: DAYN, GOAL_BY: GOAL_BY }
   };
   (window.FS_MODULES || []).forEach(function (m) { try { m(App); } catch (e) { console.error(e); } });
+  if (!SCREENS.home) SCREENS.home = SCREENS.train;
   (function boot() {
     // Fast login: this device remembers who trained last – straight in (or straight to their PIN)
     var list = Store.list(), last = Store.active();
     if (!list.length) go('profileEdit', {});
-    else if (last && !last.pin) { state = last; go('home'); }
+    else if (last && !last.pin) { state = last; go(window.__HOME || 'home'); }
     else if (last) go('pin', { id: last.id, quick: true });
-    else if (list.length === 1 && !list[0].pin) { state = Store.setActive(list[0].id); go('home'); }
+    else if (list.length === 1 && !list[0].pin) { state = Store.setActive(list[0].id); go(window.__HOME || 'home'); }
     else go('profiles');
   })();
 })();

@@ -85,9 +85,10 @@
           L.circleMarker([e[0], e[1]], { radius: 6, color: '#04140a', weight: 2, fillColor: '#ff6b6b', fillOpacity: 1 }).addTo(map);
         }
       } else map.setView([46.05, 14.5], 13);
-      App.onCleanup(function () { try { map.remove(); } catch (x) {} });
-      setTimeout(function () { map.invalidateSize(); }, 60);
-      return { L: L, map: map, lines: lines, dot: dot };
+      var r = { L: L, map: map, lines: lines, dot: dot, alive: true };
+      App.onCleanup(function () { r.alive = false; try { map.stop(); map.off(); map.remove(); } catch (x) {} });
+      setTimeout(function () { if (r.alive) map.invalidateSize(); }, 60);
+      return r;
     }).catch(function () { return null; });
   }
 
@@ -99,7 +100,7 @@
 
   S.record = function (p) {
     var s = st().settings;
-    var type = s.trackType && T.TYPES[s.trackType] && T.TYPES[s.trackType].gps ? s.trackType : 'run';
+    var type = p.type && T.TYPES[p.type] && T.TYPES[p.type].gps ? p.type : s.trackType && T.TYPES[s.trackType] && T.TYPES[s.trackType].gps ? s.trackType : 'run';
     var snap = loadSnap(), rec = null, fix = null, watch = null, mapR = null, follow = true;
     var el = document.createElement('div');
     el.className = 'player rec-screen';
@@ -184,6 +185,7 @@
     $('#rCenter').onclick = function () { follow = true; this.hidden = true; drawLive(true); };
     function drawLive(force) {
       var pts = rec ? rec.pts : [];
+      if (mapR && !mapR.alive) return;
       if (!mapR) { if (rec && pts.length > 1 && (force || pts.length % 5 === 0)) $('#rMap').innerHTML = routeSvg(pts, 'live'); return; }
       var L = mapR.L, segs = segments(pts);
       mapR.lines.forEach(function (l) { mapR.map.removeLayer(l); });
@@ -286,7 +288,7 @@
   var RPE = ['', 'Very easy', 'Easy', 'Easy', 'Moderate', 'Moderate', 'Hard', 'Hard', 'Very hard', 'Very hard', 'Max effort'];
   S.activity = function (p) {
     var a = byId(p.id);
-    if (!a) { App.resetTo('home'); return; }
+    if (!a) { App.resetTo(window.__HOME || 'home'); return; }
     var t = typeOf(a.type), sp = isSpeed(a);
     var recs = T.records(acts(), a.type);
     var sec = a.moving || a.elapsed;
@@ -338,12 +340,12 @@
       if ($('#aTitle')) a.title = $('#aTitle').value.trim() || a.title;
       a.notes = $('#aNotes').value.trim();
       save(); App.toast('Saved');
-      if (p.fresh) App.resetTo('home'); else App.back();
+      if (p.fresh) App.resetTo(window.__HOME || 'home'); else App.back();
     };
     $('#aDel').onclick = function () {
       App.ask('Delete “' + a.title + '”? This can’t be undone.', 'Delete', function () {
         var l = acts(); l.splice(l.indexOf(a), 1); save(); App.toast('Deleted');
-        if (p.fresh) App.resetTo('home'); else App.back();
+        if (p.fresh) App.resetTo(window.__HOME || 'home'); else App.back();
       });
     };
   };
@@ -463,22 +465,9 @@
     };
   };
 
-  // ---------------------------------------------------------------- home + progress panels
-  App.hooks.home.push(function () {
-    var list = acts(), last = list[0], wk = T.weeks(list, 1)[0];
-    var recording = loadSnap();
-    return '<div class="section-title"><h2>Activity</h2><span>' + (wk.n ? 'this week: ' + wk.n + ' · ' + T.km(wk.dist) + ' km · ' + T.clock(wk.sec) : 'runs, walks, rides and any sport – it all counts toward your week') + '</span></div>' +
-      '<div class="row act-home">' +
-      '<div class="session-card focusable rec-card" tabindex="0" data-go="record"><div class="tag">' + (recording ? '● RECORDING PAUSED' : 'GPS TRACKER') + '</div><h3>' + (recording ? 'Resume your ' + typeOf(recording.type).name.toLowerCase() : 'Record a run, walk or ride') + '</h3>' +
-      '<p>' + (recording ? T.km(recording.d) + ' km so far' : 'live map, pace, splits and voice updates every km') + '</p><div class="rec-dot"></div></div>' +
-      (last ? '<div class="session-card focusable last-act" tabindex="0" data-go="activity" data-p=\'{"id":"' + last.id + '"}\'><div class="tag">LAST ACTIVITY · ' + esc(dateTxt(last.start).split(' · ')[0].toUpperCase()) + '</div>' +
-        '<h3>' + esc(last.title) + '</h3><p>' + (last.dist ? T.km(last.dist) + ' km · ' : '') + T.clock(last.moving || last.elapsed) + (last.dist && (last.moving || last.elapsed) ? ' · ' + paceTxt(last, last.moving || last.elapsed, last.dist) + ' ' + paceUnit(last) : '') + '</p>' +
-        (last.pts && last.pts.length > 1 ? routeSvg(last.pts, 'card') : '') + '</div>' : '') +
-      '<div class="session-card focusable quick" tabindex="0" data-go="logSport"><div class="tag">ANY SPORT</div><h3>＋ Log an activity</h3><p>football, tennis, padel, swim, yoga… or import a GPX from your watch</p></div>' +
-      (list.length ? '<div class="session-card focusable quick" tabindex="0" data-go="activities"><div class="tag">HISTORY</div><h3>All activities</h3><p>' + list.length + ' logged · maps, splits, records</p></div>' : '') +
-      '</div>';
-  });
+  window.Sport = { routeSvg: routeSvg, dateTxt: dateTxt, paceTxt: paceTxt, paceUnit: paceUnit, recording: function () { return loadSnap(); } };
 
+  // ---------------------------------------------------------------- progress panel (Today shows activity via js/today.js)
   App.hooks.progress.push(function () {
     var list = acts();
     var wk = T.weeks(list, 12), maxD = Math.max.apply(null, wk.map(function (w) { return w.dist; }).concat([1]));

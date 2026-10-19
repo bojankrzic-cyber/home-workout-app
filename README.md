@@ -87,6 +87,24 @@ Vzorci iz [Ladder](https://mobbin.com/screens/d1169c75-4219-4bf1-aa2c-f5eb8fc018
 - **Hitri treningi** na domačem zaslonu (celo telo, noge & zadnjica, zgornji del, trup, kardio intervali, cona 2).
 - **Knjižnica**: filter po fokusu in opremi; pri vsaki vaji gumb **"Treniraj to vajo"**.
 
+### Today (domača stran) in meni ＋ Start
+- **Today:**
+  - **Finn**, buddy, pozdravi po imenu in poda eno sporočilo glede na dan: trening, počitek, dopolnila, ki so na vrsti, ali "vse opravljeno".
+  - **Dnevni načrt:** dopolnila po urah, trening dneva (na prost dan pa lahek sprehod) in tedensko tehtanje. Krog prikazuje, koliko je opravljeno.
+  - Trak tedna (gym / trail), nazadnje opravljeno in priporočila izdelkov.
+- **＋ Start** (gumb na sredini navigacije) ima tri svetove:
+  - **Trail:** tek, hoja, pohod, kolo z GPS; drug šport; uvoz iz ure.
+  - **Gym:** današnji trening, izbira treninga, sestavi svojega, knjižnica.
+  - **Health:** "vzemi dopolnila zdaj", rutina dopolnil, teža, napredek.
+- **Rutina dopolnil:** izdelki Nature's Finest (odmerek in čas z etikete, `js/products.js` → `use`) ali lastni. Za vsakega izbereš čas dneva in ali ga jemlješ vsak dan ali samo na trening dneve.
+- Navigacija: **Today · Gym · ＋ Start · Progress · Me**.
+
+### Račun Nature's Finest (pripravljeno, vklop s konfiguracijo)
+- Prijava brez gesla z e-pošto iz webshopa: povezava ali 6-mestna koda. Koda deluje tudi na TV in v aplikaciji na domačem zaslonu.
+- Sinhronizacija med napravami: profili, treningi, aktivnosti, rutina.
+- Povezana naročila iz webshopa, privolitve (GDPR) in izbris računa.
+- Postavitev: [`docs/platform-setup.md`](docs/platform-setup.md).
+
 ### Sport tracker (GPS)
 - **Record** (rdeč gumb na sredini navigacije): tek, hoja, pohod, kolo. Prikazuje živ zemljevid, gibalni čas, razdaljo, trenutni in povprečni tempo (oz. hitrost pri kolesu) ter vzpon. Ob vsakem km je pisk in glasovni povzetek.
 - **Kako deluje:** zgladi GPS šum, zavrže slabe meritve in nemogoče skoke ter se samodejno ustavi (auto-pause), ko stojiš. Ročna pavza ne riše črte čez pavzo. Krog (lap) se doda na zahtevo. Zaključek je z zadržanjem gumba ("hold to finish"), da se v žepu ne konča po nesreči.
@@ -169,7 +187,12 @@ js/program.js         programi, 4-tedenski bloki, dvojna progresija, generator t
 js/store.js           profili (localStorage), PIN, migracija v1→v2, izvoz/uvoz JSON
 js/app.js             jedro: zasloni, navigacija (tudi daljinec), vodeni trening, TV predogled + modulni API (window.App)
 js/track.js           sport tracker engine (GPS filtri, auto-pause, splits, best efforts, GPX, kalorije) – brez DOM, testiran v Node
-js/sport.js           modul sport trackerja: Record, aktivnost, seznam, ročni vnos/GPX, paneli na Home in Progress
+js/sport.js           modul sport trackerja: Record, aktivnost, seznam, ročni vnos/GPX, panel v Progress
+js/today.js           modul Today: buddy, dnevni načrt, meni ＋ Start (Trail · Gym · Health), rutina dopolnil
+js/cloud.js           račun + local-first sinhronizacija (Supabase), čisto jedro testirano v Node
+js/account.js         modul računa: prijava (povezava/koda), privolitve, naročila, odjava, izbris
+js/config.js          Supabase projekt (prazno = samo lokalno)
+supabase/             shema + RLS, edge funkciji shop-order (WooCommerce) in klaviyo-sync, e-mail predloga
 sw.js                 offline cache
 tools/                razvojna orodja (contact sheet vseh animacij, UI smoke test)
 ```
@@ -201,6 +224,11 @@ Nova vaja = en objekt v `js/exercises.js` (+ vnos v `js/program.js`, če naj bo 
 node tools/track.cjs                                               # GPS engine: razdalja, auto-pause, splits, GPX, rekordi
 NODE_PATH=$(npm root -g) node tools/sport.cjs ./out                # sport tracker E2E s simuliranim GPS (telefon)
 NODE_PATH=$(npm root -g) node tools/mobile.cjs ./out               # vsi zasloni na telefonu: preliv, gumb Back
+NODE_PATH=$(npm root -g) node tools/today.cjs ./out                # Today, meni Start, rutina dopolnil
+NODE_PATH=$(npm root -g) node tools/account.cjs ./out              # račun: prijava s kodo, privolitve, naročila, izbris
+node tools/cloud.cjs                                               # sinhronizacija med dvema napravama (lažni backend)
+node --experimental-strip-types tools/functions.mjs                # edge funkciji (WooCommerce HMAC, Klaviyo)
+sh tools/db/test.sh                                                # migracija + RLS na lokalnem Postgresu
 ```
 
 ---

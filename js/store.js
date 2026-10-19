@@ -72,9 +72,15 @@
     return db;
   }
 
-  function save() {
+  // listeners (cloud sync) hear every save; silent = a save caused by applying cloud data
+  var listeners = [];
+  function save(silent) {
     try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (e) { /* storage full / private mode */ }
+    if (silent !== true) listeners.forEach(function (f) { try { f(); } catch (e) {} });
   }
+  function onSave(f) { listeners.push(f); }
+  function raw() { return db; }
+  function normalizeAll() { db.order.forEach(function (id) { if (db.profiles[id]) normalize(db.profiles[id]); }); }
 
   function addProfile(p) { db.profiles[p.id] = normalize(p); db.order.push(p.id); return p; }
   function removeProfile(id) {
@@ -158,6 +164,7 @@
   global.Store = {
     COLORS: COLORS, load: load, save: save, newProfile: newProfile, addProfile: addProfile, removeProfile: removeProfile,
     list: list, active: active, setActive: setActive, setPin: setPin, checkPin: checkPin,
-    recordSession: recordSession, exportJSON: exportJSON, importJSON: importJSON, resetProgress: resetProgress
+    recordSession: recordSession, exportJSON: exportJSON, importJSON: importJSON, resetProgress: resetProgress,
+    onSave: onSave, raw: raw, normalizeAll: normalizeAll
   };
 })(window);
