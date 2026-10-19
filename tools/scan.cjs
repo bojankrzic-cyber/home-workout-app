@@ -28,8 +28,16 @@ const path = require('path'), os = require('os'), fs = require('fs');
   // entry points: no routine yet → Today invites to scan; Health sheet has "Scan a product"
   await page.fill('#pName', 'Ana').catch(() => {}); await page.click('#pSave').catch(() => {}); await page.waitForTimeout(600);
   await page.evaluate(() => window.__go('home')); await page.waitForTimeout(400);
-  ok(await page.$('.scan-cta [data-go="scan"]'), 'Today: "Bought Nature’s Finest? Scan" card');
-  await page.click('.scan-cta [data-go="scan"]'); await page.waitForTimeout(400);
+  ok(await page.$('.scan-hero.first [data-go="scan"]'), 'Today: scan hero right under the greeting');
+  ok(await page.evaluate(() => { const b = document.querySelector('.buddy'), h = document.querySelector('.scan-hero'); return b && h && b.nextElementSibling === h; }), 'scan hero sits directly under the greeting');
+  // ＋ menu: scan first, above the three worlds; not inside Health any more
+  await page.click('[data-sheet="start"]'); await page.waitForTimeout(300);
+  ok(await page.evaluate(() => { const l = document.querySelector('.sheet .scan-line'), w = document.querySelector('.sheet .sh-worlds'); return l && w && (l.compareDocumentPosition(w) & 4); }), '＋ menu: Scan a product on top');
+  await page.screenshot({ path: out + '/s0-plus.png' });
+  await page.click('.sheet [data-sheet="health"]'); await page.waitForTimeout(300);
+  ok(!(await page.$('.sheet [data-sgo="scan"]')), 'Health sheet no longer carries the scanner');
+  await page.evaluate(() => document.querySelector('.sheet-wrap').remove());
+  await page.click('.scan-hero [data-go="scan"]'); await page.waitForTimeout(400);
   ok(await page.$('.scan-screen video'), 'scanner opens with the camera');
   await page.screenshot({ path: out + '/s1-scanner.png' });
   await page.waitForSelector('.qr-hero', { timeout: 15000 }).catch(() => {});

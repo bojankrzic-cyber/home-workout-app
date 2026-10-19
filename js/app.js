@@ -69,8 +69,9 @@
     // voices first, so the first en-GB match is often the worst one; premium/enhanced/neural win.
     list: function () {
       if (!('speechSynthesis' in window)) return [];
-      var lg = (window.I18N && I18N.lang) || 'en';
-      return speechSynthesis.getVoices().filter(function (v) { return String(v.lang).toLowerCase().replace('_', '-').split('-')[0] === lg; })
+      // the coach always speaks English, whatever the app language: device voices in other languages sound
+      // too distorted for coaching (the texts on screen are translated)
+      return speechSynthesis.getVoices().filter(function (v) { return /^en/i.test(v.lang); })
         .map(function (v) { return { v: v, score: Voice.score(v) }; })
         .sort(function (a, b) { return b.score - a.score; });
     },
@@ -102,9 +103,9 @@
       if (!state || !state.settings.voice || !('speechSynthesis' in window)) return;
       try {
         this.pick();
-        var u = new SpeechSynthesisUtterance(Voice.clean(window.I18N ? I18N.t(text) : text));
+        var u = new SpeechSynthesisUtterance(Voice.clean(text));
         if (this.v) u.voice = this.v;
-        u.lang = (this.v && this.v.lang) || (window.I18N && I18N.locale) || 'en-GB'; u.rate = 0.98; u.pitch = 1;
+        u.lang = (this.v && this.v.lang) || 'en-GB'; u.rate = 0.98; u.pitch = 1;
         var busy = speechSynthesis.speaking || speechSynthesis.pending;
         if (busy) speechSynthesis.cancel();
         // Safari drops an utterance queued in the same tick as cancel()
@@ -118,8 +119,7 @@
   var Coach = {
     el: null, queue: [],
     has: function (k) { return (window.VOICE_CLIPS || []).indexOf(k) >= 0; },
-    // the recorded coach speaks English – in any other language the device voice reads the translated cue
-    on: function () { return state && state.settings.voice && state.settings.coachVoice !== 'device' && (window.VOICE_CLIPS || []).length > 0 && (!window.I18N || I18N.lang === 'en'); },
+    on: function () { return state && state.settings.voice && state.settings.coachVoice !== 'device' && (window.VOICE_CLIPS || []).length > 0; },
     element: function () {
       if (!this.el) {
         this.el = document.createElement('audio'); this.el.setAttribute('playsinline', ''); this.el.preload = 'auto';
@@ -517,7 +517,7 @@
   };
   // recorded hype clips (tools/voice/clips_motivation.json): key = 'hype_' + slug of the phrase
   function hypeKey(t) { return 'hype_' + String(t).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 40); }
-  function hypeVoice(t) { var k = hypeKey(t); if (Coach.on() && Coach.has(k)) Coach.play([k]); else if (window.I18N && I18N.lang !== 'en') Voice.say(t); }   // never falls back to the device voice
+  function hypeVoice(t) { var k = hypeKey(t); if (Coach.on() && Coach.has(k)) Coach.play([k]); }   // never falls back to the device voice
   function hype(kind) {
     var list = HYPE[kind], last = HYPE._last[kind], pick;
     do { pick = list[Math.floor(Math.random() * list.length)]; } while (list.length > 1 && pick === last);
@@ -861,43 +861,53 @@
       var all = Voice.list().filter(function (x) { return x.score > -50; }).slice(0, 8);   // novelty/robotic voices hidden
       if (!all.length) return '';
       var cur = Voice.v && Voice.v.name, poor = all[0].score < 40;
-      return '<div class="opt-row"><div class="k">Coach voice</div>' + all.map(function (x) {
+      return '<div class="set-row"><span class="set-ico">🗣️</span><div class="set-lab"><b>Coach voice</b></div><div class="set-ctrl">' + all.map(function (x) {
         var nm = x.v.name.replace(/\s*\(.*\)\s*$/, '').replace(/^Microsoft\s+|\s+Online.*$/g, '');
         return '<button class="chip focusable' + (x.v.name === cur ? ' on' : '') + '" data-voice="' + esc(x.v.name) + '">' + (x.score >= 40 ? '★ ' : '') + esc(nm) + ' <small>' + esc(String(x.v.lang).replace('_', '-').slice(3)) + '</small></button>';
       }).join('') +
-        (poor ? '<span class="hint">Only basic voices on this device. iPhone: Settings → Accessibility → Spoken Content → Voices → English → download a “Premium” or “Enhanced” voice (e.g. Serena, Zoe, Jamie, Evan), then reopen the app.</span>' : '') + '</div>';
+        (poor ? '<span class="hint">Only basic voices on this device. iPhone: Settings → Accessibility → Spoken Content → Voices → English → download a “Premium” or “Enhanced” voice (e.g. Serena, Zoe, Jamie, Evan), then reopen the app.</span>' : '') + '</div></div>';
     }
-    var voiceInfo = !('speechSynthesis' in window) ? 'This browser has no speech – using beeps.' : Voice.v ? 'Voice: ' + Voice.v.name : 'Uses the device’s default English voice.';
-    root.innerHTML = '<div class="screen"><div class="topbar"><h1>Settings</h1><div class="spacer"></div>' +
-      '<button class="btn sm ghost focusable who" data-go="profiles">' + avatar(state) + 'Switch person</button></div>' +
+    var voiceInfo = !('speechSynthesis' in window) ? 'This browser has no speech – using beeps.' : Voice.v ? 'Voice: ' + Voice.v.name + '.' : 'Uses the device’s default English voice.';
+    // grouped like a phone's settings: one card per topic, one row per setting, links end in ›
+    function row(ico, label, sub, ctrl, cls) {
+      return '<div class="set-row' + (cls ? ' ' + cls : '') + '"><span class="set-ico">' + ico + '</span><div class="set-lab"><b>' + label + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</div>' +
+        (ctrl ? '<div class="set-ctrl">' + ctrl + '</div>' : '') + '</div>';
+    }
+    function link(ico, label, sub, go, p) {
+      return '<button class="set-row set-link focusable" data-go="' + go + '"' + (p ? ' data-p=\'' + JSON.stringify(p) + '\'' : '') + '><span class="set-ico">' + ico + '</span><div class="set-lab"><b>' + label + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</div><span class="set-chev">›</span></button>';
+    }
+    function group(title, rows) { return '<section class="set-group"><h2>' + title + '</h2><div class="set-card">' + rows + '</div></section>'; }
+    var goal = GOAL_BY[s.goal] || GOAL_BY.general, nEq = (s.equipment || []).length, hasRoutine = (s.routine || []).length > 0;
+    var facts = [Me.age(s) ? Me.age(s) + ' y' : '', s.height ? s.height + ' cm' : '', s.weight ? s.weight + ' kg' : '', Me.zone(s, .6, .7) ? 'Zone 2 ' + Me.zone(s, .6, .7).join('–') + ' bpm' : ''].filter(Boolean);
+    root.innerHTML = '<div class="screen settings-screen"><div class="topbar"><h1>Settings</h1></div>' +
+      '<div class="me-hero">' + avatar(state, true) + '<div class="me-id"><b translate="no">' + esc(state.name) + '</b><span>' + goal.ico + ' ' + esc(goal.name) + '</span>' +
+      (facts.length ? '<div class="me-facts">' + facts.map(function (f) { return '<span class="chip">' + esc(f) + '</span>'; }).join('') + '</div>' : '') +
+      '<small>' + (state.pin ? '🔒 PIN locked' : 'No PIN') + ' · ' + pl(state.log.length, TRN) + '</small></div>' +
+      '<div class="me-act"><button class="btn primary focusable" data-go="profileEdit" data-p=\'{"id":"' + state.id + '"}\'>Edit profile</button><button class="btn ghost focusable who" data-go="profiles">' + avatar(state) + 'Switch person</button></div></div>' +
       hookHtml('settings') +
-      (window.I18N ? '<div class="panel"><div class="opt-row"><div class="k">🌐 Language</div>' + I18N.select('setLang') + '</div></div>' : '') +
-      '<div class="panel"><h3>Profile</h3><div class="opt-row">' + avatar(state, true) + '<div style="flex:1"><b style="font-size:1.3rem">' + esc(state.name) + '</b><div class="hint">' +
-      (GOAL_BY[s.goal] || GOAL_BY.general).ico + ' ' + esc((GOAL_BY[s.goal] || GOAL_BY.general).name) +
-      (Me.age(s) ? ' · ' + Me.age(s) + ' y' : '') + (s.height ? ' · ' + s.height + ' cm' : '') + (s.weight ? ' · ' + s.weight + ' kg' : '') +
-      (Me.zone(s, .6, .7) ? ' · Zone 2 ' + Me.zone(s, .6, .7).join('–') + ' bpm' : '') + '<br>' +
-      (state.pin ? 'PIN locked' : 'No PIN') + ' · ' + pl(state.log.length, TRN) + '</div></div>' +
-      '<button class="btn focusable" data-go="profileEdit" data-p=\'{"id":"' + state.id + '"}\'>Edit profile</button></div></div>' +
-      '<div class="panel"><h3>My equipment</h3><div class="opt-row"><div class="eq-strip">' + (state.settings.equipment || []).map(function (k) { return '<span class="eq-mini" title="' + esc(Exercises.EQUIP[k].name) + '">' + equipIcon(k) + '</span>'; }).join('') +
-      '</div><div class="spacer"></div><button class="btn focusable" data-go="equipment">' + pl((state.settings.equipment || []).length, NAP) + ' · ' + pl(unlocked(state.settings.equipment || []), VAJ) + ' · edit →</button></div></div><div class="panel">' +
-      '<div class="opt-row"><div class="k">Workouts per week</div>' + opt('days', 3, '3× – full body') + opt('days', 4, '4× – upper / lower') + '</div>' +
-      '<div class="opt-row"><div class="k">Level</div>' + opt('level', 'beg', 'Beginner') + opt('level', 'mid', 'Intermediate') + opt('level', 'adv', 'Advanced') + '</div>' +
-      '<div class="opt-row"><div class="k">Voice coaching</div>' + opt('voice', true, 'On') + opt('voice', false, 'Off') + '<button class="btn sm focusable" id="vTest">▶ Test sound</button><span class="hint">' + esc(voiceInfo) + ' On iPhone, silent mode can mute sound outside workouts.</span></div>' +
-      ((window.VOICE_CLIPS || []).length ? '<div class="opt-row"><div class="k">Coach</div>' + opt('coachVoice', 'recorded', '★ Premium recorded coach') + opt('coachVoice', 'device', 'Device voice') +
-        '<span class="hint">Recorded studio voice for exercise names, sets, rest and countdowns; works the same on every device.</span></div>' : '') +
-      (s.coachVoice === 'device' ? voiceRow() : '') +
-      '<div class="opt-row"><div class="k">Hands-free sets</div>' + opt('autoNext', true, 'On') + opt('autoNext', false, 'Off') + '<span class="hint">When the rep pacer reaches the target, the set completes itself after 6 s – no remote needed. You can still press OK earlier.</span></div>' +
-      '<div class="opt-row"><div class="k">Beeps</div>' + opt('beeps', true, 'On') + opt('beeps', false, 'Off') + '</div>' +
-      '<div class="opt-row"><div class="k">Nature’s Finest product tips</div>' + tipChip(true, 'On') + tipChip(false, 'Off') +
-      '<span class="hint">' + (Products.eligible(state) ? 'Goal-based supplement tips on home and after workouts. Matching happens on this device only.' : 'Shown only to adults – add your age in your profile.') + '</span></div>' +
-      '<div class="opt-row"><div class="k">Preview – seconds per exercise</div>' + opt('previewSec', 10, '10 s') + opt('previewSec', 15, '15 s') + opt('previewSec', 25, '25 s') + '</div>' +
-      '<div class="opt-row"><div class="k">4-week block start</div><span class="chip">' + esc(s.startDate) + '</span><button class="btn sm focusable" id="newBlock">Start new block today</button></div>' +
-      '</div><div class="panel"><h3>Data</h3><div class="opt-row">' +
-      '<button class="btn focusable" id="exp">⬇ Export backup</button>' +
-      '<label class="btn focusable" tabindex="0" id="impL">⬆ Import<input type="file" id="imp" accept="application/json" hidden></label>' +
-      '<button class="btn ghost focusable" id="rst">Reset my progress</button></div>' +
-      '<div class="hint">Everyone’s data is stored only on this device (in the browser). The export includes all profiles – use export/import to move data between your phone and TV.</div></div>' +
-      '<div class="panel"><h3>Remote control</h3><div class="hint"><span class="kbd">← ↑ → ↓</span> move · <span class="kbd">OK</span> select / set done · <span class="kbd">Back</span> back · <span class="kbd">▶❚❚</span> pause</div></div></div>';
+      group('General', (window.I18N ? row('🌐', 'Language', 'Texts in your language – the coach voice stays English', I18N.select('setLang')) : '')) +
+      group('Health & routine',
+        link('📷', 'Scan a product', 'QR code on your Nature’s Finest pack → how to use it + your routine', 'scan') +
+        (hasRoutine ? link('🏅', 'My program & reminders', 'check-ins, rewards, supply, reminder time', 'program') : '') +
+        link('🗓️', 'My supplement routine', hasRoutine ? (s.routine.length + ' in your routine') : 'pick from Nature’s Finest or add your own', 'routine') +
+        row('💡', 'Nature’s Finest product tips', Products.eligible(state) ? 'Goal-based tips on Today and after workouts – matched on this device only' : 'Shown only to adults – add your age in your profile', tipChip(true, 'On') + tipChip(false, 'Off'))) +
+      group('Training',
+        link('🏋️', 'My equipment', pl(nEq, NAP) + ' · ' + pl(unlocked(s.equipment || []), VAJ), 'equipment') +
+        row('📅', 'Workouts per week', '', opt('days', 3, '3× – full body') + opt('days', 4, '4× – upper / lower')) +
+        row('📈', 'Level', '', opt('level', 'beg', 'Beginner') + opt('level', 'mid', 'Intermediate') + opt('level', 'adv', 'Advanced')) +
+        row('🙌', 'Hands-free sets', 'The set completes itself 6 s after the rep pacer reaches the target', opt('autoNext', true, 'On') + opt('autoNext', false, 'Off')) +
+        row('🗓️', '4-week block', 'started ' + esc(s.startDate), '<button class="btn sm focusable" id="newBlock">Start new block today</button>')) +
+      group('Sound & voice',
+        row('🔊', 'Voice coaching', esc(voiceInfo) + ' On iPhone, silent mode can mute sound outside workouts.', opt('voice', true, 'On') + opt('voice', false, 'Off') + '<button class="btn sm focusable" id="vTest">▶ Test</button>') +
+        ((window.VOICE_CLIPS || []).length ? row('🎙️', 'Coach', 'Recorded studio voice for exercise names, sets, rest and countdowns – English in every language', opt('coachVoice', 'recorded', '★ Premium recorded coach') + opt('coachVoice', 'device', 'Device voice')) : '') +
+        (s.coachVoice === 'device' ? voiceRow() : '') +
+        row('🔔', 'Beeps', '', opt('beeps', true, 'On') + opt('beeps', false, 'Off')) +
+        row('📺', 'TV preview – seconds per exercise', '', opt('previewSec', 10, '10 s') + opt('previewSec', 15, '15 s') + opt('previewSec', 25, '25 s'))) +
+      group('Data & privacy',
+        row('💾', 'Backup', 'Everyone’s data is stored on this device. The export includes all profiles – use it to move data between phone and TV.',
+          '<button class="btn sm focusable" id="exp">⬇ Export</button><label class="btn sm focusable" tabindex="0" id="impL">⬆ Import<input type="file" id="imp" accept="application/json" hidden></label>') +
+        row('🗑️', 'Reset my progress', 'Deletes your history and weights on this device', '<button class="btn sm ghost focusable danger" id="rst">Reset</button>')) +
+      '<div class="set-foot hint"><span class="kbd">← ↑ → ↓</span> move · <span class="kbd">OK</span> select / set done · <span class="kbd">Back</span> back · <span class="kbd">▶❚❚</span> pause</div></div>';
     $$('[data-set]').forEach(function (b) {
       b.onclick = function () {
         s[b.getAttribute('data-set')] = JSON.parse(b.getAttribute('data-val'));

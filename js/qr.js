@@ -158,8 +158,7 @@
     FinestQR.homeCard = function (s) {
       if (!s || !H) return '';
       // no routine yet: the way in is the pack in their hand
-      if (!H.active(s)) return '<div class="hp-card qr-ask scan-cta"><div><b>📷 Bought Nature’s Finest?</b><span>Scan the QR code on the pack – how to use it, your routine and rewards.</span></div><button class="btn sm primary focusable" data-go="scan">Scan</button></div>';
-      if (!H.prog(s).src) return '';
+      if (!H.active(s) || !H.prog(s).src) return '';   // no routine yet: the scan hero under the greeting is the way in
       var dayN = H.count(s), now = Date.now(), snooze = +(store('fs.qrSnooze') || 0);
       if (now < snooze || dayN < 2) return '';
       var cloudOn = global.Cloud && Cloud.configured && Cloud.configured();
