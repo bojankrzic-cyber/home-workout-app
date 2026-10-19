@@ -26,7 +26,7 @@ const path = require('path');
         const b = el.getBoundingClientRect();
         if (b.width && b.right > w + 1 && getComputedStyle(el).position !== 'fixed' && !el.closest('.chips-scroll,.filters,.hscroll')) bad.push((el.id || el.className || el.tagName).toString().slice(0, 40));
       });
-      const back = [...document.querySelectorAll('[data-back], #bk, #wBack, .back-bar button')].filter(b => b.offsetParent);
+      const back = [...document.querySelectorAll('[data-back], #bk, #wBack, .back-bar button')].filter(b => b.getClientRects().length && getComputedStyle(b).visibility !== 'hidden' && getComputedStyle(b).display !== 'none');
       const vis = back.some(b => { const r = b.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight; });
       return { overflow: [...new Set(bad)].slice(0, 5), back: back.length ? vis : 'none', sw: document.documentElement.scrollWidth > w };
     });

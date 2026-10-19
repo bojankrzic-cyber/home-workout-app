@@ -8,6 +8,7 @@ const path = require('path');
   const errs = [], log = (...a) => console.log(...a);
   for (const [w, h, tag] of [[1920, 1080, 'tv'], [390, 844, 'ph']]) {
     const p = await b.newPage({ viewport: { width: w, height: h } });
+    await p.addInitScript(() => { window.__HOME = 'train'; });   // these tests cover the Gym tab
     p.on('pageerror', e => errs.push(e.message));
     await p.goto('file://' + path.resolve(__dirname, '../index.html'));
     await p.evaluate(() => localStorage.clear()); await p.reload(); await p.waitForTimeout(300);
