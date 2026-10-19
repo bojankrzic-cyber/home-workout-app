@@ -439,8 +439,8 @@
     id = PHOTO_ALIAS[id] && !(window.PHOTOS && PHOTOS.ex.indexOf(id) >= 0) ? PHOTO_ALIAS[id] : id;
     return window.PHOTOS && PHOTOS.ex.indexOf(id) >= 0 ? 'img/ex/' + id + '.jpg' : null;
   }
-  function photoBg(url) { return url ? ' style="background-image:linear-gradient(90deg, rgba(5,10,7,.92) 0%, rgba(5,10,7,.55) 55%, rgba(5,10,7,.15) 100%), url(' + url + ')"' : ''; }
-  function cardBg(url) { return url ? ' style="background-image:linear-gradient(0deg, rgba(5,10,7,.95) 8%, rgba(5,10,7,.35) 70%), url(' + url + ')"' : ''; }
+  function photoBg(url) { return url ? ' style="background-image:linear-gradient(90deg, rgba(var(--scrim),.92) 0%, rgba(var(--scrim),.55) 55%, rgba(var(--scrim),.15) 100%), url(' + url + ')"' : ''; }
+  function cardBg(url) { return url ? ' style="background-image:linear-gradient(0deg, rgba(var(--scrim),.95) 8%, rgba(var(--scrim),.35) 70%), url(' + url + ')"' : ''; }
   // first exercise of a session (after the warm-up) that has a real photo
   function sessionPhoto(src) {
     var ids = [];
@@ -886,7 +886,7 @@
       '<div class="me-act"><button class="btn primary focusable" data-go="profileEdit" data-p=\'{"id":"' + state.id + '"}\'>Edit profile</button><button class="btn ghost focusable who" data-go="profiles">' + avatar(state) + 'Switch person</button></div></div>' +
       hookHtml('settings') +
       group('General', (window.I18N ? row('🌐', 'Language', 'Texts in your language – the coach voice stays English', I18N.select('setLang')) : '') +
-        (window.Theme ? row('🌗', 'Appearance', 'Light or dark – “System” follows your phone. Workouts always stay dark.', ['light', 'dark', 'system'].map(function (t) {
+        (window.Theme ? row('🌗', 'Appearance', 'Light or dark – “System” follows your phone.', ['light', 'dark', 'system'].map(function (t) {
           return '<button class="chip focusable' + (Theme.choice() === t ? ' on' : '') + '" data-theme-pick="' + t + '">' + { light: '☀️ Light', dark: '🌙 Dark', system: '📱 System' }[t] + '</button>';
         }).join('')) : '') +
         (window.FinestQR && FinestQR.canInstall && FinestQR.canInstall() ? '<button class="set-row set-link focusable" id="setInstall"><span class="set-ico">📲</span><div class="set-lab"><b>Add FinestMe to your home screen</b><small>opens like an app, full screen, with reminders</small></div><span class="set-chev">›</span></button>' : '')) +

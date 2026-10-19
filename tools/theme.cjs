@@ -1,5 +1,5 @@
 // Light / dark theme: follows the phone (prefers-color-scheme), manual Light / Dark / System in Settings,
-// applied before the first paint, the workout player stays dark.   NODE_PATH=$(npm root -g) node tools/theme.cjs [outdir]
+// applied before the first paint, everywhere incl. the workout player and Trail.   NODE_PATH=$(npm root -g) node tools/theme.cjs [outdir]
 const { chromium } = require('playwright');
 const { spawn } = require('child_process');
 const path = require('path');
@@ -34,12 +34,12 @@ const path = require('path');
   const edge = await page.evaluate(() => getComputedStyle(document.querySelector('[data-theme-pick="light"]')).borderTopColor);
   ok(edge === 'rgb(216, 226, 218)', 'chips have a soft hairline, not the browser\'s black outline: ' + edge);
   await page.screenshot({ path: out + '/th3-settings.png', fullPage: true });
-  // the player stays dark
+  // the player follows the theme too
   await page.evaluate(() => window.__go('player', { key: Object.keys(Program.PLAN || {})[0] })).catch(() => {});
   await page.waitForTimeout(700);
   const pl = await page.$('.player');
   if (pl) {
-    ok(await page.evaluate(() => getComputedStyle(document.querySelector('.player')).backgroundColor) === 'rgb(5, 10, 7)', 'workout player stays dark');
+    ok(await page.evaluate(() => getComputedStyle(document.querySelector('.player')).backgroundColor) === 'rgb(245, 247, 244)', 'workout player follows the light theme');
     await page.screenshot({ path: out + '/th4-player.png' });
   }
   // manual Dark wins over the phone, survives a reload, System follows the phone again
