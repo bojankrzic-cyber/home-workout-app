@@ -1263,3 +1263,8 @@ a.btn { text-decoration: none; }
 .sg-bar i { width: 2px; background: #06140b; } .sg-bar i:nth-child(2n) { width: 1px; } .sg-bar i:nth-child(3n) { width: 3px; }
 .sg-bar::after { content: ''; position: absolute; left: -4px; right: -4px; top: 50%; height: 2px; background: #e5484d; transform: rotate(-30deg); }
 .scan-hint.more { color: var(--text); background: rgba(252, 185, 0, .12); border: 1px solid rgba(252, 185, 0, .4); border-radius: 14px; padding: .7rem .9rem; }
+.scan-acts { display: flex; gap: .6rem; flex-wrap: wrap; justify-content: center; }
+.scan-acts .btn { flex: 1 1 12rem; justify-content: center; }
+.scan-acts #scShot { font-size: 1.1rem; padding: 1rem 1.4rem; }
+.sg-no { display: none; }
+.scan-guide .sg-bar { opacity: 1; } .scan-guide .sg-bar::after { display: none; }

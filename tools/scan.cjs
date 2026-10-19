@@ -56,6 +56,20 @@ const path = require('path'), os = require('os'), fs = require('fs');
   await page.waitForSelector('.qr-hero', { timeout: 15000 }).catch(() => {});
   ok(await page.$('.qr-hero'), 'small, off-centre code on the label is read');
   await browser.close();
+  // live camera on the barcode (what people do first) – reads by itself
+  const y4b = path.join(os.tmpdir(), 'ean-5491.y4m');
+  execFileSync('python3', [path.join(__dirname, 'fixtures/y4m.py'), path.join(__dirname, 'fixtures/ean-5491.png'), y4b, '0.5']);
+  browser = await chromium.launch({ executablePath: exe, args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', '--use-file-for-fake-video-capture=' + y4b] });
+  ctx = await browser.newContext({ viewport: { width: 390, height: 780 }, isMobile: true, hasTouch: true, locale: 'en-GB', permissions: ['camera'], serviceWorkers: 'block' });
+  page = await ctx.newPage(); page.on('pageerror', e => errs.push(e.message));
+  await page.goto(base); await page.waitForTimeout(500);
+  await page.fill('#pName', 'Ana').catch(() => {}); await page.click('#pSave').catch(() => {}); await page.waitForTimeout(500);
+  await page.evaluate(() => window.__go('scan')); await page.waitForTimeout(400);
+  await page.screenshot({ path: out + '/s3-barcode.png' });
+  await page.click('#scShot').catch(() => {});
+  await page.waitForSelector('.qr-hero', { timeout: 15000 }).catch(() => {});
+  ok(await page.$('.qr-hero') && /ImunUp/.test(await page.textContent('h1')), 'camera on the barcode → ImunUp guide');
+  await browser.close();
   // camera blocked → search fallback
   browser = await chromium.launch({ executablePath: exe });
   ctx = await browser.newContext({ viewport: { width: 390, height: 780 }, isMobile: true, hasTouch: true, locale: 'en-GB', serviceWorkers: 'block' });
@@ -64,7 +78,12 @@ const path = require('path'), os = require('os'), fs = require('fs');
   await page.fill('#pName', 'Ana').catch(() => {}); await page.click('#pSave').catch(() => {}); await page.waitForTimeout(500);
   await page.evaluate(() => window.__go('scan')); await page.waitForTimeout(1500);
   ok(await page.$('.scan-cam.off'), 'no camera → camera box collapses with a hint');
-  ok(await page.$('.scan-guide .sg-ok') && await page.$('.scan-guide .sg-no'), 'guide: the square code, not the barcode');
+  ok((await page.$$('.scan-guide .sg-ok')).length === 2, 'guide: QR code or barcode');
+  // no camera: "Take a photo of the code" with the phone camera app – a photo of the ImunUp barcode
+  await page.setInputFiles('#scPhoto', path.join(__dirname, 'fixtures/ean-5491.png'));
+  await page.waitForSelector('.qr-hero', { timeout: 15000 }).catch(() => {});
+  ok(await page.$('.qr-hero') && /ImunUp/.test(await page.textContent('h1')), 'photo of the barcode → ImunUp guide (EAN from the ERP)');
+  await page.evaluate(() => window.__go('scan')); await page.waitForTimeout(600);
   await page.fill('#scQ', 'liver'); await page.waitForTimeout(200);
   ok((await page.$$('[data-sku]')).length >= 1, 'search finds Liver Cleanse');
   await page.screenshot({ path: out + '/s2-search.png' });
