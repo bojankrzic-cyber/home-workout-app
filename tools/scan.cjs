@@ -38,7 +38,7 @@ const path = require('path'), os = require('os'), fs = require('fs');
   ok(!(await page.$('.sheet [data-sgo="scan"]')), 'Health sheet no longer carries the scanner');
   await page.evaluate(() => document.querySelector('.sheet-wrap').remove());
   await page.click('.scan-hero [data-go="scan"]'); await page.waitForTimeout(400);
-  ok(await page.$('.scan-screen video'), 'scanner opens with the camera');
+  ok(await page.$('.scan-screen video') || await page.$('.qr-hero'), 'scanner opens with the camera (or has already read the code)');
   await page.screenshot({ path: out + '/s1-scanner.png' });
   await page.waitForSelector('.qr-hero', { timeout: 15000 }).catch(() => {});
   ok(await page.$('.qr-hero') && /Belly Burn/.test(await page.textContent('h1')), 'camera read the printed QR → Detox Belly Burn guide');
