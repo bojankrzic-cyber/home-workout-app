@@ -114,7 +114,7 @@
         return '<button class="chip focusable' + (k === type ? ' on' : '') + '" data-rt="' + k + '">' + typeOf(k).ico + ' ' + typeOf(k).name + '</button>';
       }).join('') + '<button class="chip focusable ghost" id="rOther">＋ Other sport / import</button></div>' +
       '<div class="rec-state" id="rState"></div>' +
-      '<div class="rec-main"><b id="rTime">0:00</b><span>moving time</span></div>' +
+      '<div class="rec-main"><b id="rTime">0:00</b><span id="rTimeL">moving time</span></div>' +
       '<div class="rec-grid">' +
       '<div><b id="rDist">0.00</b><span>km</span></div>' +
       '<div><b id="rPace">–:––</b><span id="rPaceL">pace /km</span></div>' +
@@ -165,16 +165,41 @@
       drawLive();
       paint();
     }
+    // Location: the system prompt appears as soon as Record opens (no extra tap). If it was refused,
+    // show the exact switch for this phone, a one-tap retry, and the option to record time only.
+    var denied = false;
+    var IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    var ANDROID = /Android/.test(navigator.userAgent);
+    function locHelp(again) {
+      var steps = IOS ? ['In Safari, tap <b>aA</b> (left of the address) › <b>Website Settings</b> › <b>Location</b> › <b>Allow</b>.',
+        'Still off? Settings › Privacy &amp; Security › <b>Location Services</b> on › <b>Safari Websites</b> › <b>While Using the App</b>.']
+        : ANDROID ? ['Tap the icon left of the address › <b>Permissions</b> › <b>Location</b> › <b>Allow</b>.', 'Check that the phone’s <b>Location</b> is on (swipe down from the top).']
+        : ['Click the icon left of the address › <b>Location</b> › <b>Allow</b>.'];
+      return '<div class="loc-card"><b>📍 Location is off for this app</b><p>' + (again ? 'Still off. After changing the setting, reload once:' : 'Turn it on once – after that it’s on automatically every time you record:') + '</p>' +
+        '<ol>' + steps.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ol></div>';
+    }
     function onErr(e) {
       if (e.code === 1) {
-        gpsStatus('Location is blocked', 'weak');
-        $('#rHint').innerHTML = '<b>Allow location to record.</b> iPhone: Settings › Privacy & Security › Location Services › Safari Websites › While Using. ' +
-          'Android: tap the lock icon in the address bar › Permissions › Location. No GPS? <a href="#" id="rManual">Log it manually</a>.';
-        var m = $('#rManual'); if (m) m.onclick = function (ev) { ev.preventDefault(); App.go('logSport', {}, true); };
-      } else gpsStatus(e.code === 3 ? 'Still searching for GPS…' : 'GPS unavailable', 'weak');
+        denied = true;
+        gpsStatus('Location is off', 'weak');
+        $('#rHint').innerHTML = locHelp(false);
+        if (!rec) controls();
+      } else gpsStatus(e.code === 3 ? 'Still searching for GPS…' : 'GPS unavailable – move into the open', 'weak');
     }
-    if (navigator.geolocation) watch = navigator.geolocation.watchPosition(onPos, onErr, { enableHighAccuracy: true, maximumAge: 0, timeout: 30000 });
-    else gpsStatus('This device has no GPS – use “Other sport” to log manually', 'weak');
+    function watchGps() {
+      if (watch != null) navigator.geolocation.clearWatch(watch);
+      watch = navigator.geolocation.watchPosition(function (pos) { if (denied) { denied = false; $('#rHint').innerHTML = HINT; if (!rec) controls(); } onPos(pos); }, onErr,
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 30000 });
+    }
+    function retry() {
+      gpsStatus('Asking for location…', '');
+      navigator.geolocation.getCurrentPosition(function (pos) { denied = false; $('#rHint').innerHTML = HINT; watchGps(); onPos(pos); controls(); },
+        function (e) { if (e.code === 1) { $('#rHint').innerHTML = locHelp(true); controls(true); } else onErr(e); },
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 });
+    }
+    var HINT = $('#rHint').innerHTML;
+    if (navigator.geolocation) watchGps();
+    else { denied = true; gpsStatus('No GPS on this device', 'weak'); }
 
     // ----- map
     mountMap($('#rMap'), [], true).then(function (m) {
@@ -200,7 +225,9 @@
     // ----- numbers + controls
     function paint() {
       var r = rec;
-      $('#rTime').textContent = T.clock(r ? r.moving : 0);
+      var gps = r && r.pts.length > 1;
+      $('#rTime').textContent = T.clock(r ? (gps ? r.moving : r.elapsed()) : 0);
+      $('#rTimeL').textContent = gps || !r ? 'moving time' : 'time';
       $('#rDist').textContent = r ? T.km(r.d) : '0.00';
       var a = { type: type }, cur = r ? r.current() : { sec: 0, m: 0 };
       $('#rPace').textContent = cur.m > 5 ? paceTxt(a, cur.sec, cur.m) : isSpeed(a) ? '0.0' : '–:––';
@@ -212,9 +239,15 @@
     }
     var tick = setInterval(paint, 1000);
 
-    function controls() {
+    function controls(reload) {
       var c = $('#rCtrl');
-      if (!rec) {
+      if (!rec && denied) {
+        c.innerHTML = (reload ? '<button class="btn primary focusable rec-go" id="rReload">↻ Reload</button>' : '<button class="btn primary focusable rec-go" id="rRetry">📍 Try again</button>') +
+          '<button class="btn focusable" id="rNoGps">⏱ Without GPS</button>';
+        if ($('#rRetry')) $('#rRetry').onclick = retry;
+        if ($('#rReload')) $('#rReload').onclick = function () { try { sessionStorage.setItem('fs.reopen', JSON.stringify({ type: type })); } catch (e) {} location.reload(); };
+        $('#rNoGps').onclick = start;
+      } else if (!rec) {
         c.innerHTML = '<button class="btn primary focusable rec-go" id="rStart" data-autofocus>▶ Start ' + esc(typeOf(type).name.toLowerCase()) + '</button>';
         $('#rStart').onclick = start;
       } else if (rec.state === 'rec') {
@@ -228,10 +261,11 @@
         holdToFinish($('#rFinish'));
       }
       $('#rPick').hidden = !!rec;
-      $('#rHint').hidden = !!rec && rec.d > 100;
+      $('#rHint').hidden = !!rec && (denied || rec.d > 100);
+      if (rec && denied) gpsStatus('Time only – no location', 'weak');
     }
     function start() {
-      if (!fix) { App.toast('Waiting for GPS – starting anyway, the route begins at the first fix'); }
+      if (!fix) App.toast(denied ? 'Recording time only – distance needs location' : 'Waiting for GPS – the route starts at the first fix');
       rec = newRec(); rec.start();
       if (fix && Date.now() - fix.ts < 10000) rec.add(Object.assign({}, fix, { ts: Date.now() }));
       App.keepAwake(true); saveSnap(rec);
@@ -255,11 +289,12 @@
     }
     function finish() {
       var a = rec.finish(st().settings.weight);
+      if (a.pts.length < 2) a = T.manual({ type: a.type, sec: a.elapsed, start: a.start }, st().settings.weight);   // no GPS: keep the time
       dropSnap(); App.keepAwake(false);
       if (a.dist < 50 && a.moving < 60) {
         rec = null; App.toast('Too short to save – discarded'); controls(); paint(); return;
       }
-      if (s.trackVoice !== false) App.say('Great work. ' + T.km(a.dist) + ' kilometres in ' + T.clock(a.moving).replace(':', ' minutes ') + '.');
+      if (s.trackVoice !== false) App.say('Great work. ' + (a.dist ? T.km(a.dist) + ' kilometres in ' : '') + T.clock(a.moving).replace(':', ' minutes ') + '.');
       acts().unshift(a); save();
       rec = null;
       App.go('activity', { id: a.id, fresh: true }, true);
@@ -465,6 +500,10 @@
     };
   };
 
+  try {
+    var re = sessionStorage.getItem('fs.reopen');
+    if (re) { sessionStorage.removeItem('fs.reopen'); setTimeout(function () { if (st()) App.go('record', JSON.parse(re)); }, 0); }
+  } catch (e) {}
   window.Sport = { routeSvg: routeSvg, dateTxt: dateTxt, paceTxt: paceTxt, paceUnit: paceUnit, recording: function () { return loadSnap(); } };
 
   // ---------------------------------------------------------------- progress panel (Today shows activity via js/today.js)

@@ -1038,3 +1038,6 @@ button.t-check { border-color: var(--accent); }
   .r-head { grid-template-columns: 2.8rem minmax(0, 1fr) auto; } .r-head img, .r-ico { width: 2.8rem; height: 2.8rem; }
 }
 @media (max-width: 900px) { .today-screen .section-title { flex-direction: column; align-items: flex-start; gap: .2rem; } }
+
+.loc-card { text-align: left; background: rgba(255, 107, 107, .08); border: 1px solid rgba(255, 107, 107, .35); border-radius: 16px; padding: .9rem 1rem; color: var(--text); }
+.loc-card p { margin: .3rem 0 .4rem; color: var(--muted); } .loc-card ol { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: .35rem; line-height: 1.45; }

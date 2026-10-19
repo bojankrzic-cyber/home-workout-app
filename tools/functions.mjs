@@ -59,7 +59,7 @@ await hook({ user_id: 'u-ana', kind: 'health_data', granted: true }, 'consents')
 ok(calls.length === 2, 'health consent never goes to Klaviyo');
 await hook({ user_id: 'u-ana', member_id: 'p1', local_id: 'a9', type: 'run', moving_s: 1830, dist_m: 5230, started_at: '2026-10-19T06:00:00Z', data: { pts: [[46, 14]] } }, 'activities');
 const ev = calls[2] && calls[2].body.data.attributes;
-ok(ev && ev.metric.data.attributes.name === 'Formshaper Activity Recorded' && ev.properties.km === 5.2 && ev.properties.minutes === 31, 'activity event with coarse numbers');
+ok(ev && ev.metric.data.attributes.name === 'App Activity Recorded' && ev.properties.km === 5.2 && ev.properties.minutes === 31, 'activity event with coarse numbers');
 ok(ev && !JSON.stringify(ev).includes('pts') && !('hr' in ev.properties), 'no GPS track or health detail sent');
 store.consents['u-bor'] = false;
 await hook({ user_id: 'u-bor', member_id: 'p2', local_id: 'w1', done_at: '2026-10-19T07:00:00Z', data: { name: 'Full Body A', min: 50 } }, 'workouts');

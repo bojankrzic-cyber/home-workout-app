@@ -1,4 +1,4 @@
--- Formshaper platform – initial schema (Supabase, EU region / Frankfurt)
+-- Finest Daily platform – initial schema (Supabase, EU region / Frankfurt)
 --
 -- One account (auth.users, magic-link login with the webshop e-mail) holds a household:
 -- members (the in-app profiles), their workouts and activities. Orders arrive from the
