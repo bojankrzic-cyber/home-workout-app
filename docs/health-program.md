@@ -29,6 +29,20 @@ Stanje: zgrajeno v aplikaciji (`js/health.js`) in testirano (`tools/health.cjs`,
 - **Kode morajo biti unikatne na stranko.** V pilotu so skupne (`js/products.js → CONFIG.rewards`); pred zagonom jih mora ustvarjati strežnik prek WooCommerce REST API.
 - **Pari za cross-sell iz podatkov** (`docs/health-complements.md`), ne iz intuicije. Aplikacija bere `HEALTH_COMPLEMENTS`; če ga ni, uporabi pravila glede na cilj.
 
+## Kaj pravijo naši podatki (TrackDaddy, `docs/health-complements.md`)
+- **Ponaročilo je največji vzvod.**
+  - Mediana do ponovnega nakupa istega izdelka je 55–80 dni, to je ~30 dni na enoto.
+  - V 90 dneh isti izdelek ponovno naroči le 4–13 % kupcev, v 180 dneh pa 5–19 %.
+  - Opomnik pred koncem zaloge, ki je vezan na dejanski paket stranke, cilja točno to luknjo.
+- **Pari v isti košarici so večinoma naši paketi**, zato je osnova za cross-sell naslednji nakup in vpliv na ponovni nakup v 180 dneh, ne košarica:
+  - D3 + IMUNUP: 32 % proti 22 %;
+  - Cellulite + Bronze: 46 % proti 21 %;
+  - Hair + Kolagen: 37 % proti 21 %.
+
+  Vzorci so majhni, zato so to kandidati za A/B test. Privzeti paket Detox Belly Burn + Hormone Balance PRO retencije ne poveča.
+- **V aplikaciji:** `js/complements.js` (iz `tools/build_complements.py`), npr. Magnesium → D3, Protein → Magnesium/Creatine, Creatine → Protein/Hydration.
+- **Trgi:** ID-ji izdelkov in moč parov se razlikujejo po trgih (HU, PL, IT, CZ, ES so največji). Komplement in `cartId` je treba določiti po trgu.
+
 ## Odločitve za vas (CEO / komerciala)
 - **Višina nagrad:** 30 kljukic → % popusta (predlog 15 %); 60 → brezplačna dostava; 90 → zaklenjena cena. Vse to bremeni maržo ponaročila, kar je strošek retencije, ne akvizicije.
 - **Naročnina:** ponudba šele ob prvem ponaročilu ("nikoli več brez"), z možnostmi preskoči / premakni / premor pred preklicem.
