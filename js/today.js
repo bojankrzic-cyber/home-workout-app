@@ -168,7 +168,7 @@
       return head('🌲 Trail', 'Record with GPS – live map, pace, splits') + '<div class="sh-grid">' +
         T.GPS_TYPES.map(function (k) { return opt('record', { type: k }, T.TYPES[k].ico, T.TYPES[k].name); }).join('') + '</div>' +
         '<div class="sh-list">' + line('logSport', {}, '✍️', 'Log another sport', 'football, tennis, padel, swim, yoga…') +
-        line('logSport', {}, '📂', 'Import from a watch', 'GPX from Garmin, Apple Watch, Coros…') + line('activities', {}, '🗺️', 'My activities', 'maps, splits, records') + '</div>';
+        line('devices', {}, '⌚', 'Watch & heart rate', 'import from Garmin, Apple Watch, Polar… · live heart rate') + line('activities', {}, '🗺️', 'My activities', 'maps, splits, records') + '</div>';
     },
     gym: function () {
       var s = st(), key = Program.nextSessionKey(s), sess = Program.build(s, key);

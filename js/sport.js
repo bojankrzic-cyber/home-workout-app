@@ -109,6 +109,7 @@
       '<button class="btn sm ghost focusable rec-back" data-back>← Back</button>' +
       '<button class="btn sm focusable rec-center" id="rCenter" hidden>◎ Recenter</button>' +
       '<div class="rec-gps" id="rGps"><i></i><span>Searching for GPS…</span></div>' +
+      '<button class="rec-hr focusable" id="rHr" hidden>❤ <b>–</b></button>' +
       '<div class="rec-panel">' +
       '<div class="rec-pick" id="rPick">' + T.GPS_TYPES.map(function (k) {
         return '<button class="chip focusable' + (k === type ? ' on' : '') + '" data-rt="' + k + '">' + typeOf(k).ico + ' ' + typeOf(k).name + '</button>';
@@ -139,6 +140,22 @@
     }
     $$('[data-rt]', el).forEach(function (b) { b.onclick = function () { if (!rec) setType(b.getAttribute('data-rt')); }; });
     $('#rOther').onclick = function () { App.go('logSport', {}, true); };
+    // live heart rate from a Bluetooth strap / watch (js/devices.js); tap to connect, saved with the activity
+    var HR = window.HeartRate;
+    function paintHr(v) {
+      var b = $('#rHr'); if (!b) return;
+      b.hidden = !(HR && HR.supported());
+      b.classList.toggle('on', !!v);
+      b.innerHTML = v ? '❤ <b>' + v + '</b> bpm' : '❤ <b>Connect HR</b>';
+      if (v && rec) rec.addHr(v);
+    }
+    if (HR) {
+      App.onCleanup(HR.on(paintHr)); paintHr(HR.live());
+      $('#rHr').onclick = function () {
+        if (HR.live()) return;
+        HR.connect().then(function () { App.toast('Heart rate connected'); }).catch(function (e) { if (!/cancel/i.test(e && e.message)) App.toast('Couldn’t connect – is the sensor on?'); });
+      };
+    }
     setType(type);
 
     function onSplit(n, sec) {
@@ -353,6 +370,7 @@
       (hasMap ? '<div class="act-map" id="aMap">' + routeSvg(a.pts) + '</div>' : '') +
       '<div class="act-stats">' + stats.map(function (x) { return '<div><b>' + x[0] + '</b><span>' + x[1] + '</span></div>'; }).join('') + '</div>' +
       (hasMap && sec ? '<div class="panel"><h3>' + (sp ? 'Speed' : 'Pace') + ' & elevation</h3>' + chart(a) + '</div>' : '') +
+      hrPanel(a) +
       (splits ? '<div class="panel"><h3>Splits <small>' + (sp ? 'km/h per km' : 'pace per km') + '</small></h3><div class="splits">' + splits + '</div></div>' : '') +
       (best ? '<div class="panel"><h3>Best efforts</h3><div class="efforts">' + best + '</div></div>' : '') +
       ((a.laps || []).length ? '<div class="panel"><h3>Laps</h3><div class="efforts">' + a.laps.map(function (l, i) { return '<div class="effort"><span>Lap ' + (i + 1) + ' · ' + T.km(l.dist) + ' km</span><b>' + T.clock(l.sec) + '</b></div>'; }).join('') + '</div></div>' : '') +
@@ -384,6 +402,30 @@
       });
     };
   };
+
+  // heart rate: average / max, the curve over time and time in zones (zones from the profile's max HR)
+  function maxHr() {
+    var s = st().settings;
+    if (s.maxHr) return s.maxHr;
+    return s.birthYear ? Math.round(208 - 0.7 * (new Date().getFullYear() - s.birthYear)) : 190;
+  }
+  function hrPanel(a) {
+    if (!a.hr && !(a.hrs && a.hrs.length)) return '';
+    var hrs = a.hrs || [], mx = Math.max(maxHr(), a.hrMax || 0), curve = '';
+    if (hrs.length > 2) {
+      var t1 = hrs[hrs.length - 1][0] || 1, lo = Math.min.apply(null, hrs.map(function (h) { return h[1]; })) - 5, hi = Math.max.apply(null, hrs.map(function (h) { return h[1]; })) + 5;
+      curve = '<svg class="pchart hrchart" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline class="c-hr" points="' +
+        hrs.map(function (h) { return (h[0] / t1 * 100).toFixed(2) + ',' + (95 - (h[1] - lo) / (hi - lo) * 88).toFixed(2); }).join(' ') + '"/></svg>';
+    }
+    var zones = window.Imports && hrs.length > 2 ? Imports.zones(hrs, mx) : [];
+    var tot = zones.reduce(function (x, z) { return x + z.sec; }, 0);
+    return '<div class="panel"><h3>Heart rate <small>' + (a.device ? esc(a.device) : 'max ' + mx + ' bpm') + '</small></h3>' +
+      '<div class="act-tot"><div><b>' + (a.hr || '–') + '</b><span>avg bpm</span></div><div><b>' + (a.hrMax || '–') + '</b><span>max bpm</span></div><div><b>' + Math.round((a.hr || 0) / mx * 100) + '%</b><span>of your max</span></div></div>' +
+      curve +
+      (tot ? '<div class="zones">' + zones.slice().reverse().map(function (z) {
+        return '<div class="zone z' + z.z + '"><span>Z' + z.z + ' ' + esc(z.name) + '</span><div class="sbar"><i style="width:' + (z.sec / tot * 100).toFixed(1) + '%"></i></div><b>' + T.clock(z.sec) + '</b></div>';
+      }).join('') + '</div>' : '') + '</div>';
+  }
 
   // pace (or speed) per ~200 m with elevation underneath
   function chart(a) {
@@ -455,8 +497,8 @@
     var types = T.MANUAL_TYPES.concat(T.GPS_TYPES);
     var t = typeOf(d.type), showDist = t.dist || t.gps;
     var html = '<div class="screen"><div class="topbar"><h1>Log an activity</h1></div>' +
-      '<div class="panel"><h3>Import from a watch or another app</h3><div class="hint">GPX file – Garmin, Apple Watch (via an export app), Coros, Suunto, Polar and most trackers can export one.</div>' +
-      '<label class="btn focusable gpx-btn" tabindex="0">📂 Choose GPX file<input type="file" id="gpx" accept=".gpx,application/gpx+xml,application/xml,text/xml" hidden></label></div>' +
+      '<div class="panel"><h3>Import from a watch or another app</h3><div class="hint">FIT, GPX, TCX or ZIP – Garmin, Polar, Suunto, COROS, Wahoo, Fitbit, Apple Watch (via an export app). Heart rate comes along. <a href="#" id="lDev">Step-by-step for your watch →</a></div>' +
+      '<label class="btn focusable gpx-btn" tabindex="0">📂 Choose file(s)<input type="file" id="gpx" multiple accept="' + (App.IMPORT_ACCEPT || '.gpx,application/gpx+xml,application/xml,text/xml') + '" hidden></label></div>' +
       '<div class="panel"><h3>Sport</h3><div class="sport-grid">' + types.map(function (k) {
         return '<button class="sport-tile focusable' + (k === d.type ? ' on' : '') + '" data-st="' + k + '" data-fid="st-' + k + '"><span>' + typeOf(k).ico + '</span>' + esc(typeOf(k).name) + '</button>';
       }).join('') + '</div></div>' +
@@ -486,8 +528,16 @@
       acts().unshift(a); acts().sort(function (x, y) { return x.start < y.start ? 1 : -1; }); save();
       App.go('activity', { id: a.id, fresh: true }, true);
     };
+    $('#lDev').onclick = function (e) { e.preventDefault(); App.go('devices', {}); };
     $('#gpx').onchange = function () {
       var file = this.files && this.files[0]; if (!file) return;
+      if (App.importFiles) {
+        App.importFiles(this.files).then(function (res) {
+          if (res && res.added.length === 1 && !res.merged) App.go('activity', { id: res.added[0].id, fresh: true }, true);
+          else if (res && (res.added.length || res.merged)) App.go('activities', {}, true);
+        });
+        return;
+      }
       var rd = new FileReader();
       rd.onload = function () {
         var a = T.parseGPX(String(rd.result), st().settings.weight);
