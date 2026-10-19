@@ -3,6 +3,9 @@
 site_url = "https://app.naturesfinest.eu"
 additional_redirect_urls = ["https://bojankrzic-cyber.github.io/home-workout-app/"]
 enable_signup = true
+# reminders before an account: an anonymous user holds the push subscription and links an e-mail / Google later
+enable_anonymous_sign_ins = true
+enable_manual_linking = true
 
 [auth.email]
 enable_signup = true
@@ -17,4 +20,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.device-ingest]
+verify_jwt = false
+
+[functions.reminders]
 verify_jwt = false

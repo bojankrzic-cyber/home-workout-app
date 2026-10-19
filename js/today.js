@@ -75,7 +75,9 @@
     '<path d="M25 43c4 4 10 4 14 0" stroke="#04140a" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg>';
   function pick(list, seed) { return list[Math.abs(seed) % list.length]; }
   function buddy(s, plan) {
-    var h = new Date().getHours(), name = s.name, seed = new Date().getDate() + s.name.length;
+    // names and titles go in as placeholders (I18N.nm / I18N.ph) so each sentence translates once for everyone
+    var N = window.I18N ? I18N.nm : esc, P = window.I18N ? I18N.ph : esc;
+    var h = new Date().getHours(), name = N(s.name), seed = new Date().getDate() + s.name.length;
     var hello = h < 5 ? 'Up late, ' + name + '?' : h < 11 ? 'Good morning, ' + name : h < 17 ? 'Hi ' + name : 'Good evening, ' + name;
     var left = plan.items.filter(function (i) { return !i.done; });
     var dueSupp = left.filter(function (i) { return i.kind === 'supp' && i.due; });
@@ -84,8 +86,8 @@
     if (!plan.items.length) line = 'Let’s set up your day – add your supplements and I’ll remind you when to take them.';
     else if (!left.length) line = pick(['Everything done today. That’s how habits are built. 🌿', 'Full house today – proud of you. Rest well.', 'All boxes ticked. Tomorrow-you says thanks.'], seed);
     else if (w && !w.done && w.kind === 'workout' && h >= 17) line = pick(['Still time for today’s workout – even 20 minutes counts.', 'Evening session? Start, and the rest follows.'], seed);
-    else if (dueSupp.length) line = 'Don’t forget your ' + dueSupp.map(function (i) { return i.title; }).slice(0, 2).join(' and ') + ' – ' + dueSupp[0].when.toLowerCase() + ' is the time.';
-    else if (w && w.kind === 'workout' && !w.done) line = pick(['Today is a training day: ' + w.title + '. You’ve got this.', w.title + ' is up today – about ' + w.sub.split(' ·')[0].replace('~', '') + '.', 'Training day! Warm up well and enjoy it.'], seed);
+    else if (dueSupp.length) line = 'Don’t forget your ' + dueSupp.map(function (i) { return P(i.title); }).slice(0, 2).join(' and ') + ' – ' + P(dueSupp[0].when.toLowerCase()) + ' is the time.';
+    else if (w && w.kind === 'workout' && !w.done) line = pick(['Today is a training day: ' + P(w.title) + '. You’ve got this.', P(w.title) + ' is up today – about ' + w.sub.split(' ·')[0].replace('~', '') + '.', 'Training day! Warm up well and enjoy it.'], seed);
     else if (w && w.kind === 'move' && !w.done) line = pick(['Rest day – a 20-minute walk helps you recover faster.', 'Recovery day. Easy movement, good food, early night.'], seed);
     else line = left.length + (left.length === 1 ? ' thing' : ' things') + ' left today – nice progress.';
     var badge = streak >= 2 ? '🔥 ' + streak + '-week streak' : s.log.length + (s.activities || []).length ? '' : 'Day one – welcome!';
@@ -117,8 +119,8 @@
     }
     var html = '<div class="screen today-screen">' +
       '<div class="topbar">' + U.brandMark() + '<div class="spacer"></div>' + U.navBar() +
-      '<button class="btn sm ghost focusable who" data-go="profiles" title="Switch person" aria-label="Switch person">' + U.avatar(s) + '<span class="who-name">' + esc(s.name) + '</span></button></div>' +
-      '<div class="buddy"><div class="buddy-face">' + BUDDY + '</div><div class="buddy-talk"><div class="buddy-hello">' + esc(b.hello) + '</div><div class="buddy-line">' + esc(b.line) + '</div>' +
+      '<button class="btn sm ghost focusable who" data-go="profiles" title="Switch person" aria-label="Switch person">' + U.avatar(s) + '<span class="who-name" translate="no">' + esc(s.name) + '</span></button></div>' +
+      '<div class="buddy"><div class="buddy-face">' + BUDDY + '</div><div class="buddy-talk"><div class="buddy-hello">' + b.hello + '</div><div class="buddy-line">' + b.line + '</div>' +
       (b.badge ? '<span class="buddy-badge">' + esc(b.badge) + '</span>' : '') + '</div>' +
       '<div class="day-ring" title="' + plan.done + ' of ' + n + ' done"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" class="dr-bg"/><circle cx="32" cy="32" r="26" class="dr-fg" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + (C * (1 - pct)).toFixed(1) + '"/></svg><b>' + plan.done + '/' + n + '</b><span>today</span></div></div>' +
       (rec ? '<div class="t-banner focusable" tabindex="0" data-go="record">● Your ' + esc(T.TYPES[rec.type].name.toLowerCase()) + ' is paused at ' + T.km(rec.d) + ' km – tap to resume</div>' : '') +
@@ -183,12 +185,12 @@
     health: function () {
       var s = st(), plan = dayPlan(s), left = plan.items.filter(function (i) { return i.kind === 'supp' && !i.done; });
       return head('🌿 Health', 'Your daily routine and body') + '<div class="sh-list">' +
+        line('scan', {}, '📷', 'Scan a product', 'QR code on your Nature’s Finest pack → how to use it + your routine', !routine(s).length) +
         (left.length ? '<button class="sh-line focusable primary" data-take-all><span class="ico">💊</span><span><b>Take ' + (left.length === 1 ? left[0].title : 'my supplements now') + '</b><small>' + esc(left.map(function (i) { return i.title; }).join(', ')) + '</small></span></button>' : '') +
         (routine(s).length ? line('program', {}, '🏅', 'My program', window.Health ? Health.count(s) + ' check-ins · rewards · supply · weekly progress' : '') : '') +
         line('routine', {}, '🗓️', 'My supplement routine', routine(s).length ? routine(s).length + ' in your routine · times and reminders' : 'set up – pick from Nature’s Finest or add your own') +
         '<button class="sh-line focusable" data-sheet="weight"><span class="ico">⚖️</span><span><b>Log body weight</b><small>' + (s.settings.weight ? 'last: ' + s.settings.weight + ' kg' : 'track your trend toward your goal') + '</small></span></button>' +
-        line('history', {}, '📈', 'Body & progress', 'weight trend, records, weekly volume') + '</div>' +
-        '<div class="sh-soon">Scan the QR code on your Nature’s Finest pack – it opens the product guide and starts its routine.</div>';
+        line('history', {}, '📈', 'Body & progress', 'weight trend, records, weekly volume') + '</div>';
     },
     weight: function () {
       var s = st(), v = s.settings.weight || 75;

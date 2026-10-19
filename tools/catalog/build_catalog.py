@@ -32,6 +32,10 @@ USE = {
  'ro': r'Mod de (?:utilizare|preparare|administrare)|Instrucțiuni de utilizare|Recomandări? de (?:utilizare|consum)|Doza zilnică recomandată|Sfaturi de utilizare|Utilizare|Preparare',
  'el': r'Οδηγίες (?:χρήσης|χρήσεως|παρασκευής)|Συνιστώμεν[^\s:]* [^\s:]+(?: [^\s:]+)?|Τρόπος (?:χρήσης|παρασκευής)|Συμβουλές χρήσης|Χρήση|Παρασκευή',
  'sv': r'Användningssätt|Användningsanvisningar?|Administreringssätt|Använda (?:anvisning|råd)|Användningsinstruktioner|Användning av råd|Rekommenderad daglig dos|Användningsråd|Bruksanvisning|Rekommenderad (?:daglig )?(?:dos|användning|mängd)|Användning|Dosering|Tillagning|Beredning',
+ 'bg': r'Начин на (?:употреба|приложение|приготвяне)|Препоръчителн[а-я]* (?:дневн[а-я]* )?(?:доза|прием|количество)|Указания за употреба|Употреба|Приготвяне',
+ 'et': r'Kasutamis(?:juhend|juhis|soovitus)|Kasutusjuhend|Soovitatav (?:päevane )?(?:annus|kogus|kasutamine)|Kasutamine|Valmistamine',
+ 'lt': r'Vartojimo (?:būdas|rekomendacijos|instrukcija)|Naudojimo (?:būdas|instrukcija)|Rekomenduojama (?:paros )?(?:dozė|norma)|Vartojimas|Paruošimas',
+ 'lv': r'Lietošanas (?:veids|norādījumi|instrukcija|ieteikumi)|Ieteicamā (?:dienas )?(?:deva|lietošana)|Lietošana|Pagatavošana',
  'da': r'Anbefalet anvendelse|Anvendelsesmåde|Anvendelsesvejledning|Brug(?: af)? råd|Indgivelsesmåde|Vejledning|Brugsanvisning|Brugsvejledning|Anbefalet (?:daglig )?(?:dosis|brug|mængde)|Anvendelse|Dosering|Tilberedning|Brug',
 }
 STOP = {
@@ -52,17 +56,23 @@ STOP = {
  'el': r'Προειδοποιήσεις|Προειδοποίηση|Προσοχή|Αποθήκευση|Φύλαξη|Προέλευση|Χώρα προέλευσης|Μπορεί να περιέχει|Καθαρό βάρος',
  'sv': r'Varning(?:ar)?|Försiktighet|Förvaring|Förvaras|Ursprung|Ursprungsland|Kan innehålla|Nettovikt',
  'da': r'Advarsel|Advarsler|Opbevaring|Oprindelse|Oprindelsesland|Kan indeholde|Nettovægt',
+ 'bg': r'Предупреждени[ея]|Внимание|Съхранение|Произход|Може да съдържа|Нетно',
+ 'et': r'Hoiatus(?:ed)?|Säilitamine|Säilita|Päritolu|Võib sisaldada|Netokaal',
+ 'lt': r'Įspėjim(?:ai|as)|Laikymas|Laikyti|Kilmė|Kilmės šalis|Gali būti|Grynasis',
+ 'lv': r'Brīdinājum(?:i|s)|Uzglabāšana|Uzglabāt|Izcelsme|Var saturēt|Neto',
 }
 WARN = {k: v.split('|')[0] if False else v for k, v in {
  'en': r'Warn?nings?|Caution', 'sl': r'Opozoril[oa]', 'hr': r'Upozorenj[ea]', 'it': r'Avvertenz[ae]', 'de': r'Warnhinweis[e]?|Hinweis[e]?',
  'hu': r'Figyelmeztetés(?:ek)?', 'sk': r'Upozorneni[ea]', 'pl': r'Ostrzeżeni[ea]|Uwag[ia]', 'cs': r'Upozornění|Varování',
  'fr': r'Avertissements?|Précautions?|Mises? en garde', 'es': r'Advertencias?|Precauciones?', 'pt': r'Advertências?|Avisos?|Atenção|Precauções?',
  'nl': r'Waarschuwing(?:en)?', 'ro': r'Avertismente?|Avertizări|Atenție|Precauții', 'el': r'Προειδοποιήσεις|Προειδοποίηση|Προσοχή',
- 'sv': r'Varning(?:ar)?|Försiktighet', 'da': r'Advarsel|Advarsler'}.items()}
+ 'sv': r'Varning(?:ar)?|Försiktighet', 'da': r'Advarsel|Advarsler',
+ 'bg': r'Предупреждени[ея]|Внимание', 'et': r'Hoiatus(?:ed)?', 'lt': r'Įspėjim(?:ai|as)', 'lv': r'Brīdinājum(?:i|s)'}.items()}
 STORE = {'en': r'Storage', 'sl': r'Shranjevanje|Hranjenje', 'hr': r'Čuvanje|Skladištenje', 'it': r'Conservazione', 'de': r'Lagerung|Aufbewahrung',
  'hu': r'Tárolás', 'sk': r'Skladovanie|Uchovávanie', 'pl': r'Przechowywanie', 'cs': r'Skladování|Uchovávání', 'fr': r'Conservation|Stockage',
  'es': r'Conservación|Almacenamiento', 'pt': r'Conservação|Armazenamento', 'nl': r'Bewaren|Bewaaradvies|Opslag', 'ro': r'Păstrare|Depozitare',
- 'el': r'Αποθήκευση|Φύλαξη', 'sv': r'Förvaring|Förvaras', 'da': r'Opbevaring'}
+ 'el': r'Αποθήκευση|Φύλαξη', 'sv': r'Förvaring|Förvaras', 'da': r'Opbevaring',
+ 'bg': r'Съхранение', 'et': r'Säilitamine|Säilita', 'lt': r'Laikymas|Laikyti', 'lv': r'Uzglabāšana|Uzglabāt'}
 
 def clean(t):
     t = t.replace('ﬁ', 'fi').replace('ﬂ', 'fl').replace('­', '')
@@ -192,6 +202,9 @@ for sku, r in sorted(best.items()):
     if r['campaign']: e['c'] = r['campaign']
     if txt: e['l'] = 1                                       # has a label file
     e['pdf'] = r['target']
+    # every printed short link of this SKU, so the in-app scanner recognises old packs too
+    qs = sorted({x['short'].rstrip('/').rsplit('/', 1)[-1] for x in rows if x['sku'] == sku and x['short']})
+    if qs: e['q'] = qs
     if chk: e['chk'] = 1
     index[sku] = e
     if txt:

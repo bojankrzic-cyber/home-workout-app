@@ -260,3 +260,12 @@ sh tools/db/test.sh                                                # migracija +
 
 ## QR on the pack
 Every product QR (dynamic, QRCode Studio) can point to `?p=<SKU>&src=qr`: the guide opens instantly in the phone's language from the official label (`data/labels/`, 17 languages), one tap starts the routine with day 1 already ticked, then the account / home-screen asks. Catalog: `tools/catalog/fetch_labels.py` + `build_catalog.py` → `js/catalog.js`, `data/labels/`, `docs/qr-audit.csv`. Strategy: `docs/qr-strategy.md`. Test: `tools/qr.cjs`.
+
+## Languages
+21 languages (every market we sell in): English source + `lang/<code>.js`. `js/i18n.js` translates what is on screen (text with inline tags, numbers as placeholders), so new UI code just renders English. Language = phone setting, or the picker on the first screen, in Settings and on every product guide (`?lang=xx` links work too); it syncs with the profile. Pipeline: `tools/i18n/` – run the UI suites with `node -r ./tools/i18n/collect-hook.cjs` + `static.cjs` → `merge.py` → translate per `GUIDE.md` → `check.py <lang>` → `build.py`. Test: `tools/i18n.cjs`.
+
+## Reminders outside the app
+Web push at the customer's own moment (only when today isn't ticked), e-mail via Klaviyo for running low / quiet days / fresh start. Client `js/reminders.js`, server `supabase/functions/reminders` (pg_cron every 15 min, planner `_shared/reminder_plan.ts`), migration `20261020000000_reminders.sql`. Rules, rollout and KPIs: `docs/reminders.md`. Tests: `tools/reminders.cjs`, `tools/functions.mjs`, `tools/db/reminders_test.sql`.
+
+## Scanner
+`js/scan.js`: in-app camera scanner for the pack QR (recognises every printed qrstud.io code via `js/catalog.js`), with search by name / number when there is no camera. Test: `tools/scan.cjs` (fake camera showing the real Belly Burn code).

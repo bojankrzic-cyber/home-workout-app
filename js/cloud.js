@@ -236,7 +236,7 @@
       return loadLib().then(function (client) {
         sb = client;
         sb.auth.onAuthStateChange(function (ev, session) {
-          var u = session && session.user ? { id: session.user.id, email: session.user.email } : null;
+          var u = session && session.user ? { id: session.user.id, email: session.user.email, anon: !!session.user.is_anonymous } : null;
           var was = user && user.id;
           user = u;
           if (u && u.id !== was) { setStatus('idle'); flushConsents().then(sync); }
@@ -244,21 +244,24 @@
         });
         return sb.auth.getSession().then(function (r) {
           var s = r.data && r.data.session;
-          if (s && !user) { user = { id: s.user.id, email: s.user.email }; flushConsents().then(sync); }
+          if (s && !user) { user = { id: s.user.id, email: s.user.email, anon: !!s.user.is_anonymous }; flushConsents().then(sync); }
           else if (!s) setStatus('signedout');
         });
       }).catch(function () { setStatus('offline'); });
     },
     // send the sign-in e-mail (magic link + 6-digit code); creates the account on first use
+    // a reminders-only (anonymous) account upgrades in place – same user id, routine and reminders kept
     signIn: function (email, consents) {
       try { localStorage.setItem(PENDING, JSON.stringify({ version: Cloud.CONSENT_VERSION, kinds: consents })); } catch (e) {}
       var back = location.href.split('#')[0].split('?')[0];
+      if (user && user.anon) return sb.auth.updateUser({ email: email }, { emailRedirectTo: back }).then(function (r) { if (r.error) throw r.error; });
       return sb.auth.signInWithOtp({ email: email, options: { shouldCreateUser: true, emailRedirectTo: back } }).then(function (r) { if (r.error) throw r.error; });
     },
     // Google / Apple: same pending-consent flow as the e-mail link; the provider redirects back here
     signInOAuth: function (provider, consents) {
       try { localStorage.setItem(PENDING, JSON.stringify({ version: Cloud.CONSENT_VERSION, kinds: consents })); } catch (e) {}
       var back = location.href.split('#')[0].split('?')[0];
+      if (user && user.anon) return sb.auth.linkIdentity({ provider: provider, options: { redirectTo: back } }).then(function (r) { if (r.error) throw r.error; });
       return sb.auth.signInWithOAuth({ provider: provider, options: { redirectTo: back, queryParams: provider === 'google' ? { prompt: 'select_account' } : undefined } })
         .then(function (r) { if (r.error) throw r.error; });
     },
@@ -273,9 +276,31 @@
       if (!sb) { var self = this; return loadLib().then(function (c) { sb = c; return self.scan(sku, src, batch); }).catch(function () {}); }
       return sb.from('product_scans').insert({ sku: String(sku), src: src || 'qr', batch: batch || null, user_id: user ? user.id : null }).then(function () {}, function () {});
     },
+    // reminders before an account: an anonymous user (no e-mail) that holds the push subscription and the
+    // reminder schedule; it becomes a full account when the customer adds an e-mail or Google later
+    signInAnon: function (consents) {
+      try { localStorage.setItem(PENDING, JSON.stringify({ version: Cloud.CONSENT_VERSION, kinds: consents })); } catch (e) {}
+      var go = function () { return sb.auth.signInAnonymously().then(function (r) { if (r.error) throw r.error; var u = r.data.user; user = { id: u.id, email: null, anon: true }; return flushConsents().then(function () { return user; }); }); };
+      return sb ? go() : loadLib().then(function (c) { sb = c; return go(); });
+    },
+    // the reminder schedule the server works from (reminders edge function, every 15 min)
+    remindState: function (row) {
+      if (!sb || !user) return Promise.resolve();
+      return sb.from('reminder_state').upsert(Object.assign({ user_id: user.id }, row), { onConflict: 'user_id,member_id' }).then(function (r) { if (r.error) throw r.error; });
+    },
+    pushSave: function (sub, lang) {
+      if (!sb || !user) return Promise.reject(new Error('no account'));
+      var j = sub.toJSON ? sub.toJSON() : sub;
+      return sb.from('push_subscriptions').upsert({ user_id: user.id, endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth, lang: lang || 'en', ua: String(navigator.userAgent).slice(0, 200) }, { onConflict: 'endpoint' })
+        .then(function (r) { if (r.error) throw r.error; });
+    },
+    pushDelete: function (endpoint) {
+      if (!sb || !user) return Promise.resolve();
+      return sb.from('push_subscriptions').delete().eq('endpoint', endpoint).then(function () {});
+    },
     providers: function () { return (CFG.authProviders || ['google']).slice(); },
     verifyCode: function (email, code) {
-      return sb.auth.verifyOtp({ email: email, token: code, type: 'email' }).then(function (r) { if (r.error) throw r.error; });
+      return sb.auth.verifyOtp({ email: email, token: code, type: user && user.anon ? 'email_change' : 'email' }).then(function (r) { if (r.error) throw r.error; });
     },
     signOut: function () { return sb.auth.signOut().then(function () { user = null; setStatus('signedout'); }); },
     sync: sync,

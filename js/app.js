@@ -69,7 +69,8 @@
     // voices first, so the first en-GB match is often the worst one; premium/enhanced/neural win.
     list: function () {
       if (!('speechSynthesis' in window)) return [];
-      return speechSynthesis.getVoices().filter(function (v) { return /^en/i.test(v.lang); })
+      var lg = (window.I18N && I18N.lang) || 'en';
+      return speechSynthesis.getVoices().filter(function (v) { return String(v.lang).toLowerCase().replace('_', '-').split('-')[0] === lg; })
         .map(function (v) { return { v: v, score: Voice.score(v) }; })
         .sort(function (a, b) { return b.score - a.score; });
     },
@@ -101,9 +102,9 @@
       if (!state || !state.settings.voice || !('speechSynthesis' in window)) return;
       try {
         this.pick();
-        var u = new SpeechSynthesisUtterance(Voice.clean(text));
+        var u = new SpeechSynthesisUtterance(Voice.clean(window.I18N ? I18N.t(text) : text));
         if (this.v) u.voice = this.v;
-        u.lang = (this.v && this.v.lang) || 'en-GB'; u.rate = 0.98; u.pitch = 1;
+        u.lang = (this.v && this.v.lang) || (window.I18N && I18N.locale) || 'en-GB'; u.rate = 0.98; u.pitch = 1;
         var busy = speechSynthesis.speaking || speechSynthesis.pending;
         if (busy) speechSynthesis.cancel();
         // Safari drops an utterance queued in the same tick as cancel()
@@ -117,7 +118,8 @@
   var Coach = {
     el: null, queue: [],
     has: function (k) { return (window.VOICE_CLIPS || []).indexOf(k) >= 0; },
-    on: function () { return state && state.settings.voice && state.settings.coachVoice !== 'device' && (window.VOICE_CLIPS || []).length > 0; },
+    // the recorded coach speaks English – in any other language the device voice reads the translated cue
+    on: function () { return state && state.settings.voice && state.settings.coachVoice !== 'device' && (window.VOICE_CLIPS || []).length > 0 && (!window.I18N || I18N.lang === 'en'); },
     element: function () {
       if (!this.el) {
         this.el = document.createElement('audio'); this.el.setAttribute('playsinline', ''); this.el.preload = 'auto';
@@ -354,7 +356,7 @@
 
   // Wordmark: condensed italic caps read as "sport" (scoreboards, kits); the brand line sits underneath
   function brandMark(cls) {
-    return '<div class="brand ' + (cls || '') + '"><div class="wm"><span class="wm-top">FINEST<em>ME</em></span>' +
+    return '<div class="brand ' + (cls || '') + '" translate="no"><div class="wm"><span class="wm-top">FINEST<em>ME</em></span>' +
       '<span class="wm-by">' + 'by nature\u2019s finest'.split('').map(function (c) { return '<i>' + (c === ' ' ? '&nbsp;' : c) + '</i>'; }).join('') + '</span></div></div>';
   }
 
@@ -515,7 +517,7 @@
   };
   // recorded hype clips (tools/voice/clips_motivation.json): key = 'hype_' + slug of the phrase
   function hypeKey(t) { return 'hype_' + String(t).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 40); }
-  function hypeVoice(t) { var k = hypeKey(t); if (Coach.on() && Coach.has(k)) Coach.play([k]); }   // never falls back to the device voice
+  function hypeVoice(t) { var k = hypeKey(t); if (Coach.on() && Coach.has(k)) Coach.play([k]); else if (window.I18N && I18N.lang !== 'en') Voice.say(t); }   // never falls back to the device voice
   function hype(kind) {
     var list = HYPE[kind], last = HYPE._last[kind], pick;
     do { pick = list[Math.floor(Math.random() * list.length)]; } while (list.length > 1 && pick === last);
@@ -619,7 +621,7 @@
       '<div class="topbar">' + brandMark() + '<span class="chip on">' + esc(sess.weekInfo.label) + '</span>' +
       '<button class="btn sm ghost focusable gym-lib" data-go="library">Library</button><button class="btn sm ghost focusable gym-lib" data-go="builder">＋ Build</button><div class="spacer"></div>' +
       navBar() +
-      '<button class="btn sm ghost focusable who" data-go="profiles" title="Switch person" aria-label="Switch person">' + avatar(state) + '<span class="who-name">' + esc(state.name) + '</span></button></div>' +
+      '<button class="btn sm ghost focusable who" data-go="profiles" title="Switch person" aria-label="Switch person">' + avatar(state) + '<span class="who-name" translate="no">' + esc(state.name) + '</span></button></div>' +
       '<div class="hero"><div class="hero-card' + (heroPhoto ? ' has-photo' : '') + '"' + photoBg(heroPhoto) + '><div class="eyebrow">Today’s workout · ' + esc(sess.weekInfo.label) + '</div>' +
       '<h1>' + esc(sess.name) + '</h1>' +
       '<div class="meta"><div><b>~' + mins + ' min</b>duration</div><div><b>' + exCount + '</b>' + (exCount === 1 ? 'exercise' : 'exercises') + '</div><div><b>RIR ' + sess.weekInfo.rir + '</b>effort</div></div>' +
@@ -869,6 +871,7 @@
     root.innerHTML = '<div class="screen"><div class="topbar"><h1>Settings</h1><div class="spacer"></div>' +
       '<button class="btn sm ghost focusable who" data-go="profiles">' + avatar(state) + 'Switch person</button></div>' +
       hookHtml('settings') +
+      (window.I18N ? '<div class="panel"><div class="opt-row"><div class="k">🌐 Language</div>' + I18N.select('setLang') + '</div></div>' : '') +
       '<div class="panel"><h3>Profile</h3><div class="opt-row">' + avatar(state, true) + '<div style="flex:1"><b style="font-size:1.3rem">' + esc(state.name) + '</b><div class="hint">' +
       (GOAL_BY[s.goal] || GOAL_BY.general).ico + ' ' + esc((GOAL_BY[s.goal] || GOAL_BY.general).name) +
       (Me.age(s) ? ' · ' + Me.age(s) + ' y' : '') + (s.height ? ' · ' + s.height + ' cm' : '') + (s.weight ? ' · ' + s.weight + ' kg' : '') +
@@ -1349,7 +1352,7 @@
       if (prs.length) proud.unshift('🏆 ' + prs.length + (prs.length === 1 ? ' personal best: ' : ' personal bests: ') + prs.map(function (id) { return ex(id).name.split(' (')[0]; }).join(', '));
       if (wk != null && wk >= 0) proud.push(wk + (wk === 1 ? ' week' : ' weeks') + ' to your target date');
       f.innerHTML = '<div class="fin-card"><div class="fin-burst"></div><div class="kicker">' + (race ? 'RACE TIME' : 'WORKOUT COMPLETE') + '</div>' +
-        (race ? '' : '<div class="fin-head">' + esc(hype('done')) + ', ' + esc(state.name) + '!</div>') + '<div class="fin-time">' + fmt(total) + '</div>' +
+        (race ? '' : '<div class="fin-head">' + esc(hype('done')) + ', ' + (window.I18N ? I18N.nm(state.name) : esc(state.name)) + '!</div>') + '<div class="fin-time">' + fmt(total) + '</div>' +
         '<div class="fin-proud">' + proud.map(function (t) { return '<div>' + esc(t) + '</div>'; }).join('') + '</div>' +
         '<div class="fin-stats"><div><b>' + logged.length + '</b><span>sets</span></div><div><b>' + reps + '</b><span>reps</span></div><div><b>' + Math.round(vol) + ' kg</b><span>volume</span></div>' + (kcal ? '<div><b>~' + kcal + '</b><span>kcal</span></div>' : '') + '</div>' +
         (race ? '<div class="splits fin-splits">' + splits.filter(function (x) { return x.station; }).map(function (r) { return '<div class="split"><span>' + esc(r.name) + '</span><b>' + fmt(r.sec) + '</b></div>'; }).join('') + '</div>' : '') +
@@ -1578,7 +1581,7 @@
       (existing && existing.pin ? '<button class="chip focusable' + (d.clearPin ? ' on' : '') + '" data-fid="pe-clear" id="pClear">Remove PIN</button>' : '') +
       '<span class="hint">Locks the profile on a shared TV (privacy, not security).</span></div></div></div>';
 
-    root.innerHTML = '<div class="screen pe"><div class="topbar"><h1>' + (existing ? 'Profile' : Store.list().length ? 'New person' : 'Welcome – who’s training?') + '</h1></div>' +
+    root.innerHTML = '<div class="screen pe"><div class="topbar"><h1>' + (existing ? 'Profile' : Store.list().length ? 'New person' : 'Welcome – who’s training?') + '</h1>' + (existing || !window.I18N ? '' : '<div class="spacer"></div>🌐 ' + I18N.select('peLang')) + '</div>' +
       (Store.list().length || existing ? '' : '<div class="hint">Everyone in your household gets their own profile: program, weights, progress.</div>') +
       summary + basics + goalPanel + more +
       '<div class="nav-row sticky-save"><button class="btn primary focusable" id="pSave">' + (existing ? 'Save profile' : 'Create profile') + '</button>' +
@@ -1856,6 +1859,8 @@
   (function boot() {
     // Fast login: this device remembers who trained last – straight in (or straight to their PIN)
     var list = Store.list(), last = Store.active(), qr = null;
+    // a new device: take the language the profile chose elsewhere (synced with the account)
+    try { if (window.I18N && last && last.settings.lang && !localStorage.getItem('fs.lang') && last.settings.lang !== I18N.lang) { I18N.set(last.settings.lang); return; } } catch (e) {}
     try { qr = sessionStorage.getItem('fs.product'); } catch (e) {}
     // value before account: a scanned pack opens its guide at once – a quiet local profile is made for the routine
     if (!list.length && qr) { var me = Store.addProfile(Store.newProfile('Me')); me.settings.qr = true; Store.save(); state = Store.setActive(me.id); resetTo('home'); }

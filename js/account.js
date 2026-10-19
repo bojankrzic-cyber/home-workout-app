@@ -32,8 +32,10 @@
   var PRIVACY = CFG.privacyUrl || 'https://www.naturesfinest.si';
 
   // Settings: compact account card at the top
+  // an anonymous (reminders-only) user counts as "not signed in" here: the screens offer to add an e-mail
+  function realUser() { var u = C.user(); return u && !u.anon ? u : null; }
   App.hooks.settings.push(function () {
-    var u = C.user();
+    var u = realUser();
     if (!u) return '<div class="panel acct-cta"><div><h3>Save your progress to your Nature’s Finest account</h3>' +
       '<div class="hint">Use the e-mail you shop with. Your workouts, activities and progress on every device – phone, TV and tablet. No password.</div></div>' +
       '<button class="btn primary focusable" data-go="account">Sign in or create account</button></div>';
@@ -42,7 +44,7 @@
   });
 
   App.SCREENS.account = function (p) {
-    var u = C.user(), html;
+    var u = realUser(), html;
     if (!u) {
       var step = p.sent ? 2 : 1;
       html = '<div class="screen"><div class="topbar"><h1>Your account</h1></div>' +

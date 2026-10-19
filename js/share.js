@@ -81,7 +81,7 @@
     if (opt.format === 'post' && routeH) y = Math.max(y, 520);
     // texts
     g.textBaseline = 'alphabetic'; g.textAlign = 'left';
-    function text(t, font, color, x, yy, max) { g.font = font; g.fillStyle = color; g.fillText(t, x, yy, max || W - 2 * pad); }
+    function text(t, font, color, x, yy, max) { g.font = font; g.fillStyle = color; g.fillText(window.I18N ? I18N.t(t) : t, x, yy, max || W - 2 * pad); }
     if (sticker) { g.shadowColor = 'rgba(0,0,0,.55)'; g.shadowBlur = 18; }
     text(String(card.eyebrow || '').toUpperCase(), '600 38px "Rethink Sans", sans-serif', MINT, pad, y); y += 130;
     text(card.title, 'italic 600 150px "Barlow Condensed", "Arial Narrow", sans-serif', INK, pad, y); y += 70;

@@ -32,12 +32,24 @@ function query(t) {
     const rows = rowsOf(t);
     store.ops.push({ t, op });
     if (op === 'update') { rows.filter(match).forEach(r => Object.assign(r, payload)); return { data: null, error: null }; }
+    if (op === 'delete') { const keep = rows.filter(r => !match(r)); rows.length = 0; rows.push(...keep); return { data: null, error: null }; }
     return { data: rows.filter(match).map(r => pick(r, cols)), error: null };
   };
   const q = {
     select: c => { cols = c; return q; },
     update: v => { op = 'update'; payload = v; return q; },
     eq: (k, v) => { filters.push(r => r[k] === v); return q; },
+    neq: (k, v) => { filters.push(r => r[k] !== v); return q; },
+    gte: (k, v) => { filters.push(r => r[k] >= v); return q; },
+    order: () => q,
+    range: (a, b) => { const prev = run; let sliced = false; q.then = (res, rej) => run().then(x => ({ ...x, data: x.data.slice(a, b + 1) })).then(res, rej); return q; },
+    delete: () => { op = 'delete'; return q; },
+    insert: async (row) => {
+      store.ops.push({ t, op: 'insert' });
+      const all = rowsOf(t);
+      if (t === 'reminder_log' && all.some(r => r.user_id === row.user_id && r.member_id === row.member_id && r.dedupe_key === row.dedupe_key)) return { error: { code: '23505' } };
+      all.push({ ...row, sent_at: row.sent_at || new Date().toISOString() }); return { error: null };
+    },
     in: (k, vs) => { filters.push(r => vs.includes(r[k])); return q; },
     maybeSingle: async () => { const { data } = await run(); return { data: data[0] ?? null, error: null }; },
     then: (res, rej) => run().then(res, rej),
@@ -240,5 +252,82 @@ ok(a2b.dist_m === 30100 && a2b.data.title === 'Sunday hills with Bor' && a2b.dat
   await hook({ user_id: 'u-ana', kind: 'reminders', granted: false }, 'consents');
   ok(calls.length === n0 + 2 && calls[n0 + 1].body.data.attributes.properties.finestme_reminders === false, 'reminders withdrawn → profile property false');
   ok(!calls.slice(n0).some(c => /subscription/.test(c.url)), 'reminders consent never subscribes to the marketing list');
+}
+
+// ---- reminders: the planner (pure) …
+{
+  const P = await import(path.join(here, '../supabase/functions/_shared/reminder_plan.ts'));
+  const base = { user_id: 'u1', member_id: 'm1', tz: 'Europe/Ljubljana', lang: 'en', anchor: 'coffee', remind_min: null, learned_min: null, freq: 'daily',
+    paused_until: null, start_date: '2026-10-10', last_checkin: '2026-10-19', checkins: 9, streak: 4, product: 'Detox - Belly Burn', runout: '2026-11-04',
+    runout_product: 'Detox - Belly Burn', weekly_last: '2026-W42', push: true, email: true };
+  const at = (iso) => new Date(iso);            // CEST = UTC+2 in October
+  let m = P.plan(base, at('2026-10-20T05:31:00Z'), []);
+  ok(m.length === 1 && m[0].kind === 'checkin_coffee' && m[0].channel === 'push' && /Belly Burn/.test(m[0].body) && m[0].done === '✅ Done', 'coffee nudge at 07:31 local, push only: ' + JSON.stringify(m));
+  ok(P.plan(base, at('2026-10-20T05:20:00Z'), []).length === 0, 'not before the moment (07:20)');
+  ok(P.plan({ ...base, last_checkin: '2026-10-20' }, at('2026-10-20T05:31:00Z'), []).length === 0, 'already ticked today → nothing');
+  ok(P.plan(base, at('2026-10-20T05:31:00Z'), [{ dedupe_key: 'checkin:2026-10-20:push', channel: 'push', local_date: '2026-10-20' }]).length === 0, 'sent once → never again that day');
+  ok(P.plan(base, at('2026-10-20T08:00:00Z'), []).length === 0, 'window passed (10:00) → skipped, not late');
+  ok(P.plan(base, at('2026-10-20T20:00:00Z'), []).length === 0, 'quiet hours 22:00');
+  ok(P.plan({ ...base, learned_min: 9 * 60 }, at('2026-10-20T06:46:00Z'), []).length === 1 && P.plan({ ...base, learned_min: 9 * 60 }, at('2026-10-20T05:31:00Z'), []).length === 0, 'learned time (09:00 → 08:45) wins over the anchor');
+  ok(P.plan({ ...base, freq: '3x' }, at('2026-10-20T05:31:00Z'), []).length === 0 && P.plan({ ...base, freq: '3x' }, at('2026-10-21T05:31:00Z'), [])[0]?.kind === 'checkin_coffee', "'3x' → Tuesday no, Wednesday yes");
+  ok(P.plan({ ...base, paused_until: '2026-10-25' }, at('2026-10-20T05:31:00Z'), []).length === 0, 'paused → nothing');
+  ok(P.plan({ ...base, freq: 'off' }, at('2026-10-20T05:31:00Z'), []).length === 0, 'off → nothing');
+  // streak at risk in the evening (when no nudge went out that day)
+  m = P.plan({ ...base, freq: '3x' }, at('2026-10-20T17:31:00Z'), []);
+  ok(m.length === 1 && m[0].kind === 'streak' && /4 days in a row/.test(m[0].title), 'streak at risk 19:31: ' + JSON.stringify(m));
+  // supply: 5 days before run-out → push + e-mail, caps keep it to one push
+  m = P.plan({ ...base, runout: '2026-10-25' }, at('2026-10-20T05:31:00Z'), []);
+  ok(m.length === 2 && m[0].kind === 'supply' && m[1].kind === 'supply' && m.map(x => x.channel).sort().join() === 'email,push', 'supply low → push + e-mail, the daily nudge yields: ' + JSON.stringify(m.map(x => x.kind + '/' + x.channel)));
+  ok(P.plan({ ...base, runout: '2026-10-20', push: false }, at('2026-10-20T05:31:00Z'), [])[0]?.kind === 'runout', 'run-out day → e-mail');
+  // three quiet days → one no-guilt message, no more daily nudges
+  m = P.plan({ ...base, last_checkin: '2026-10-16' }, at('2026-10-20T05:31:00Z'), []);
+  ok(m.length === 2 && m.every(x => x.kind === 'missed') && /9 check-ins are safe/.test(m[0].body), '3 quiet days → missed (push + e-mail)');
+  ok(P.plan({ ...base, last_checkin: '2026-10-16' }, at('2026-10-20T05:31:00Z'), [{ dedupe_key: 'missed:2026-10-16:push', channel: 'push', local_date: '2026-10-19' }]).length === 0, 'missed only once per silence');
+  // two weeks quiet → fresh start on Monday morning
+  m = P.plan({ ...base, last_checkin: '2026-10-01' }, at('2026-10-19T06:05:00Z'), []);
+  ok(m[0]?.kind === 'winback' && m[0].channel === 'email', 'fresh start Monday 08:05');
+  // weekly check-in Sunday 18:00
+  ok(P.plan({ ...base, last_checkin: '2026-10-25' }, at('2026-10-25T17:02:00Z'), [])[0]?.kind === 'weekly', 'Sunday 18:02 → weekly check-in');
+  // time zones: same UTC moment, Lisbon is an hour behind
+  ok(P.plan({ ...base, tz: 'Europe/Lisbon' }, at('2026-10-20T05:31:00Z'), []).length === 0 && P.plan({ ...base, tz: 'Europe/Lisbon' }, at('2026-10-20T06:31:00Z'), []).length === 1, 'local time per customer');
+  // translated
+  m = P.plan({ ...base, lang: 'sl' }, at('2026-10-20T05:31:00Z'), [], { '☕ Coffee time': '☕ Čas za kavo', 'Your {product} goes with it – one tap and today is ticked.': 'Zraven sodi {product} – en dotik in danes je odkljukano.', '✅ Done': '✅ Opravljeno' });
+  ok(m[0].title === '☕ Čas za kavo' && /Zraven sodi Detox - Belly Burn/.test(m[0].body) && m[0].done === '✅ Opravljeno', 'localized texts');
+  ok(P.tr('📊 Your week in 20 seconds', { '📊 Your week in {0} seconds': '📊 Tvoj teden v {0} sekundah' }) === '📊 Tvoj teden v 20 sekundah', 'numbers carried into translations');
+
+  // … and the function (fake db + fake web push)
+  const pushes = [];
+  globalThis.__webpush = { setVapidDetails() {}, sendNotification: async (sub, payload) => { if (sub.endpoint.includes('gone')) { const e = new Error('gone'); e.statusCode = 410; throw e; } pushes.push({ sub, payload: JSON.parse(payload) }); } };
+  Object.assign(env, { CRON_SECRET: 'cron-s', VAPID_PUBLIC_KEY: 'pub', VAPID_PRIVATE_KEY: 'priv' });
+  const dir = path.join(here, '../supabase/functions/reminders'), tmp = path.join(dir, `.test-${Date.now()}.mts`);
+  fs.writeFileSync(tmp, fs.readFileSync(path.join(dir, 'index.ts'), 'utf8')
+    .replace(/import \{ createClient \} from 'npm:[^']+';/, 'const createClient = () => globalThis.__fake;')
+    .replace(/import webpush from 'npm:[^']+';/, 'const webpush = globalThis.__webpush;'));
+  handler = null; await import(tmp); fs.unlinkSync(tmp); const rem = handler;
+  store.reminder_state = [{ ...base, user_id: 'u-ana' }, { ...base, user_id: 'u-off', freq: 'off' }, { ...base, user_id: 'u-anon', member_id: 'x', email: true }];
+  store.push_subscriptions = [{ user_id: 'u-ana', endpoint: 'https://push.example/ana', p256dh: 'k', auth: 'a' }, { user_id: 'u-ana', endpoint: 'https://push.example/gone', p256dh: 'k', auth: 'a' }];
+  store.reminder_log = []; store.app_events = [];
+  const cron = (secret) => rem(new Request('https://x/reminders', { method: 'POST', headers: { 'x-cron-secret': secret } }));
+  ok((await cron('nope')).status === 401, 'reminders: wrong cron secret refused');
+  const realNow = Date.now; Date.now = () => Date.parse('2026-10-20T05:31:00Z'); const RD = Date; globalThis.Date = class extends RD { constructor(...a) { super(...(a.length ? a : [RD.parse('2026-10-20T05:31:00Z')])); } static now() { return RD.parse('2026-10-20T05:31:00Z'); } };
+  let res = await cron('cron-s'), st = await res.json();
+  ok(pushes.length === 1 && pushes[0].payload.title === '☕ Coffee time' && pushes[0].payload.done === '✅ Done', 'push sent to the live subscription: ' + JSON.stringify(st));
+  ok(!store.push_subscriptions.some(x => x.endpoint.includes('gone')), 'expired subscription (410) removed');
+  ok(!pushes.some(p => p.sub.endpoint.includes('push.example') && false) && store.reminder_log.length === 1 && store.reminder_log[0].dedupe_key === 'checkin:2026-10-20:push', 'logged once');
+  ok(!store.app_events.length, 'daily nudge never goes by e-mail; no account e-mail consent → no e-mail');
+  res = await cron('cron-s');
+  ok(pushes.length === 1, 'second run in the same window sends nothing (exactly-once)');
+  // supply low for a customer with e-mail consent → app_events reminder_due (→ Klaviyo)
+  store.reminder_state = [{ ...base, user_id: 'u-ana', runout: '2026-10-25' }]; store.reminder_log = []; pushes.length = 0;
+  await cron('cron-s');
+  const ev = store.app_events[0];
+  ok(ev && ev.name === 'reminder_due' && ev.props.kind === 'supply' && /5 days left/.test(ev.props.title) && /^https:\/\/app\.naturesfinest\.eu\/\?go=program$/.test(ev.props.url), 'e-mail reminder → app_events reminder_due: ' + JSON.stringify(ev));
+  ok(pushes.length === 1 && pushes[0].payload.tag === 'supply', 'supply push too');
+  globalThis.Date = RD; Date.now = realNow;
+  // klaviyo-sync forwards reminder_due with its text (reminders consent)
+  store.reminders['u-ana'] = true; const n1 = calls.length;
+  await hook({ id: 99, user_id: 'u-ana', name: 'reminder_due', props: { kind: 'supply', title: 'T', body: 'B', url: 'https://app.naturesfinest.eu/', lang: 'sl', weight: 80 }, created_at: new Date().toISOString() }, 'app_events');
+  const kv = calls[n1] && calls[n1].body.data.attributes;
+  ok(kv && kv.metric.data.attributes.name === 'App Reminder Due' && kv.properties.title === 'T' && kv.properties.lang === 'sl' && kv.properties.weight === undefined, 'Klaviyo "App Reminder Due" with localized text');
 }
 console.log(errs.length ? 'ERRORS:\n' + errs.join('\n') : 'no errors');
