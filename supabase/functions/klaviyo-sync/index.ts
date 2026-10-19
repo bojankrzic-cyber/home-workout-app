@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
   if (ev.table === 'consents' && r.kind === 'marketing_email') {
     const profiles = { data: [{ type: 'profile', attributes: { email, subscriptions: { email: { marketing: { consent: 'SUBSCRIBED' } } } } }] };
     if (r.granted) {
-      await klaviyo('/profile-subscription-bulk-create-jobs', { data: { type: 'profile-subscription-bulk-create-job', attributes: { custom_source: 'Formshaper app', profiles }, relationships: { list: { data: { type: 'list', id: LIST } } } } });
+      await klaviyo('/profile-subscription-bulk-create-jobs', { data: { type: 'profile-subscription-bulk-create-job', attributes: { custom_source: 'Nature\'s Finest app', profiles }, relationships: { list: { data: { type: 'list', id: LIST } } } } });
     } else {
       await klaviyo('/profile-subscription-bulk-delete-jobs', { data: { type: 'profile-subscription-bulk-delete-job', attributes: { profiles: { data: [{ type: 'profile', attributes: { email, subscriptions: { email: { marketing: { consent: 'UNSUBSCRIBED' } } } } }] } }, relationships: { list: { data: { type: 'list', id: LIST } } } } });
     }
@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
   if ((ev.table === 'workouts' || ev.table === 'activities') && !r.deleted && await marketingOk(r.user_id)) {
     const isAct = ev.table === 'activities';
     await klaviyo('/events', { data: { type: 'event', attributes: {
-      metric: { data: { type: 'metric', attributes: { name: isAct ? 'Formshaper Activity Recorded' : 'Formshaper Workout Completed' } } },
+      metric: { data: { type: 'metric', attributes: { name: isAct ? 'App Activity Recorded' : 'App Workout Completed' } } },
       profile: { data: { type: 'profile', attributes: { email } } },
       properties: isAct ? { sport: r.type, minutes: Math.round((r.moving_s ?? 0) / 60), km: Math.round((r.dist_m ?? 0) / 100) / 10 }
                         : { workout: r.data?.name ?? r.data?.session ?? 'Workout', minutes: r.data?.min ?? null },

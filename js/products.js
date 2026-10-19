@@ -16,7 +16,7 @@
     live: false,
     market: 'si',
     shop: 'https://www.naturesfinest.si',
-    utm: { utm_source: 'formshaper', utm_medium: 'app' },
+    utm: { utm_source: 'nf-app', utm_medium: 'app' },   // name-agnostic: survives app renames
     minAge: 18,
     disclaimer: 'Food supplements are not a substitute for a varied, balanced diet and a healthy lifestyle.'
   };
