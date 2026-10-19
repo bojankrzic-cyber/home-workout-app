@@ -17,8 +17,8 @@ const path = require('path');
   // scanned the QR code on the creatine pack – first visit, no profile yet
   await page.goto(url + '?p=creatine&src=pack'); await wait(500);
   ok(!/p=creatine/.test(page.url()), 'QR params removed from the address');
-  await page.fill('#pName', 'Maja'); await page.click('#pSave'); await wait(800);
-  ok(await page.$('.prod-hero'), 'after onboarding the product guide opens');
+  ok(await page.$('.prod-hero'), 'value first: the product guide opens without a profile form');
+  ok(await page.evaluate(() => Store.list().length === 1), 'a quiet local profile was made for the routine');
   ok(/3 g/.test(await page.textContent('.prod-hero')) && /Morning/.test(await page.textContent('.prod-hero')), 'how-to: dose + timing');
   await page.screenshot({ path: out + '/h1-product.png' });
   await page.click('#prAdd'); await wait(600);

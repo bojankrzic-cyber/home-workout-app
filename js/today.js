@@ -122,7 +122,7 @@
       (b.badge ? '<span class="buddy-badge">' + esc(b.badge) + '</span>' : '') + '</div>' +
       '<div class="day-ring" title="' + plan.done + ' of ' + n + ' done"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" class="dr-bg"/><circle cx="32" cy="32" r="26" class="dr-fg" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + (C * (1 - pct)).toFixed(1) + '"/></svg><b>' + plan.done + '/' + n + '</b><span>today</span></div></div>' +
       (rec ? '<div class="t-banner focusable" tabindex="0" data-go="record">● Your ' + esc(T.TYPES[rec.type].name.toLowerCase()) + ' is paused at ' + T.km(rec.d) + ' km – tap to resume</div>' : '') +
-      (window.Health && Health.todayCard ? Health.todayCard(s) : '') +
+      (window.Health && Health.todayCard ? Health.todayCard(s) : '') + (window.FinestQR && FinestQR.homeCard ? FinestQR.homeCard(s) : '') +
       '<div class="section-title"><h2>Today’s plan</h2><span>' + (plan.training ? 'training day' : 'rest day') + ' · ' + new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }) + '</span></div>' +
       '<div class="t-list">' + plan.items.map(row).join('') +
       (routine(s).length ? '<button class="t-edit btn sm ghost focusable" data-go="routine">✎ Edit my supplement routine</button>'
