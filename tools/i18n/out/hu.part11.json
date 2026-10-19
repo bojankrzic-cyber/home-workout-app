@@ -1,0 +1,12 @@
+{
+ "📸 Scan now": "📸 Beolvasás most",
+ "📷 Take a photo of the code": "📷 Fotó a kódról",
+ "QR code": "QR-kód",
+ "or barcode": "vagy vonalkód",
+ "Hold the QR code or the barcode of your pack in the frame – it scans by itself. Tap “Scan now” if it takes a moment.": "Tartsd a csomagod QR-kódját vagy vonalkódját a keretben – magától beolvassa. Ha kicsit tovább tart, koppints a “Beolvasás most” gombra.",
+ "Not reading? Tap “Scan now”, or “Take a photo of the code” – or type the product name below.": "Nem olvassa be? Koppints a “Beolvasás most” vagy a “Fotó a kódról” gombra – vagy írd be lent a termék nevét.",
+ "Looking for the code…": "Kódot keresek…",
+ "No code in the picture – move a little closer, hold still and tap again, or take a photo of the code.": "Nincs kód a képen – menj kicsit közelebb, tartsd mozdulatlanul, és koppints újra, vagy készíts fotót a kódról.",
+ "No code found in the photo – take it closer, with the code sharp and filling about a third of the picture.": "Nem található kód a fotón – fotózd közelebbről, hogy a kód éles legyen, és nagyjából a kép harmadát kitöltse.",
+ "This product isn’t in the app yet – find it by name below.": "Ez a termék még nincs az appban – keresd meg lent név szerint."
+}

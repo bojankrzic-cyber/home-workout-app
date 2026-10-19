@@ -1,0 +1,12 @@
+{
+ "📸 Scan now": "📸 Skanni kohe",
+ "📷 Take a photo of the code": "📷 Pildista koodi",
+ "QR code": "QR-kood",
+ "or barcode": "või vöötkood",
+ "Hold the QR code or the barcode of your pack in the frame – it scans by itself. Tap “Scan now” if it takes a moment.": "Hoia oma pakendi QR-koodi või vöötkoodi raamis – see skannitakse ise. Kui läheb veidi aega, puuduta “Skanni kohe”.",
+ "Not reading? Tap “Scan now”, or “Take a photo of the code” – or type the product name below.": "Ei loe? Puuduta “Skanni kohe” või “Pildista koodi” – või sisesta allpool toote nimi.",
+ "Looking for the code…": "Otsin koodi…",
+ "No code in the picture – move a little closer, hold still and tap again, or take a photo of the code.": "Pildil pole koodi – mine veidi lähemale, hoia paigal ja puuduta uuesti või pildista koodi.",
+ "No code found in the photo – take it closer, with the code sharp and filling about a third of the picture.": "Fotolt ei leitud koodi – pildista lähemalt, nii et kood oleks terav ja täidaks umbes kolmandiku pildist.",
+ "This product isn’t in the app yet – find it by name below.": "Seda toodet pole veel rakenduses – leia see allpool nime järgi."
+}
