@@ -72,11 +72,12 @@
     }
 
     App.SCREENS.scan = function () {
-      var stream = null, alive = true, raf = 0, detector = null, canvas = null, ctx = null, busy = false;
+      var stream = null, alive = true, raf = 0, detector = null, canvas = null, ctx = null, busy = false, frame = 0, t0 = Date.now(), helped = false;
       App.$('#app').innerHTML = '<div class="screen scan-screen"><div class="topbar"><h1>Scan your product</h1></div>' +
         '<div class="scan-cam" id="scCam"><video id="scVid" playsinline muted></video><div class="scan-frame"><i></i><i></i><i></i><i></i></div>' +
         '<button class="btn sm focusable scan-torch" id="scTorch" hidden>🔦 Light</button></div>' +
-        '<p class="scan-hint" id="scHint">Point the camera at the QR code on your Nature’s Finest pack.</p>' +
+        '<div class="scan-guide"><div class="sg-ok"><span class="sg-qr">' + QR_ART + '</span><b>✓ The small square code</b></div><div class="sg-no"><span class="sg-bar"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><b>✗ Not the barcode</b></div></div>' +
+        '<p class="scan-hint" id="scHint">Hold the phone 10–15 cm from the small square code on the label – it is usually next to the nutrition table.</p>' +
         '<div class="panel scan-find"><h3>No camera? Find your product</h3><input id="scQ" class="focusable" type="search" autocomplete="off" placeholder="Name or the 4-digit number on the label">' +
         '<div class="scan-res" id="scRes"></div></div></div>';
       var vid = $('#scVid');
@@ -103,25 +104,34 @@
       function tick() {
         if (!alive) return;
         if (busy || vid.readyState < 2) { raf = requestAnimationFrame(tick); return; }
+        if (!helped && Date.now() - t0 > 9000) {
+          helped = true; var hh = $('#scHint');
+          if (hh) { hh.classList.add('more'); hh.textContent = 'Can’t find it? Move closer to the square code, turn the pack so the code faces the camera, or type the 4-digit number from the label below.'; }
+        }
         busy = true;
         var done = function () { busy = false; if (alive) raf = requestAnimationFrame(tick); };
         if (detector) {
           detector.detect(vid).then(function (codes) { if (codes && codes.length && found(codes[0].rawValue)) return; done(); }, done);
         } else if (global.jsQR) {
-          var w = vid.videoWidth, h = vid.videoHeight, sc = Math.min(1, 640 / Math.max(w, h));
-          canvas.width = w * sc; canvas.height = h * sc;
-          ctx.drawImage(vid, 0, 0, canvas.width, canvas.height);
-          var img = ctx.getImageData(0, 0, canvas.width, canvas.height), r = global.jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
+          // every other frame: the whole picture (scaled), or the centre at full sharpness – small codes on a
+          // label are often only ~150 px wide in a 1080p frame, too small once the whole frame is scaled down
+          var w = vid.videoWidth, h = vid.videoHeight, crop = (frame++ % 2) === 1, sx = 0, sy = 0, sw = w, sh = h;
+          if (crop) { sw = Math.round(w * 0.55); sh = Math.round(h * 0.55); sx = Math.round((w - sw) / 2); sy = Math.round((h - sh) / 2); }
+          var sc = Math.min(1, (crop ? 1000 : 900) / Math.max(sw, sh));
+          canvas.width = Math.round(sw * sc); canvas.height = Math.round(sh * sc);
+          ctx.drawImage(vid, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+          var img = ctx.getImageData(0, 0, canvas.width, canvas.height), r = global.jsQR(img.data, img.width, img.height, { inversionAttempts: frame % 6 < 2 ? 'attemptBoth' : 'dontInvert' });
           if (r && r.data && found(r.data)) return;
           done();
         } else done();
       }
       function startCam() {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return noCam('This browser can’t use the camera here – find your product below.');
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }, audio: false }).then(function (s) {
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false }).then(function (s) {
           if (!alive) { s.getTracks().forEach(function (t) { t.stop(); }); return; }
           stream = s; vid.srcObject = s; vid.play().catch(function () {});
           var track = s.getVideoTracks()[0], caps = track && track.getCapabilities ? track.getCapabilities() : {};
+          if (caps.focusMode && caps.focusMode.indexOf('continuous') >= 0) track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(function () {});
           if (caps.torch) {
             var tb = $('#scTorch'), on = false; tb.hidden = false;
             tb.onclick = function () { on = !on; track.applyConstraints({ advanced: [{ torch: on }] }).catch(function () {}); tb.classList.toggle('on', on); };
