@@ -354,7 +354,7 @@
 
   // Wordmark: condensed italic caps read as "sport" (scoreboards, kits); the brand line sits underneath
   function brandMark(cls) {
-    return '<div class="brand ' + (cls || '') + '"><div class="wm"><span class="wm-top">FINEST<em>DAILY</em></span>' +
+    return '<div class="brand ' + (cls || '') + '"><div class="wm"><span class="wm-top">FINEST<em>ME</em></span>' +
       '<span class="wm-by">' + 'by nature\u2019s finest'.split('').map(function (c) { return '<i>' + (c === ' ' ? '&nbsp;' : c) + '</i>'; }).join('') + '</span></div></div>';
   }
 

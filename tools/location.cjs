@@ -29,7 +29,7 @@ const path = require('path');
   await page.clock.runFor(400);
   await page.fill('#pName', 'Ana'); await page.click('#pSave'); await page.clock.runFor(600);
   ok(/FINEST/.test(await page.textContent('.brand')), 'new wordmark');
-  ok((await page.title()).startsWith('Finest Daily'), 'new title');
+  ok((await page.title()).startsWith('FinestMe'), 'new title');
   await page.evaluate(() => window.__go('record', { type: 'walk' })); await page.clock.runFor(500);
   ok(/Location is off/.test(await page.textContent('#rGps')), 'status says location is off');
   ok(/aA/.test(await page.textContent('.loc-card')), 'iPhone steps shown');

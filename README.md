@@ -1,4 +1,4 @@
-# Finest Daily — by Nature's Finest
+# FinestMe — by Nature's Finest
 
 Logotip je besedni znak brez lista: **FORM**SHAPER v ozki poševni športni pisavi Barlow Condensed (»SHAPER« v zeleni barvi Nature's Finest `#0ba74b`), pod njim razprto »BY NATURE'S FINEST«. Ikona aplikacije je poševni monogram »F«. V isti pisavi so časovniki v predvajalniku (videz semaforja). Ostali UI: Rethink Sans 400–600.
 

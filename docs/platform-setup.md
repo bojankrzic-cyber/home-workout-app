@@ -1,4 +1,4 @@
-# Platforma Finest Daily – postavitev računov, oblaka in domene
+# Platforma FinestMe – postavitev računov, oblaka in domene
 
 Stanje kode: vse spodaj je pripravljeno in testirano v repozitoriju. Aplikacija ostaja **samo lokalna**, dokler v `js/config.js` ni vpisan Supabase projekt. Vklop torej ne zahteva sprememb kode, samo spodnje korake.
 
@@ -50,7 +50,7 @@ Arhitektura (potrjeno 19. 10. 2026):
 - Za več trgov (35+): en webhook na trgovino, vsak z lastnim `SHOP_ID`. Funkcija je ena sama.
 
 ## 4. Klaviyo
-- Ustvari list "Finest Daily app". Njegov ID je `KLAVIYO_LIST_ID`. Double opt-in nastavi na listu.
+- Ustvari list "FinestMe app". Njegov ID je `KLAVIYO_LIST_ID`. Double opt-in nastavi na listu.
 - Private API key s scope-i `profiles:write`, `lists:write`, `subscriptions:write`, `events:write`.
 - Kaj gre v Klaviyo:
   - samo marketinška privolitev (subscribe/unsubscribe);
@@ -75,7 +75,7 @@ Arhitektura (potrjeno 19. 10. 2026):
 - **Posebna kategorija osebnih podatkov (čl. 9 GDPR):** podatki o vadbi, telesu in zdravju. Pravna podlaga je izrecna privolitev. Ta je v aplikaciji obvezna ob ustvarjanju računa in shranjena z različico besedila (`consents`, `v1-2026-10`).
 - **DPIA** za aplikacijo (zdravstveni podatki + lokacija/GPS).
 - **Pogodbi o obdelavi (DPA):** s Supabase in z e-poštnim ponudnikom (SMTP). Klaviyo DPA že obstaja.
-- **Politika zasebnosti:** nov razdelek "Finest Daily aplikacija" (namen, hramba, pravice, brisanje). Povezava gre v `privacyUrl`.
+- **Politika zasebnosti:** nov razdelek "FinestMe aplikacija" (namen, hramba, pravice, brisanje). Povezava gre v `privacyUrl`.
 - **Pravica do izbrisa:** gumb "Delete account & cloud data" izbriše račun in vse podatke aplikacije. Naročila ostanejo zaradi računovodstva, vendar brez povezave na račun.
 - **Navodila za uporabo izdelkov (rutina):** odmerki v `js/products.js` (`use.dose`) se morajo ujemati z etiketo. Regulatorno jih je treba potrditi pred zagonom.
 
