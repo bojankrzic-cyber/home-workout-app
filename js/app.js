@@ -10,6 +10,8 @@
   var root = document.getElementById('app');
   var stack = [];
   var players = [];
+  // phones/tablets: tap-driven, so focus must never scroll the page (focus rings are for the TV remote)
+  var TOUCH = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
   var cleanup = [];
 
   // ---------------------------------------------------------------- utils
@@ -324,7 +326,8 @@
     var idx = restoring && top.focusIdx >= 0 ? top.focusIdx : 0;
     var auto = (fid && $('[data-fid="' + fid + '"]', scope)) || $('[data-autofocus]', scope);
     var el = restoring ? list[idx] : (auto || list[0]);
-    if (el) el.focus({ preventScroll: !!fid || restoring });
+    // touch screens: no auto-focus (it scrolls iOS Safari and paints a TV focus ring on a random button)
+    if (el && !TOUCH) el.focus({ preventScroll: !!fid || restoring });
   }
 
   // Every screen except home and the workout player gets the same "← Back" in the same place
@@ -406,14 +409,20 @@
     });
   }
 
-  function rx(item) {
-    var e = ex(item.id);
-    if (item.cardio) return item.cardio.min ? item.cardio.min + ' min' : item.cardio.rounds + '× ' + item.cardio.work + '/' + item.cardio.easy + ' s';
-    if (item.dist) return item.dist + ' m';
-    if (item.time && item.sets === 1) return item.time >= 60 ? fmt(item.time) + ' min' : item.time + ' s' + ((item.perSide || e.perSide) ? '/side' : '');
-    if (item.time) return item.sets + '× ' + item.time + ' s' + ((item.perSide || e.perSide) ? '/side' : '');
+  // Prescription in plain words: "3 sets × 12–15 reps" – parts() feeds both the text and the card layout
+  function rxParts(item) {
+    var e = ex(item.id), side = (item.perSide || e.perSide) ? 'each side' : '';
+    if (item.cardio) return item.cardio.min ? { amt: item.cardio.min, unit: 'min' } : { sets: item.cardio.rounds, setWord: 'rounds', amt: item.cardio.work + ' s hard', unit: '/ ' + item.cardio.easy + ' s easy' };
+    if (item.dist) return { amt: item.dist, unit: 'm' };
+    if (item.time && item.sets === 1) return item.time >= 60 ? { amt: fmt(item.time), unit: 'min' } : { amt: item.time, unit: 's', side: side };
+    if (item.time) return { sets: item.sets, amt: item.time, unit: 's', side: side };
     var r = item.reps[0] === item.reps[1] ? item.reps[0] : item.reps[0] + '–' + item.reps[1];
-    return item.sets + '× ' + r + ((item.perSide || e.perSide) ? '/side' : '');
+    return { sets: item.sets, amt: r, unit: 'reps', side: side };
+  }
+  function rxHtml(item) {
+    var x = rxParts(item);
+    return '<span class="rx-line">' + (x.sets ? '<span class="rx-n"><b>' + x.sets + '</b>' + (x.setWord || (x.sets === 1 ? 'set' : 'sets')) + '</span><span class="rx-x">×</span>' : '') +
+      '<span class="rx-n"><b>' + x.amt + '</b>' + x.unit + '</span></span>' + (x.side ? '<span class="rx-side">' + x.side + '</span>' : '');
   }
   function loadTxt(e, load) {
     if (e.unit === 'kg') return load ? load + ' kg' : 'bodyweight';
@@ -660,7 +669,9 @@
       ((state.settings.limits || []).length ? ' · joint-friendly swaps on' : '') + '</p></div><div class="spacer"></div>' +
       (sess.custom ? '<button class="btn ghost focusable" id="saveTgl">' + (state.saved.indexOf(p.key) >= 0 ? '★ Saved' : '☆ Save') + '</button>' : '') +
       '<button class="btn focusable" data-go="preview" data-p=\'{"key":"' + p.key + '"}\'>📺 Preview</button>' +
-      '<button class="btn primary focusable" data-autofocus data-go="player" data-p=\'{"key":"' + p.key + '"}\'>▶ Start</button></div><div class="blocks">';
+      '<button class="btn primary focusable" data-autofocus data-go="player" data-p=\'{"key":"' + p.key + '"}\'>▶ Start</button></div>' +
+      '<div class="rx-help"><b>How to read it:</b> <i>3 sets × 12–15 reps</i> = do 12–15 repetitions, rest, and repeat until you have done 3 rounds (sets). ' +
+      'Choose a weight – or an easier variation – where the last 2–3 reps feel hard. <i>A1 / A2</i> = do them back to back, then rest.</div><div class="blocks">';
     sess.blocks.forEach(function (b, bi) {
       html += '<div class="block"><h3>' + esc(b.title) + '</h3>';
       b.items.forEach(function (it, ii) {
@@ -671,7 +682,7 @@
           '<div class="ex-thumb" data-thumb="' + it.id + '"></div><div><h4>' + tag + esc(e.name) + '</h4><div class="sub">' +
           (it.swappedFrom ? '<span class="swap-note">⇄ ' + (it.joint ? 'joint-friendly swap for' : 'swapped for') + ': ' + esc(ex(it.swappedFrom).name) + '</span> · ' : '') + (it.caution ? '<span class="caution-note">⚠ loads a joint you flagged – go light or skip</span> · ' : '') + esc(e.muscles) +
           (it.sug && it.sug.why ? ' · <span style="color:var(--accent)">' + esc(it.sug.why) + '</span>' : '') + '</div></div>' +
-          '<div class="rx">' + rx(it) + load + '</div></div>';
+          '<div class="rx">' + rxHtml(it) + load + '</div></div>';
       });
       html += '</div>';
     });
@@ -740,8 +751,8 @@
       '<div class="label">Proper form – step by step</div><ol class="steps" id="exSteps">' + steps.map(function (s, k) { return '<li data-i="' + s.i + '"><b>' + (k + 1) + '</b>' + esc(s.l) + '</li>'; }).join('') + '</ol>' +
       '<div class="label">Key cues</div><ul class="cues ok">' + e.cues.map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('') + '</ul>' +
       '<div class="label">Common mistakes</div><ul class="cues bad">' + (e.mistakes || []).map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('') + '</ul>' +
-      '<div class="controls"><button class="btn primary focusable" id="solo">▶ Train this exercise</button><button class="btn focusable" id="spd">Speed 1×</button>' +
-      '<button class="btn focusable" id="gd">Form guides: on</button><button class="btn ghost focusable" id="bk">← Back</button></div></div>';
+      '<div class="controls"><button class="btn primary focusable" id="solo">▶ Train<span class="wide-only"> this exercise</span></button><button class="btn focusable" id="spd">Speed 1×</button>' +
+      '<button class="btn focusable" id="gd">Guides: on</button><button class="btn ghost focusable" id="bk">← Back</button></div></div>';
     document.body.appendChild(el);
     var speeds = [1, 0.5, 0.25], si = 0;
     var exCue = cueHolder($('#exPhase'));
@@ -755,7 +766,7 @@
       }
     });
     $('#spd').onclick = function () { si = (si + 1) % speeds.length; pl.speed = (e.speed || 1) * speeds[si]; this.textContent = 'Speed ' + speeds[si] + '×'; };
-    $('#gd').onclick = function () { pl.guides = pl.labels = !pl.guides; this.textContent = 'Form guides: ' + (pl.guides ? 'on' : 'off'); };
+    $('#gd').onclick = function () { pl.guides = pl.labels = !pl.guides; this.textContent = 'Guides: ' + (pl.guides ? 'on' : 'off'); };
     $('#bk').onclick = back;
     $('#solo').onclick = function () { startCustom(Program.single(p.id), 'player'); };
     if (ph) {
@@ -923,7 +934,8 @@
       $('#pvBlock').textContent = items[idx].block;
       $('#pvMus').textContent = e.muscles;
       $('#pvName').textContent = e.name;
-      $('#pvRx').innerHTML = '<div><b>' + esc(rx(it)) + '</b><span>sets</span></div><div><b>' + esc(it.sug ? loadTxt(e, it.sug.load) : it.cardio ? 'cardio' : 'hold') + '</b><span>load</span></div><div><b>' + esc(e.tempo || '') + '</b><span>tempo</span></div>';
+      var x = rxParts(it);
+      $('#pvRx').innerHTML = (x.sets ? '<div><b>' + x.sets + '</b><span>' + (x.setWord || 'sets') + '</span></div>' : '') + '<div><b>' + esc(String(x.amt)) + '</b><span>' + esc(x.unit + (x.side ? ' ' + x.side : '')) + '</span></div><div><b>' + esc(it.sug ? loadTxt(e, it.sug.load) : it.cardio ? 'cardio' : 'hold') + '</b><span>load</span></div><div><b>' + esc(e.tempo || '') + '</b><span>tempo</span></div>';
       $('#pvCues').innerHTML = e.cues.map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('');
       $('#pvMap').innerHTML = muscleMap(e.anim.muscles);
       $('#pvChips').innerHTML = musChips(e.anim.muscles, true);
@@ -1037,7 +1049,7 @@
     keepAwake(true);
     Sound.unlock(); Sound.session(true);
     // Phones: timer and technique can't both fit, so the screen alternates between them
-    // (technique 7 s → timer 9 s); tapping a tab takes over for 20 s. TVs/desktops show both side by side.
+    // (technique 7 s → timer 6.3 s); tapping a tab takes over for 20 s. TVs/desktops show both side by side.
     var narrow = window.matchMedia('(max-width: 900px)');
     var view = 'form', viewT = 0, manualUntil = 0, done = false;
     if (narrow.matches) el.appendChild($('.controls', el));
@@ -1052,7 +1064,7 @@
     function autoView() {
       if (!narrow.matches || done || Date.now() < manualUntil) return;
       viewT += 0.25;
-      if (viewT >= (view === 'form' ? 7 : 9)) setView(view === 'form' ? 'timer' : 'form');
+      if (viewT >= (view === 'form' ? 7 : 6.3)) setView(view === 'form' ? 'timer' : 'form');
     }
     setView('form');
     var pl = new Figure.Player($('#wFig'), { aspect: 1.45, labels: true, onPhase: cueHolder($('#wPhase')) });
@@ -1083,8 +1095,8 @@
       if (!nx) { $('#wNextLbl').textContent = 'Final stretch'; $('#wNextName').textContent = 'Almost there – you’ve got this 💪'; nextPl.stop(); return; }
       var ne = ex(nx.id);
       $('#wNextLbl').textContent = 'Next →' + (nx.kind === 'reps' && nx.sets > 1 ? ' set ' + nx.set + '/' + nx.sets : '') + (nx.rest === 0 && phase === 'rest' ? '' : '');
-      $('#wNextName').textContent = (nx.kind === 'reps' ? (nx.item.reps[0] === nx.item.reps[1] ? nx.item.reps[0] : nx.item.reps[0] + '–' + nx.item.reps[1]) + '× ' :
-        nx.kind === 'dist' ? nx.dist + ' m ' : fmt(nx.sec) + ' ') + ne.name;
+      $('#wNextName').textContent = (nx.kind === 'reps' ? (nx.item.reps[0] === nx.item.reps[1] ? nx.item.reps[0] : nx.item.reps[0] + '–' + nx.item.reps[1]) + ' reps · ' :
+        nx.kind === 'dist' ? nx.dist + ' m · ' : fmt(nx.sec) + ' · ') + ne.name;
       nextPl.speed = ne.speed || 1; nextPl.load(ne.anim);
     }
 
@@ -1237,7 +1249,7 @@
       }
       if (s.kind === 'reps') {
         var tgt = s.item.reps[1], pr = Math.min(pacerReps(), tgt);
-        top.textContent = 'REP PACER'; val.textContent = pr; sub.textContent = '/ ' + tgt + ' · ' + fmt(elapsed);
+        top.textContent = s.sets > 1 ? 'SET ' + s.set + ' OF ' + s.sets : 'REPS'; val.textContent = pr; sub.textContent = 'of ' + tgt + ' reps';
         setRing('wRing', pr / tgt);
         if (!pacerHit && tgt >= 6 && pr !== lastMilestone) {
           lastMilestone = pr;
@@ -1459,6 +1471,8 @@
         maxHr: es.maxHr || null, restHr: es.restHr || null,
         limits: (es.limits || []).slice(), prefDays: (es.prefDays || []).slice(), sessionMin: es.sessionMin || null,
         pin: null, clearPin: false, more: !!existing,
+        // new people: most own no equipment, so bodyweight is the default unless they share this household's gear
+        eqMode: existing ? 'custom' : state ? 'same' : 'bw',
         equipment: (existing ? es.equipment : (state ? state.settings.equipment : null) || Exercises.HOME_GYM).slice()
       };
     }
@@ -1497,7 +1511,10 @@
       '<div class="opt-row"><div class="k">Color</div>' + Store.COLORS.map(function (c) {
         return '<button class="swatch focusable' + (d.color === c ? ' on' : '') + '" data-fid="pe-color-' + c + '" data-pe="color" data-val=\'"' + c + '"\' style="background:' + c + '"></button>';
       }).join('') + '</div>' +
-      '<div class="opt-row"><div class="k">Training level</div>' + chip('level', 'beg', 'Beginner') + chip('level', 'mid', 'Intermediate') + chip('level', 'adv', 'Advanced') + '</div></div>';
+      '<div class="opt-row"><div class="k">Training level</div>' + chip('level', 'beg', 'Beginner') + chip('level', 'mid', 'Intermediate') + chip('level', 'adv', 'Advanced') + '</div>' +
+      (existing ? '' : '<div class="opt-row"><div class="k">Equipment</div>' + chip('eqMode', 'bw', '🤸 None – just my body') +
+        (state ? chip('eqMode', 'same', 'Same as ' + esc(state.name)) : '') + chip('eqMode', 'pick', 'I have some – let me pick') +
+        (d.eqMode === 'custom' ? chip('eqMode', 'custom', pl(d.equipment.length, NAP) + ' selected') : '') + '</div>') + '</div>';
 
     var goalPanel = '<div class="panel"><h3>Your goal</h3><div class="hint">Shapes your program: reps, rest, sets and cardio.</div>' + goalTiles +
       (d.more ? '<div class="pgrid">' + num('targetWeight', 'Target weight', 'kg', 0.5) +
@@ -1579,7 +1596,7 @@
       };
     });
     if ($('#pClear')) $('#pClear').onclick = function () { readInputs(); d.clearPin = !d.clearPin; refresh(); };
-    if ($('#pEquip')) $('#pEquip').onclick = function () { readInputs(); eqDraft = null; go('equipment', { draft: true }); };
+    if ($('#pEquip')) $('#pEquip').onclick = function () { readInputs(); eqDraft = null; d.eqMode = 'custom'; go('equipment', { draft: true }); };
     $('#pSave').onclick = function () {
       readInputs();
       if (!d.name) { toast('Enter a name'); $('#pName').focus(); return; }
@@ -1588,13 +1605,14 @@
       var ps = pr.settings;
       pr.name = d.name; pr.color = d.color;
       ['level', 'days', 'goal', 'why', 'targetWeight', 'targetDate', 'sex', 'birthYear', 'height', 'maxHr', 'restHr', 'sessionMin'].forEach(function (k) { ps[k] = d[k]; });
-      ps.limits = d.limits.slice(); ps.prefDays = d.prefDays.slice(); ps.equipment = d.equipment.slice();
+      ps.limits = d.limits.slice(); ps.prefDays = d.prefDays.slice();
+      ps.equipment = d.eqMode === 'bw' || d.eqMode === 'pick' ? [] : d.eqMode === 'same' && state ? (state.settings.equipment || []).slice() : d.equipment.slice();
       if (d.weight !== ps.weight) logWeight(pr, d.weight);
       if (d.pin) Store.setPin(pr, d.pin); else if (d.clearPin) Store.setPin(pr, null);
       Store.save();
       pdraft = null;
       if (existing && state && existing.id === state.id) { toast('Profile saved'); back(); }
-      else if (!existing) { eqDraft = null; activate(pr); }
+      else if (!existing) { eqDraft = null; activate(pr); if (d.eqMode === 'pick') go('equipment', { onboard: true }); }
       else activate(pr);
     };
     if ($('#pCancel')) $('#pCancel').onclick = function () { pdraft = null; back(); };
@@ -1728,7 +1746,7 @@
         var sid = it.swappedFrom || it.id;
         var canSwap = e.type !== 'mobility' && Program.alternatives(src, sid, o.owned).length;
         html += '<div class="ex-row b-row"><div class="ex-thumb" data-thumb="' + it.id + '"></div><div><h4>' + tag + esc(e.name) + '</h4><div class="sub">' + esc(e.muscles) + '</div></div>' +
-          '<div class="rx">' + rx(it) + (it.sug ? '<small>' + esc(loadTxt(e, it.sug.load)) + '</small>' : '') + '</div>' +
+          '<div class="rx">' + rxHtml(it) + (it.sug ? '<small>' + esc(loadTxt(e, it.sug.load)) + '</small>' : '') + '</div>' +
           '<div class="row-actions">' + (canSwap ? '<button class="btn sm focusable" data-fid="sw-' + r + '" data-swap="' + sid + '">⇄ Swap</button>' : '') +
           '<button class="btn sm ghost focusable" data-fid="rm-' + r + '" data-rm="' + sid + '" aria-label="Remove" title="Remove">✕</button></div></div>';
       });
