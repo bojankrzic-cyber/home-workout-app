@@ -1,0 +1,7 @@
+{
+ "✓ The small square code": "✓ Väike ruudukujuline QR-kood",
+ "✗ Not the barcode": "✗ Mitte vöötkood",
+ "Hold the phone {0}–{1} cm from the small square code on the label – it is usually next to the nutrition table.": "Hoia telefoni {0}–{1} cm kaugusel etiketil olevast väikesest ruudukujulisest QR-koodist – see on tavaliselt toitumisalase teabe tabeli kõrval.",
+ "Can’t find it? Move closer to the square code, turn the pack so the code faces the camera, or type the {0}-digit number from the label below.": "Ei leia? Mine QR-koodile lähemale, keera pakendit nii, et kood oleks kaamera poole, või sisesta allpool etiketil olev {0}-kohaline number.",
+ "Name or the {0}-digit number on the label": "Nimi või etiketil olev {0}-kohaline number"
+}

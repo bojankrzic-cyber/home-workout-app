@@ -1,0 +1,7 @@
+{
+ "✓ The small square code": "✓ Majhna kvadratna koda QR",
+ "✗ Not the barcode": "✗ Ne črtna koda",
+ "Hold the phone {0}–{1} cm from the small square code on the label – it is usually next to the nutrition table.": "Telefon drži {0}–{1} cm od majhne kvadratne kode QR na etiketi – običajno je ob tabeli hranilnih vrednosti.",
+ "Can’t find it? Move closer to the square code, turn the pack so the code faces the camera, or type the {0}-digit number from the label below.": "Ne najdeš kode? Približaj se kodi QR, obrni embalažo, da bo koda obrnjena proti kameri, ali spodaj vpiši {0}-mestno številko z etikete.",
+ "Name or the {0}-digit number on the label": "Ime ali {0}-mestna številka z etikete"
+}

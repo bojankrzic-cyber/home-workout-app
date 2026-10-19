@@ -1,0 +1,7 @@
+{
+ "✓ The small square code": "✓ Ο μικρός τετράγωνος κωδικός QR",
+ "✗ Not the barcode": "✗ Όχι το barcode",
+ "Hold the phone {0}–{1} cm from the small square code on the label – it is usually next to the nutrition table.": "Κράτα το κινητό {0}–{1} cm από τον μικρό τετράγωνο κωδικό QR στην ετικέτα – συνήθως είναι δίπλα στον πίνακα διατροφικής αξίας.",
+ "Can’t find it? Move closer to the square code, turn the pack so the code faces the camera, or type the {0}-digit number from the label below.": "Δεν τον βρίσκεις; Πλησίασε στον κωδικό QR, γύρισε τη συσκευασία ώστε ο κωδικός να κοιτάζει την κάμερα ή πληκτρολόγησε παρακάτω τον {0}ψήφιο αριθμό από την ετικέτα.",
+ "Name or the {0}-digit number on the label": "Όνομα ή ο {0}ψήφιος αριθμός από την ετικέτα"
+}

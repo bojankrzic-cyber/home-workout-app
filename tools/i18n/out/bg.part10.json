@@ -1,0 +1,7 @@
+{
+ "✓ The small square code": "✓ Малкият квадратен QR код",
+ "✗ Not the barcode": "✗ Не баркода",
+ "Hold the phone {0}–{1} cm from the small square code on the label – it is usually next to the nutrition table.": "Дръж телефона на {0}–{1} cm от малкия квадратен QR код на етикета – обикновено е до таблицата с хранителните стойности.",
+ "Can’t find it? Move closer to the square code, turn the pack so the code faces the camera, or type the {0}-digit number from the label below.": "Не го намираш? Приближи се до QR кода, завърти опаковката така, че кодът да гледа към камерата, или въведи по-долу {0}-цифрения номер от етикета.",
+ "Name or the {0}-digit number on the label": "Име или {0}-цифреният номер от етикета"
+}
