@@ -23,7 +23,7 @@ Arhitektura (potrjeno 19. 10. 2026):
 2. Shema:
    ```bash
    supabase link --project-ref <ref>
-   supabase db push              # supabase/migrations/*.sql (platform_init, devices)
+   supabase db push              # supabase/migrations/*.sql (platform_init, devices, program_events)
    ```
 3. **Auth → URL configuration**:
    - Site URL `https://app.naturesfinest.eu`;
@@ -38,7 +38,7 @@ Arhitektura (potrjeno 19. 10. 2026):
    supabase functions deploy shop-order --no-verify-jwt
    supabase functions deploy klaviyo-sync --no-verify-jwt
    ```
-7. **Database → Webhooks** (INSERT na `consents`, `workouts`, `activities`) → `https://<ref>.supabase.co/functions/v1/klaviyo-sync`, header `Authorization: Bearer <WEBHOOK_TOKEN>`.
+7. **Database → Webhooks** (INSERT na `consents`, `workouts`, `activities`, `app_events`) → `https://<ref>.supabase.co/functions/v1/klaviyo-sync`, header `Authorization: Bearer <WEBHOOK_TOKEN>`.
 8. V `js/config.js` vpiši `supabaseUrl` in `supabaseAnonKey`. Anon ključ je javen po zasnovi. `privacyUrl` nastavi na točno stran politike zasebnosti.
 
 ### Prijava z Googlom
@@ -72,7 +72,44 @@ Arhitektura (potrjeno 19. 10. 2026):
 - Predlagani flowi:
   - welcome za app;
   - "7 dni brez aktivnosti" (winback);
-  - "zaloga izdelka gre h koncu" (naslednji korak: rutina dopolnil × datum naročila).
+  - "zaloga izdelka gre h koncu" (dogodek `App Supply Low`, glej spodaj).
+
+### Health program → Klaviyo opomniki
+Health program (dnevna rutina dopolnil, check-ini, napoved, kdaj zmanjka izdelka, nagrade) zapisuje dogodke v tabelo `app_events`. Klaviyo iz njih pošlje opomnike po e-pošti, SMS ali WhatsAppu. To je najhitrejši pravi kanal za opomnike, dokler ni nativne aplikacije s push obvestili.
+
+**Nastavitev:**
+1. Database → Webhooks: **INSERT na `app_events`** → `https://<ref>.supabase.co/functions/v1/klaviyo-sync`, header `Authorization: Bearer <WEBHOOK_TOKEN>` (lahko isti webhook kot za `consents`/`workouts`/`activities`, samo dodaj tabelo).
+2. `klaviyo-sync` vsak dogodek pošlje kot Klaviyo metriko `App <Ime>` (npr. `supply_low` → **App Supply Low**), `unique_id` = `app_events:<id>` (brez dvojnikov ob ponovnem poskusu). Dogodki, starejši od 3 dni, se ne pošljejo.
+3. V Klaviyo gredo **samo** ključi: `product, product_id, sku, days_left, reorder_url, reward, code, checkins, streak, missed, week, adherence, energy, sleep, mood, checkin_time, until` (samo besedilo, števila, da/ne). Vse ostalo funkcija zavrže.
+4. Zaščita v bazi: največ 200 dogodkov na uporabnika na dan, `props` največ 4 kB; uporabnik lahko dogodke samo dodaja in bere svoje.
+
+**Privolitve:**
+- `reminders` je **ločena privolitev** ("pošiljaj mi opomnike za mojo rutino"). Je storitveno sporočilo, ki ga je uporabnik zahteval, ni marketing. Ne doda na marketinški list. V Klaviyo nastavi le lastnost profila `finestme_reminders` (true/false), ki jo uporabi kot filter v flowih.
+- Opomniki rutine (`supply_low`, `checkins_missed`, `weekly_review`, `routine_started`, `program_paused`, `checkin_streak`, `reorder_clicked`): potrebna `reminders` **ali** `marketing_email`.
+- `reward_unlocked` in `complement_suggested` sta marketing: potrebna `marketing_email`.
+- Brez ustrezne privolitve funkcija ne pokliče Klaviya.
+
+**Flowi v Klaviyu (trigger = metrika):**
+| Dogodek | Flow | Vsebina |
+|---|---|---|
+| App Supply Low | ponovno naročilo: e-mail, nato SMS/WhatsApp | "{{ product }} ti zmanjka čez {{ days_left }} dni", gumb na `reorder_url`. Izstop iz flowa ob `App Reorder Clicked` ali naročilu |
+| App Checkins Missed | nežen opomnik brez krivde | "Življenje se zgodi. Nadaljuj, kjer si ostal." Povezavi *spremeni uro opomnika* in *začasno ustavi program* (globoki povezavi v aplikacijo) |
+| App Reward Unlocked | nagrada | `reward` + koda `code` (samo z marketinško privolitvijo) |
+| App Weekly Review | ponedeljkov povzetek | `checkins`, `adherence`, `streak`, trendi `energy`/`sleep`/`mood` |
+| App Program Paused | brez sporočil do `until` | flow filter / pogoj na datum |
+| App Routine Started, App Checkin Streak | dobrodošlica v rutino, čestitka ob nizu | neobvezno |
+
+- Opomnike za ljudi **samo z `reminders`** (brez marketinške privolitve) Klaviyo pošlje le, če je sporočilo v flowu označeno kot **transakcijsko** (Klaviyo mora račun za to odobriti). Sicer jih preskoči. Marketinška sporočila (nagrade, predlogi) ostanejo nastavljena kot marketinška.
+- V vsak flow opomnikov dodaj filter `finestme_reminders = true` ALI "lahko prejema marketinško e-pošto", da preklic ustavi tudi že začete flowe.
+
+**SMS in WhatsApp:**
+- SMS: Klaviyo SMS (pošiljatelj za SI/EU, ločen opt-in za SMS, telefonska številka na profilu).
+- WhatsApp: **Klaviyo WhatsApp**, če je v računu na voljo; sicer BSP (npr. Twilio, 360dialog, Infobip), ki ga sproži Klaviyo webhook akcija v flowu.
+- WhatsApp zahteva vnaprej odobrene predloge (templates):
+  - **utility** za opomnike (zaloga, zamujeni check-ini, tedenski povzetek): cenejši, brez marketinške vsebine;
+  - **marketing** za nagrade in predloge izdelkov.
+- WhatsApp potrebuje izrecen opt-in za WhatsApp (številka + kanal + namen), ločeno od e-pošte. V aplikaciji ga zbiraj ob vklopu opomnikov.
+- Brez zdravstvenih podrobnosti v SMS/WhatsApp (samo ime izdelka, dnevi, povezava).
 
 ## 5. Pametne naprave (samodejna sinhronizacija)
 Ure, zapestnice in tehtnice pošiljajo aktivnosti in meritve v aplikacijo samodejno, brez ročnega uvoza.

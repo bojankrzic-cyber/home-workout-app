@@ -1,0 +1,94 @@
+{
+  "_meta": {
+    "source": "TrackDaddy BFF Postgres (read-only), completed orders",
+    "basket_window": "2026-04-19..2026-10-18 (581,842 orders); customer-level window 2025-01-01..2026-10-18",
+    "lift_definition": "basket lift = P(B|A)/P(B) per order; where basis = customer_level it is P(B|customer bought A)/P(B among all 1.23M customers)",
+    "reminder_rule": "supply_low_reminder_day = units * days_per_unit - 7; fallback median_reorder_days - 7",
+    "id_note": "ids are WooCommerce product ids of the SI store (store_id 4) as used in js/products.js; internal SKU in sku. Ids differ per market (852097 = different product in DE/CH).",
+    "generated": "2026-10-19"
+  },
+  "creatine": {
+    "name": "Creatine Monohydrate",
+    "id": 786110,
+    "sku": ["5842", "5843"],
+    "complements": [
+      { "name": "Bio Vegan Protein – Matcha & Vanilla", "id": 978562, "lift": 129.6, "confidence": 0.011, "basis": "basket, n=5 orders", "in_app_catalog": true },
+      { "name": "Hydration + Energy (Isotonic proxy)", "id": 804496, "lift": 47.4, "confidence": 0.011, "basis": "basket, n=5 orders", "in_app_catalog": true }
+    ],
+    "median_reorder_days": 46,
+    "median_reorder_n_gaps": 13,
+    "supply_low_reminder_day": 39,
+    "confidence_level": "low"
+  },
+  "recovery": {
+    "name": "Recovery Shake",
+    "id": 567616,
+    "sku": ["5728"],
+    "complements": [
+      { "name": "Vitamin D3 2000 IU", "id": 852053, "lift": 12.8, "confidence": 0.135, "basis": "customer_level, 22 of 163 customers", "in_app_catalog": true },
+      { "name": "Vitamin C", "id": null, "lift": 16.6, "confidence": 0.117, "basis": "customer_level, 19 of 163 customers", "in_app_catalog": false }
+    ],
+    "median_reorder_days": 39,
+    "median_reorder_n_gaps": 14,
+    "supply_low_reminder_day": 32,
+    "confidence_level": "low"
+  },
+  "protein": {
+    "name": "Bio Vegan Protein – Matcha & Vanilla",
+    "id": 978562,
+    "sku": ["5858"],
+    "complements": [
+      { "name": "Magnesium (citrate)", "id": 852097, "lift": 43.6, "confidence": 0.163, "basis": "basket, n=8 orders", "in_app_catalog": true },
+      { "name": "Creatine Monohydrate", "id": 786110, "lift": 129.6, "confidence": 0.102, "basis": "basket, n=5 orders", "in_app_catalog": true }
+    ],
+    "median_reorder_days": 30,
+    "median_reorder_n_gaps": 3,
+    "supply_low_reminder_day": 23,
+    "confidence_level": "low"
+  },
+  "hydration": {
+    "name": "Hydration + Energy",
+    "id": 804496,
+    "sku": ["PanStoreGrouped-662", "5673", "5532", "5542"],
+    "complements": [
+      { "name": "Creatine Monohydrate", "id": 786110, "lift": 47.4, "confidence": 0.037, "basis": "basket (Isotonic as proxy), n=5 orders", "in_app_catalog": true },
+      { "name": "Vitamin D3 2000 IU", "id": 852053, "lift": 10.6, "confidence": 0.112, "basis": "customer_level (Isotonic buyers), 55 of 491", "in_app_catalog": true }
+    ],
+    "median_reorder_days": 72,
+    "median_reorder_n_gaps": 65,
+    "supply_low_reminder_day": 65,
+    "confidence_level": "low"
+  },
+  "magnesium": {
+    "name": "Magnesium (citrate)",
+    "id": 852097,
+    "sku": ["1504", "5487", "5487-488"],
+    "complements": [
+      { "name": "Vitamin D3 2000 IU", "id": 852053, "lift": 17.6, "confidence": 0.185, "basis": "customer_level, 765 of 4130 customers", "in_app_catalog": true },
+      { "name": "Night Detox Tea", "id": null, "lift": 27.0, "confidence": 0.106, "basis": "basket organic (not same bundle), n=232 orders; lift 22-31 in HU/PL/IT/CZ/ES", "in_app_catalog": false }
+    ],
+    "median_reorder_days": 71,
+    "median_reorder_n_gaps": 497,
+    "days_per_unit": 55,
+    "supply_low_reminder_day": 64,
+    "reorder_rate_45d": 0.028,
+    "reorder_rate_90d": 0.055,
+    "confidence_level": "medium"
+  },
+  "vitd3": {
+    "name": "Vitamin D3 2000 IU",
+    "id": 852053,
+    "sku": ["1503", "5547", "5547-548"],
+    "complements": [
+      { "name": "IMUNUP", "id": null, "lift": 47.5, "confidence": 0.128, "basis": "basket organic, n=310 orders; next-purchase index 12x; 180d repeat 31.6% vs 22.3% (A only)", "in_app_catalog": false },
+      { "name": "Magnesium (citrate)", "id": 852097, "lift": 17.6, "confidence": 0.059, "basis": "customer_level, 765 of 12939 customers", "in_app_catalog": true }
+    ],
+    "median_reorder_days": 76,
+    "median_reorder_n_gaps": 1195,
+    "days_per_unit": 57,
+    "supply_low_reminder_day": 69,
+    "reorder_rate_45d": 0.022,
+    "reorder_rate_90d": 0.041,
+    "confidence_level": "high (IMUNUP), medium (Magnesium)"
+  }
+}

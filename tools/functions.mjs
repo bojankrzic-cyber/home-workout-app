@@ -7,9 +7,12 @@ let handler = null;
 const env = { SUPABASE_URL: 'x', SUPABASE_SERVICE_ROLE_KEY: 'x', WC_WEBHOOK_SECRET: 'wc-secret', SHOP_ID: 'nf-si', KLAVIYO_API_KEY: 'pk', KLAVIYO_LIST_ID: 'L1', WEBHOOK_TOKEN: 'tok', INGEST_TOKEN: 'ingest-secret' };
 globalThis.Deno = { env: { get: k => env[k] }, serve: f => { handler = f; } };
 // in-memory tables; current_consents is derived from store.consents (user → marketing granted)
-const store = { orders: [], consents: { 'u-ana': true }, device_connections: [], activities: [], body_measurements: [], ops: [] };
+// and store.reminders (user → 'reminders' granted)
+const store = { orders: [], consents: { 'u-ana': true }, reminders: {}, device_connections: [], activities: [], body_measurements: [], ops: [] };
 const rowsOf = t => t === 'current_consents'
-  ? Object.entries(store.consents).map(([user_id, granted]) => ({ user_id, kind: 'marketing_email', granted })) : (store[t] = store[t] || []);
+  ? [...Object.entries(store.consents).map(([user_id, granted]) => ({ user_id, kind: 'marketing_email', granted })),
+     ...Object.entries(store.reminders).map(([user_id, granted]) => ({ user_id, kind: 'reminders', granted }))]
+  : (store[t] = store[t] || []);
 // PostgREST-style column list: "a,b,alias:col->>key,col->key"
 const pick = (row, cols) => {
   if (!cols || cols === '*') return { ...row };
@@ -189,5 +192,53 @@ ok(a2b.dist_m === 30100 && a2b.data.title === 'Sunday hills with Bor' && a2b.dat
   ok(calls.length === n0, 'old backfilled activity sends no event');
   await hook({ user_id: 'u-ana', member_id: 'p1', local_id: 'garmin:new1', type: 'run', moving_s: 1800, dist_m: 5000, started_at: new Date(Date.now() - 3600e3).toISOString(), data: { source: 'garmin' } }, 'activities');
   ok(calls.length === n0 + 1, 'fresh synced activity still sends an event');
+}
+// ---- Health program events (app_events → Klaviyo reminder flows)
+{
+  const users = { 'u-mk': ['marketing_email'], 'u-rem': ['reminders'], 'u-none': [], 'u-off': [] };
+  store.consents['u-mk'] = true; store.consents['u-rem'] = false; store.consents['u-none'] = false;
+  store.reminders['u-rem'] = true; store.reminders['u-off'] = false;
+  const now = new Date().toISOString();
+  let id = 100;
+  const appEv = (user_id, name, props = {}, extra = {}) => hook({ id: ++id, user_id, member_id: 'p1', name, props, created_at: now, ...extra }, 'app_events');
+  const REMIND = { supply_low: 'App Supply Low', checkins_missed: 'App Checkins Missed', weekly_review: 'App Weekly Review', routine_started: 'App Routine Started',
+    program_paused: 'App Program Paused', checkin_streak: 'App Checkin Streak', reorder_clicked: 'App Reorder Clicked' };
+  const MARKETING = { reward_unlocked: 'App Reward Unlocked', complement_suggested: 'App Complement Suggested' };
+  const last = () => calls[calls.length - 1].body.data.attributes;
+  for (const [name, metric] of Object.entries({ ...REMIND, ...MARKETING })) {
+    for (const u of Object.keys(users)) {
+      const n0 = calls.length;
+      r = await appEv(u, name);
+      const allowed = u === 'u-mk' || (u === 'u-rem' && name in REMIND);
+      ok(allowed ? calls.length === n0 + 1 : calls.length === n0, `app event ${name} for ${u}: ${allowed ? 'sent' : 'blocked'}`);
+      if (allowed) ok(last().metric.data.attributes.name === metric && last().unique_id === `app_events:${id}` && /\/events$/.test(calls[calls.length - 1].url),
+        `${name} → "${metric}" with unique_id app_events:<id> (got ${last().metric.data.attributes.name})`);
+    }
+  }
+  // whitelist: only known keys with plain values reach Klaviyo
+  await appEv('u-rem', 'supply_low', { product: 'Magnesium Bisglycinate', product_id: 42, sku: '786110', days_left: 5, reorder_url: 'https://naturesfinest.eu/r/abc',
+    weight_kg: 82, hr: 61, note: 'feeling low', email: 'x@y.z', pts: [[46, 14]], energy: { nested: 1 }, mood: 4, until: '2026-11-01' });
+  const p = last().properties;
+  ok(JSON.stringify(Object.keys(p).sort()) === JSON.stringify(['days_left', 'mood', 'product', 'product_id', 'reorder_url', 'sku', 'until']),
+    'app event props whitelisted: ' + JSON.stringify(p));
+  ok(p.days_left === 5 && p.reorder_url === 'https://naturesfinest.eu/r/abc' && last().profile.data.attributes.email === 'bor@example.com', 'whitelisted values kept, profile by e-mail');
+  await appEv('u-mk', 'weekly_review', ['not', 'an', 'object']);
+  ok(JSON.stringify(last().properties) === '{}', 'non-object props → empty properties');
+  let n0 = calls.length;
+  await appEv('u-mk', 'buy_now_popup');
+  ok(calls.length === n0, 'unknown app event name sends nothing');
+  await appEv('u-mk', 'supply_low', {}, { created_at: new Date(Date.now() - 5 * 864e5).toISOString() });
+  ok(calls.length === n0, 'stale app event (webhook retry days later) sends nothing');
+  // withdrawing reminders consent stops reminders
+  store.reminders['u-rem'] = false;
+  await appEv('u-rem', 'checkins_missed', { missed: 3 });
+  ok(calls.length === n0, 'withdrawn reminders consent → no reminder');
+  // the 'reminders' consent itself sets a profile property for flow filters
+  await hook({ user_id: 'u-ana', kind: 'reminders', granted: true }, 'consents');
+  ok(calls.length === n0 + 1 && /\/profile-import$/.test(calls[n0].url) && calls[n0].body.data.attributes.properties.finestme_reminders === true &&
+    calls[n0].body.data.attributes.email === 'ana@example.com', 'reminders consent → profile property true');
+  await hook({ user_id: 'u-ana', kind: 'reminders', granted: false }, 'consents');
+  ok(calls.length === n0 + 2 && calls[n0 + 1].body.data.attributes.properties.finestme_reminders === false, 'reminders withdrawn → profile property false');
+  ok(!calls.slice(n0).some(c => /subscription/.test(c.url)), 'reminders consent never subscribes to the marketing list');
 }
 console.log(errs.length ? 'ERRORS:\n' + errs.join('\n') : 'no errors');

@@ -122,6 +122,7 @@
       (b.badge ? '<span class="buddy-badge">' + esc(b.badge) + '</span>' : '') + '</div>' +
       '<div class="day-ring" title="' + plan.done + ' of ' + n + ' done"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" class="dr-bg"/><circle cx="32" cy="32" r="26" class="dr-fg" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + (C * (1 - pct)).toFixed(1) + '"/></svg><b>' + plan.done + '/' + n + '</b><span>today</span></div></div>' +
       (rec ? '<div class="t-banner focusable" tabindex="0" data-go="record">● Your ' + esc(T.TYPES[rec.type].name.toLowerCase()) + ' is paused at ' + T.km(rec.d) + ' km – tap to resume</div>' : '') +
+      (window.Health && Health.todayCard ? Health.todayCard(s) : '') +
       '<div class="section-title"><h2>Today’s plan</h2><span>' + (plan.training ? 'training day' : 'rest day') + ' · ' + new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }) + '</span></div>' +
       '<div class="t-list">' + plan.items.map(row).join('') +
       (routine(s).length ? '<button class="t-edit btn sm ghost focusable" data-go="routine">✎ Edit my supplement routine</button>'
@@ -145,6 +146,7 @@
         var day = s2.settings.intake[ds] = s2.settings.intake[ds] || {};
         if (day[id]) delete day[id]; else day[id] = new Date().toISOString();
         prune(s2); App.save();
+        if (window.Health && Health.afterTick) Health.afterTick();
         var p2 = dayPlan(s2);
         if (day[id] && p2.done === p2.items.length) App.toast('All done for today 🎉');
         App.refresh();
@@ -182,10 +184,11 @@
       var s = st(), plan = dayPlan(s), left = plan.items.filter(function (i) { return i.kind === 'supp' && !i.done; });
       return head('🌿 Health', 'Your daily routine and body') + '<div class="sh-list">' +
         (left.length ? '<button class="sh-line focusable primary" data-take-all><span class="ico">💊</span><span><b>Take ' + (left.length === 1 ? left[0].title : 'my supplements now') + '</b><small>' + esc(left.map(function (i) { return i.title; }).join(', ')) + '</small></span></button>' : '') +
+        (routine(s).length ? line('program', {}, '🏅', 'My program', window.Health ? Health.count(s) + ' check-ins · rewards · supply · weekly progress' : '') : '') +
         line('routine', {}, '🗓️', 'My supplement routine', routine(s).length ? routine(s).length + ' in your routine · times and reminders' : 'set up – pick from Nature’s Finest or add your own') +
         '<button class="sh-line focusable" data-sheet="weight"><span class="ico">⚖️</span><span><b>Log body weight</b><small>' + (s.settings.weight ? 'last: ' + s.settings.weight + ' kg' : 'track your trend toward your goal') + '</small></span></button>' +
         line('history', {}, '📈', 'Body & progress', 'weight trend, records, weekly volume') + '</div>' +
-        '<div class="sh-soon">Coming next: scan the QR code on your Nature’s Finest product for its guide and routine.</div>';
+        '<div class="sh-soon">Scan the QR code on your Nature’s Finest pack – it opens the product guide and starts its routine.</div>';
     },
     weight: function () {
       var s = st(), v = s.settings.weight || 75;
@@ -272,6 +275,7 @@
           '<div><h3>' + esc(r.name) + '</h3><input class="field focusable r-dose" data-rdose="' + r.id + '" data-fid="rd-' + r.id + '" value="' + esc(r.dose || '') + '" placeholder="dose, e.g. 1 capsule"></div>' +
           '<button class="btn sm ghost focusable" data-rdel="' + r.id + '" aria-label="Remove">✕</button></div>' +
           (c && c.use && c.use.tip ? '<div class="hint">💡 ' + esc(c.use.tip) + '</div>' : '') +
+          (window.Health ? (function () { var sup = Health.supply(s, r); return '<div class="opt-row r-pack"><span class="hint">📦 ' + (sup ? sup.left + ' of ' + sup.servings + ' servings left · until ' + new Date(sup.runOut).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : 'Add your pack – I’ll remind you before it runs out') + '</span><button class="btn sm ghost focusable" data-rpack="' + r.id + '">' + (sup ? 'New pack' : 'Add pack') + '</button></div>'; })() : '') +
           '<div class="opt-row r-slots">' + slotChips(r) + '</div>' +
           '<div class="opt-row"><button class="chip focusable' + (r.days !== 'training' ? ' on' : '') + '" data-rdays="' + r.id + '" data-val="daily" data-fid="rdy-' + r.id + '">Every day</button>' +
           '<button class="chip focusable' + (r.days === 'training' ? ' on' : '') + '" data-rdays="' + r.id + '" data-val="training" data-fid="rdt-' + r.id + '">Training days only</button></div></div>';
@@ -288,7 +292,7 @@
     $$('[data-radd]').forEach(function (b) {
       b.onclick = function () {
         var c = catalog(b.getAttribute('data-radd'));
-        add({ id: 'r' + Date.now().toString(36), pid: c.id, name: c.name, dose: c.use ? c.use.dose : '', slot: c.use ? c.use.slot : 'morning', days: c.use ? c.use.days : 'daily' });
+        add({ id: 'r' + Date.now().toString(36), pid: c.id, name: c.name, dose: c.use ? c.use.dose : '', slot: c.use ? c.use.slot : 'morning', days: c.use ? c.use.days : 'daily', pack: c.pack && c.pack.servings ? { start: ymd(), servings: c.pack.servings } : undefined, perDay: 1 });
         App.toast(c.name + ' added to your day');
       };
     });
@@ -299,6 +303,7 @@
     $$('[data-rs]').forEach(function (b) { b.onclick = function () { find(b.getAttribute('data-rs')).slot = b.getAttribute('data-slot'); App.save(); App.refresh(); }; });
     $$('[data-rdays]').forEach(function (b) { b.onclick = function () { find(b.getAttribute('data-rdays')).days = b.getAttribute('data-val'); App.save(); App.refresh(); }; });
     $$('[data-rdose]').forEach(function (inp) { inp.onchange = function () { find(inp.getAttribute('data-rdose')).dose = inp.value.trim(); App.save(); }; });
+    $$('[data-rpack]').forEach(function (b) { b.onclick = function () { if (window.Health) Health.openPack(b.getAttribute('data-rpack')); }; });
     $$('[data-rdel]').forEach(function (b) {
       b.onclick = function () {
         var id = b.getAttribute('data-rdel'), s2 = st();
