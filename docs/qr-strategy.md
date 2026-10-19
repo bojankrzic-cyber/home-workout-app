@@ -119,6 +119,30 @@ Danes vsako skeniranje konča na večjezičnem PDF-ju. To je slepa ulica brez na
 
 Primerjava: aplikacije za zdravje in fitnes v povprečju zadržijo ~13 % uporabnikov na D7 in ~8 % na D30.
 
+## 4b. QR s kamero telefona → aplikacija → začetni zaslon → račun
+Stranka skenira s kamero telefona, brez naše aplikacije. Pot, zgrajena v v38:
+1. **QR → `app.naturesfinest.eu/?p=<SKU>&src=qr`:** navodila za njen izdelek takoj, v njenem jeziku, brez prijave in brez trgovine z aplikacijami.
+2. **»Začni 25-dnevno rutino«:** 1. dan je že odkljukan, nato eno vprašanje (sidro, npr. ob kavi).
+3. **Zaslon 1. dneva:** dve prošnji, ki ju stranka lahko preskoči.
+   - **📲 Dodaj na začetni zaslon:**
+     - Android: sistemsko okno »Namesti«.
+     - iPhone: 3 koraki s puščico na gumb Deli v Safariju.
+     - Instagram / Chrome na iPhonu: »odpri v Safariju« z gumbom za kopiranje povezave.
+     - Rutina se na iPhonu prenese v nameščeno aplikacijo (prenosna koda). Ob prvem zagonu z začetnega zaslona stranka tapne »Nadaljuj mojo rutino« in nič se ne izgubi.
+   - **💾 Shrani rutino:** Google ali e-pošta iz webshopa. Brez gesla, z eno privolitvijo.
+4. **Kasneje:** Today ponudi naslednji manjkajoči korak (najprej račun, nato začetni zaslon), en naenkrat, »Ne zdaj« za 7 dni. Nastavitve → Splošno → »Dodaj FinestMe na začetni zaslon«.
+
+**Preusmeritev kod:** `docs/qr-retarget.csv` vsebuje vseh 327 izdelčnih kod s kratko povezavo, sedanjim in novim ciljem ter valom:
+- val 0: 37 pokvarjenih (takoj);
+- val 1: pilot s 3 SKU;
+- val 2: 287 ostalih.
+
+Uvoz gre v QRCode Studio (masovna sprememba cilja). Pogoj je domena `app.naturesfinest.eu`.
+
+**Kaj bi to še izboljšalo (faza 2):**
+- **App Clip (iOS) / Instant App (Android):** QR odpre mini nativno aplikacijo brez namestitve, z nativnimi obvestili. To zahteva nativno aplikacijo v App Store in Google Play. Smiselno, ko pilot dokaže retencijo.
+- **Nalepka ali poziv na embalaži ob naslednjem tisku:** »Skeniraj → navodila + 🎁 nagrade«.
+
 ## 5. Naslednji korak
 | # | Naloga | Kdo | Rok |
 |---|---|---|---|

@@ -13,7 +13,7 @@
   'use strict';
     // English source – every language comes from the dictionaries (js/i18n.js, lang/<code>.js)
   var T = {
-    en: { kicker: 'Your Nature’s Finest product', how: 'How to use', amount: 'Daily amount', when: 'When', often: 'How often', daily: 'Every day', perWeek: '%n× a week', lasts: 'One pack ≈ %n days', label: 'From the label', fullLabel: 'Full label text', warn: 'Read before use', pdf: 'Full label (PDF)', start: 'Start my %n-day routine', start0: 'Start my routine', startSub: 'Today counts as day 1 ✓ · takes 10 seconds', anchorQ: 'When will you take it?', anchorSub: 'Tie it to something you already do every day – that is what makes it stick.', a_coffee: '☕ With my morning coffee', a_breakfast: '🍳 With breakfast', a_lunch: '🥗 With lunch', a_evening: '🌙 In the evening', d1: 'Day 1 ✓ You’ve started', d1Sub: '%n days to go in this pack. I count with you and remind you 5 days before it runs out.', d1Sub0: 'I count with you – one tap a day.', reward7: '🎁 7 check-ins = member badge + free shipping on your next order', saveT: 'Save your routine', saveS: 'Free account with the e-mail you shop with: reminders, your rewards and progress on every device. No password.', google: 'Continue with Google', email: 'Continue with e-mail', later: 'Not now', instT: 'Put FinestMe on your home screen', instS: 'One tap to check in – like an app, no store needed.', instIos: 'Tap Share ⬆︎ and then “Add to Home Screen”.', instBtn: 'Install', open: 'Open my routine', have: 'Already in your routine', newPack: '📦 I opened a new pack', noLabel: 'The instructions for this product are being updated. Until then, please follow the label on the pack.', s_morning: 'Morning', s_evening: 'Evening', s_pre: 'Before training', s_post: 'After training', s_meal: 'With a meal', u_capsule: 'capsule', u_tablet: 'tablet', u_teabag: 'tea bag', u_sachet: 'sachet', soon: 'Accounts open at launch – your routine is saved on this phone.' }
+    en: { kicker: 'Your Nature’s Finest product', how: 'How to use', amount: 'Daily amount', when: 'When', often: 'How often', daily: 'Every day', perWeek: '%n× a week', lasts: 'One pack ≈ %n days', label: 'From the label', fullLabel: 'Full label text', warn: 'Read before use', pdf: 'Full label (PDF)', start: 'Start my %n-day routine', start0: 'Start my routine', startSub: 'Today counts as day 1 ✓ · takes 10 seconds', anchorQ: 'When will you take it?', anchorSub: 'Tie it to something you already do every day – that is what makes it stick.', a_coffee: '☕ With my morning coffee', a_breakfast: '🍳 With breakfast', a_lunch: '🥗 With lunch', a_evening: '🌙 In the evening', d1: 'Day 1 ✓ You’ve started', d1Sub: '%n days to go in this pack. I count with you and remind you 5 days before it runs out.', d1Sub0: 'I count with you – one tap a day.', reward7: '🎁 7 check-ins = member badge + free shipping on your next order', saveT: 'Save your routine', saveS: 'Free account with the e-mail you shop with: reminders, your rewards and progress on every device. No password.', google: 'Continue with Google', email: 'Continue with e-mail', later: 'Not now', instT: 'Put FinestMe on your home screen', instS: 'One tap to check in – like an app, no store needed.', instIos: 'Tap Share ⬆︎ and then “Add to Home Screen”.', instBtn: 'Add to home screen', open: 'Open my routine', have: 'Already in your routine', newPack: '📦 I opened a new pack', noLabel: 'The instructions for this product are being updated. Until then, please follow the label on the pack.', s_morning: 'Morning', s_evening: 'Evening', s_pre: 'Before training', s_post: 'After training', s_meal: 'With a meal', u_capsule: 'capsule', u_tablet: 'tablet', u_teabag: 'tea bag', u_sachet: 'sachet', soon: 'Accounts open at launch – your routine is saved on this phone.' }
   };
   // webshop per language/region – reorder goes to the customer's own market (product ids differ per market)
   var SHOPS = {
@@ -138,8 +138,8 @@
         '<h2>' + esc(t('d1')) + '</h2><p>' + esc(left ? t('d1Sub', left) : t('d1Sub0')) + '</p><p class="qr-reward">' + esc(t('reward7')) + '</p></div>' +
         (signed ? '' : '<div class="panel qr-save"><h3>💾 ' + esc(t('saveT')) + '</h3><p class="hint">' + esc(t('saveS')) + '</p><div class="act-foot">' +
           '<button class="btn primary focusable" id="qrGoogle">' + esc(t('google')) + '</button><button class="btn focusable" id="qrMail">' + esc(t('email')) + '</button></div></div>') +
-        (standalone() ? '' : '<div class="panel qr-inst"><h3>📲 ' + esc(t('instT')) + '</h3><p class="hint">' + esc(ios ? t('instIos') : t('instS')) + '</p>' +
-          (!ios && deferred ? '<button class="btn focusable" id="qrInstall">' + esc(t('instBtn')) + '</button>' : '') + '</div>') +
+        (standalone() ? '' : '<div class="panel qr-inst"><h3>📲 ' + esc(t('instT')) + '</h3><p class="hint">' + esc(t('instS')) + '</p>' +
+          '<button class="btn focusable" id="qrInstall">📲 ' + esc(t('instBtn')) + '</button></div>') +
         '<div class="act-foot"><button class="btn primary focusable" id="qrHome">' + esc(t('open')) + ' →</button></div></div>';
       emit('account_prompt_shown', { where: 'welcome', signed: !!signed });
       function acct(provider) {
@@ -150,9 +150,60 @@
       }
       if ($('#qrGoogle')) $('#qrGoogle').onclick = function () { acct('google'); };
       if ($('#qrMail')) $('#qrMail').onclick = function () { acct('email'); };
-      if ($('#qrInstall')) $('#qrInstall').onclick = function () { var d = deferred; deferred = null; d.prompt(); d.userChoice.then(function (r) { emit('install_prompt', { outcome: r && r.outcome }); App.refresh(); }, function () {}); };
+      if ($('#qrInstall')) $('#qrInstall').onclick = function () { installSheet('welcome'); };
       $('#qrHome').onclick = function () { App.resetTo('home'); };
     };
+
+    // ---------------------------------------------------------------- "install": put the web app on the home screen
+    // Android/Chrome: the native prompt. iPhone: a 3-step guide pointing at Safari's Share button (Apple allows no
+    // prompt). Other iOS browsers can't add to the home screen → "open in Safari" with the link to copy.
+    // iPhone home-screen apps get their own storage (separate from Safari), so the routine travels along as a
+    // transfer code on the clipboard and is picked up on the first start from the home screen.
+    var iosOther = ios && /CriOS|FxiOS|EdgiOS|OPiOS|Instagram|FBAN|FBAV|Line\//.test(navigator.userAgent || '');
+    function transferCode() {
+      var s = st(); if (!s) return '';
+      try { return 'FINESTME1:' + btoa(unescape(encodeURIComponent(JSON.stringify({ name: s.name, color: s.color, settings: s.settings })))); } catch (e) { return ''; }
+    }
+    function installSheet(where) {
+      emit('install_prompt', { where: where || '', platform: deferred ? 'android' : ios ? (iosOther ? 'ios-other' : 'ios') : 'other' });
+      if (deferred) { var d = deferred; deferred = null; d.prompt(); d.userChoice.then(function (r) { emit('install_prompt', { outcome: r && r.outcome, where: where || '' }); App.refresh(); }, function () {}); return; }
+      var code = transferCode();
+      if (ios && !iosOther && code && navigator.clipboard) navigator.clipboard.writeText(code).catch(function () {});
+      var w = document.createElement('div'); w.className = 'sheet-wrap inst-wrap';
+      w.innerHTML = '<div class="sheet inst-sheet"><div class="sh-grab"></div><h3>📲 Put FinestMe on your home screen</h3>' +
+        (iosOther ? '<p class="sh-sub">This browser can’t add apps to the home screen. Open this page in Safari:</p><div class="inst-link"><code translate="no">' + esc(location.origin + location.pathname) + '</code><button class="btn sm focusable" id="instCopy">Copy link</button></div>'
+          : ios ? '<p class="sh-sub">Three taps – then FinestMe opens like an app, full screen, with reminders.</p>' +
+            '<ol class="inst-steps"><li><span class="inst-ico">⬆︎</span><div><b>Tap Share</b><small>the square with the arrow in Safari’s bar</small></div></li>' +
+            '<li><span class="inst-ico">＋</span><div><b>“Add to Home Screen”</b><small>scroll down in the list if you don’t see it</small></div></li>' +
+            '<li><span class="inst-ico">✓</span><div><b>Tap “Add”</b><small>top right – done</small></div></li></ol>' +
+            (code ? '<p class="hint">✓ Your routine comes along – open FinestMe from the home screen and tap “Continue”.</p>' : '')
+          : '<p class="sh-sub">Open your browser’s menu (⋮) and choose “Install app” or “Add to Home screen”.</p>') +
+        '<button class="btn primary focusable" id="instOk">Got it</button></div>' + (ios && !iosOther ? '<div class="inst-arrow" aria-hidden="true">⬇︎</div>' : '');
+      document.body.appendChild(w);
+      w.addEventListener('click', function (e) { if (e.target === w) w.remove(); });
+      $('#instOk', w).onclick = function () { w.remove(); };
+      if ($('#instCopy', w)) $('#instCopy', w).onclick = function () { if (navigator.clipboard) navigator.clipboard.writeText(location.origin + location.pathname).then(function () { App.toast('Link copied – paste it in Safari'); }, function () {}); };
+    }
+    FinestQR.installSheet = installSheet;
+    FinestQR.canInstall = function () { return !standalone(); };
+    // first start from the iPhone home screen: empty storage → pick up the routine from the transfer code
+    if (standalone() && global.Store && !Store.list().length) setTimeout(function () {
+      var w = document.createElement('div'); w.className = 'sheet-wrap';
+      w.innerHTML = '<div class="sheet"><div class="sh-grab"></div><h3>👋 Welcome back</h3><p class="sh-sub">Continue the routine you started in Safari?</p>' +
+        '<button class="btn primary focusable" id="trGo">Continue my routine</button><button class="btn ghost focusable" id="trNo">Start fresh</button></div>';
+      document.body.appendChild(w);
+      $('#trNo', w).onclick = function () { w.remove(); };
+      $('#trGo', w).onclick = function () {
+        (navigator.clipboard && navigator.clipboard.readText ? navigator.clipboard.readText() : Promise.reject()).then(function (txt) {
+          var m = /FINESTME1:([A-Za-z0-9+/=]+)/.exec(txt || ''); if (!m) throw 0;
+          var d = JSON.parse(decodeURIComponent(escape(atob(m[1]))));
+          var pr = Store.addProfile(Store.newProfile(d.name || 'Me', d.color));
+          Object.keys(d.settings || {}).forEach(function (k) { pr.settings[k] = d.settings[k]; });
+          Store.save(); Store.setActive(pr.id); w.remove(); App.reload(); App.resetTo('home'); App.toast('Welcome back – your routine is here 🌿');
+          emit('install_transfer', { ok: true });
+        }).catch(function () { App.toast('Couldn’t find your routine – start fresh, or sign in to bring it over'); });
+      };
+    }, 600);
 
     // Today: one gentle ask at a time – account first (from day 2), install after that; each dismissable for 7 days
     FinestQR.homeCard = function (s) {
@@ -163,13 +214,13 @@
       if (now < snooze || dayN < 2) return '';
       var cloudOn = global.Cloud && Cloud.configured && Cloud.configured();
       if (cloudOn && !(Cloud.user && Cloud.user() && !Cloud.user().anon)) return '<div class="hp-card qr-ask"><div><b>💾 ' + esc(t('saveT')) + '</b><span>' + esc(t('saveS')) + '</span></div><button class="btn sm primary focusable" data-go="account">' + esc(t('email')) + '</button><button class="btn sm ghost focusable" data-qr-later>' + esc(t('later')) + '</button></div>';
-      if (!standalone() && (deferred || ios)) return '<div class="hp-card qr-ask"><div><b>📲 ' + esc(t('instT')) + '</b><span>' + esc(ios ? t('instIos') : t('instS')) + '</span></div>' + (deferred ? '<button class="btn sm primary focusable" data-qr-install>' + esc(t('instBtn')) + '</button>' : '') + '<button class="btn sm ghost focusable" data-qr-later>' + esc(t('later')) + '</button></div>';
+      if (!standalone() && (deferred || ios)) return '<div class="hp-card qr-ask"><div><b>📲 ' + esc(t('instT')) + '</b><span>' + esc(t('instS')) + '</span></div><button class="btn sm primary focusable" data-qr-install>' + esc(t('instBtn')) + '</button><button class="btn sm ghost focusable" data-qr-later>' + esc(t('later')) + '</button></div>';
       return '';
     };
     document.addEventListener('click', function (ev) {
       var b = ev.target.closest && ev.target.closest('[data-qr-later],[data-qr-install]'); if (!b) return;
       if (b.hasAttribute('data-qr-later')) { store('fs.qrSnooze', String(Date.now() + 7 * 864e5)); App.refresh(); }
-      else if (deferred) { var d = deferred; deferred = null; d.prompt(); d.userChoice.then(function (r) { emit('install_prompt', { outcome: r && r.outcome, where: 'today' }); App.refresh(); }, function () {}); }
+      else installSheet('today');
     });
   });
 })(typeof window !== 'undefined' ? window : global);
