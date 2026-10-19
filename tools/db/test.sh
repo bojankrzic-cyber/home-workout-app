@@ -16,3 +16,4 @@ for f in supabase/migrations/*.sql; do $P -f "$f"; done
 $P -t -A -f tools/db/rls_test.sql >/dev/null
 $P -t -A -f tools/db/devices_test.sql >/dev/null
 $P -t -A -f tools/db/program_events_test.sql | tail -1
+$P -t -A -f tools/db/reminders_test.sql | tail -1

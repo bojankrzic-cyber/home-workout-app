@@ -24,12 +24,12 @@ const path = require('path');
   await page.goto(base + '?p=5634&src=qr'); await page.waitForTimeout(900);
   ok(await page.$('.qr-hero'), 'guide opens straight away – no profile form, no sign-up');
   ok(!/p=5634/.test(page.url()), 'QR params removed');
-  ok(/Használati útmutató/.test(await page.textContent('.qr-hero')), 'UI in the customer language (hu)');
+  ok(await page.evaluate(() => I18N.lang === 'hu') && !/How to use|Daily amount/.test(await page.textContent('.qr-hero')), 'UI in the customer language (hu)');
   ok(/5 g/.test(await page.textContent('.qr-hero')) && /25 nap/.test(await page.textContent('.qr-hero')), 'dose + days per pack from the label');
   await page.waitForSelector('.qr-use', { timeout: 4000 }).catch(() => {});
   ok(/5 g/.test(await page.textContent('#qrLabel')) && /vízben|pohár/.test(await page.textContent('#qrLabel')), 'approved label usage text in Hungarian');
   ok(await page.$('#qrWarn:not([hidden])'), 'warnings from the label');
-  ok(/25 napos/.test(await page.textContent('#qrStart')), 'CTA names the pack length');
+  ok(/25/.test(await page.textContent('#qrStart')) && !/Start my/.test(await page.textContent('#qrStart')), 'CTA names the pack length (translated)');
   await page.screenshot({ path: out + '/q1-guide-hu.png' });
   await page.click('#qrStart'); await page.waitForTimeout(300);
   ok(await page.$$('[data-anchor]').then(a => a.length === 4), 'one question: the anchor moment');
@@ -49,14 +49,14 @@ const path = require('path');
   await page.goto(base + '?p=5634&src=qr'); await page.waitForTimeout(900);
   ok(await page.$('#qrNew') && !(await page.$('#qrStart')), 'returning scan: open routine / new pack');
   // switch language manually
-  await page.selectOption('#qrLang', 'sl'); await page.waitForTimeout(600);
-  ok(/Navodila za uporabo/.test(await page.textContent('.qr-hero')), 'manual language switch');
+  await Promise.all([page.waitForNavigation(), page.selectOption('#qrLang', 'sl')]); await page.waitForTimeout(900);
+  ok(await page.evaluate(() => I18N.lang === 'sl') && await page.$('.qr-hero') && /Belly Burn/.test(await page.textContent('h1')), 'manual language switch reloads into Slovenian and stays on the product');
   await page.screenshot({ path: out + '/q4-returning-sl.png' });
 
   // Austrian customer: German UI, AT shop; capsules product
   page = await phone('de-AT');
   await page.goto(base + '?p=1500&src=qr'); await page.waitForTimeout(900);
-  ok(/So wird es angewendet/.test(await page.textContent('.qr-hero')) && /1 × Kapsel/.test(await page.textContent('.qr-hero')), 'German + capsule dose');
+  ok(await page.evaluate(() => I18N.lang === 'de') && /1 ×/.test(await page.textContent('.qr-hero')) && !/How to use/.test(await page.textContent('.qr-hero')), 'German + capsule dose');
   await page.click('#qrStart'); await page.click('[data-anchor="evening"]'); await page.waitForTimeout(400);
   const at = await page.evaluate(() => Health.reorderUrl(Store.active().settings.routine[0], 'X', 'r'));
   ok(/natures-finest\.at/.test(at) && /coupon=X/.test(at), 'AT shop: ' + at);
@@ -64,7 +64,7 @@ const path = require('path');
   // unknown product / broken label → still useful, never a dead end
   page = await phone('en-GB');
   await page.goto(base + '?p=5744&src=qr'); await page.waitForTimeout(900);
-  ok(await page.$('.qr-hero') && /being updated/.test(await page.textContent('#qrLabel')), 'no label → graceful fallback');
+  ok(await page.$('.qr-hero') && /being updated|label on the pack/.test(await page.textContent('#qrLabel')), 'no label → graceful fallback');
   await page.goto(base + '?p=999999&src=qr'); await page.waitForTimeout(900);
   ok(!(await page.$('.qr-hero')), 'unknown sku does not crash');
 

@@ -42,9 +42,11 @@ const APP_EVENTS: Record<string, string[]> = {
   routine_started: REMIND, checkin_streak: REMIND, supply_low: REMIND, reorder_clicked: REMIND,
   checkins_missed: REMIND, weekly_review: REMIND, program_paused: REMIND,
   reward_unlocked: MARKETING, complement_suggested: MARKETING,
+  // written by the reminders function: the text is localized already – one Klaviyo flow sends {{ event.title }} / {{ event.body }}
+  reminder_due: REMIND,
 };
 const APP_PROPS = ['product', 'product_id', 'sku', 'days_left', 'reorder_url', 'reward', 'code', 'checkins', 'streak',
-  'missed', 'week', 'adherence', 'energy', 'sleep', 'mood', 'checkin_time', 'until'];
+  'missed', 'week', 'adherence', 'energy', 'sleep', 'mood', 'checkin_time', 'until', 'kind', 'title', 'body', 'url', 'lang'];
 const appMetric = (name: string) => 'App ' + name.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 // only whitelisted keys with plain values (string / number / boolean) – never nested objects
 function appProps(p: unknown): Record<string, string | number | boolean> {

@@ -41,13 +41,8 @@ Danes vsako skeniranje konča na večjezičnem PDF-ju. To je slepa ulica brez na
 | Jezik telefona in trg stranke | En QR je na embalaži za vse trge, etikete so v 17 jezikih. Ponaročilo gre v trgovino stranke (HU → naturesfinest.hu, AT → natures-finest.at). |
 
 ## 3. Tveganja in trade-offi (kjer plan ne drži)
-1. **Zunaj tega toka je aplikacija še v angleščini.**
-   - Navodila, začetek in povabilo so v 17 jezikih. Today, program in nastavitve so v angleščini.
-   - Največji trgi so HU, PL, IT, CZ in ES. **Preden preusmerimo vse kode, mora biti preveden ves zdravstveni del**: Today kartica, program, opomniki.
-   - Do takrat pilot, glej točko 4.
-2. **Brez računov (Supabase) ni opomnikov zunaj telefona.**
-   - Rutina dela lokalno, a e-pošta in Klaviyo flowi potrebujejo račun.
-   - Brez tega bo D7 slab, ker se zanašamo, da stranka sama odpre aplikacijo. **Vklop Supabase je ozko grlo št. 1.**
+1. **Jeziki – rešeno (v33).** Celotna aplikacija je v 21 jezikih vseh naših trgov, s samodejnim zaznavanjem in izbiro jezika na prvem zaslonu, v nastavitvah in na vsakem vodiču. Prevodi so strojni (AI) in pred zagonom potrebujejo pregled maternega govorca na trg (`tools/i18n/out/<jezik>.json`).
+2. **Opomniki zunaj telefona so zgrajeni (`docs/reminders.md`),** z anonimnim računom samo za opomnike. **Vklop Supabase ostaja ozko grlo št. 1:** brez projekta, VAPID ključev in pg_cron se ne pošlje nič.
 3. **37 kod je pokvarjenih** (~10.900 skeniranj): 404, prazna HTML stran pri Babe's IT, napačni izdelek ali stara domena .uk.
    - Pokvarjena koda ruši zaupanje: 86 % tistih, ki naletijo na mrtvo povezavo, pravi, da jim to zmanjša zaupanje v blagovno znamko.
    - Popravek je neodvisen od aplikacije in ga je treba narediti takoj (`docs/qr-audit.csv`, stolpec `status`).
