@@ -18,7 +18,7 @@ const path = require('path');
   await p.screenshot({ path: out + '/v3-library.png' });
   await p.focus('.lib-card'); await p.waitForTimeout(900);
   await p.screenshot({ path: out + '/v4-library-focus.png' });
-  await p.click('.lib-card:nth-child(6)'); await p.waitForTimeout(1500);
+  await p.click('.lib-card:has(.thumb-photo)'); await p.waitForTimeout(1500);
   await p.screenshot({ path: out + '/v5-exercise.png' });
   await p.click('#exPip'); await p.waitForTimeout(400);
   await p.screenshot({ path: out + '/v6-exercise-photo.png' });
