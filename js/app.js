@@ -886,6 +886,9 @@
       '<div class="me-act"><button class="btn primary focusable" data-go="profileEdit" data-p=\'{"id":"' + state.id + '"}\'>Edit profile</button><button class="btn ghost focusable who" data-go="profiles">' + avatar(state) + 'Switch person</button></div></div>' +
       hookHtml('settings') +
       group('General', (window.I18N ? row('🌐', 'Language', 'Texts in your language – the coach voice stays English', I18N.select('setLang')) : '') +
+        (window.Theme ? row('🌗', 'Appearance', 'Light or dark – “System” follows your phone. Workouts always stay dark.', ['light', 'dark', 'system'].map(function (t) {
+          return '<button class="chip focusable' + (Theme.choice() === t ? ' on' : '') + '" data-theme-pick="' + t + '">' + { light: '☀️ Light', dark: '🌙 Dark', system: '📱 System' }[t] + '</button>';
+        }).join('')) : '') +
         (window.FinestQR && FinestQR.canInstall && FinestQR.canInstall() ? '<button class="set-row set-link focusable" id="setInstall"><span class="set-ico">📲</span><div class="set-lab"><b>Add FinestMe to your home screen</b><small>opens like an app, full screen, with reminders</small></div><span class="set-chev">›</span></button>' : '')) +
       group('Health & routine',
         link('📷', 'Scan a product', 'QR code on your Nature’s Finest pack → how to use it + your routine', 'scan') +
@@ -930,6 +933,7 @@
       Voice.cue('Voice coaching is on. Three, two, one, go!', ['hello', 'go']);
       setTimeout(function () { Sound.session(false); }, 4000);
     };
+    $$('[data-theme-pick]').forEach(function (b) { b.onclick = function () { Theme.set(b.getAttribute('data-theme-pick')); refresh(); }; });
     if ($('#setInstall')) $('#setInstall').onclick = function () { FinestQR.installSheet('settings'); };
     $('#newBlock').onclick = function () { s.startDate = new Date().toISOString().slice(0, 10); Store.save(); toast('New block starts today – Week 1'); refresh(); };
     $('#exp').onclick = function () { Store.exportJSON(); };
