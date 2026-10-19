@@ -1,0 +1,12 @@
+{
+ "📸 Scan now": "📸 Scanner maintenant",
+ "📷 Take a photo of the code": "📷 Prendre le code en photo",
+ "QR code": "QR code",
+ "or barcode": "ou code-barres",
+ "Hold the QR code or the barcode of your pack in the frame – it scans by itself. Tap “Scan now” if it takes a moment.": "Place le QR code ou le code-barres de ton paquet dans le cadre – il se scanne tout seul. Si ça prend un moment, touche “Scanner maintenant”.",
+ "Not reading? Tap “Scan now”, or “Take a photo of the code” – or type the product name below.": "Ça ne lit pas ? Touche “Scanner maintenant” ou “Prendre le code en photo” – ou saisis le nom du produit ci-dessous.",
+ "Looking for the code…": "Recherche du code…",
+ "No code in the picture – move a little closer, hold still and tap again, or take a photo of the code.": "Pas de code dans l’image – rapproche-toi un peu, ne bouge plus et touche à nouveau, ou prends le code en photo.",
+ "No code found in the photo – take it closer, with the code sharp and filling about a third of the picture.": "Aucun code trouvé sur la photo – prends-la de plus près, avec le code net et occupant environ un tiers de l’image.",
+ "This product isn’t in the app yet – find it by name below.": "Ce produit n’est pas encore dans l’app – trouve-le par son nom ci-dessous."
+}

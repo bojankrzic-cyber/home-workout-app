@@ -1,0 +1,7 @@
+{
+ "✓ The small square code": "✓ El pequeño código QR cuadrado",
+ "✗ Not the barcode": "✗ No el código de barras",
+ "Hold the phone {0}–{1} cm from the small square code on the label – it is usually next to the nutrition table.": "Sujeta el móvil a {0}–{1} cm del pequeño código QR cuadrado de la etiqueta: suele estar junto a la tabla nutricional.",
+ "Can’t find it? Move closer to the square code, turn the pack so the code faces the camera, or type the {0}-digit number from the label below.": "¿No lo encuentras? Acércate al código QR, gira el envase para que el código mire a la cámara o escribe abajo el número de {0} dígitos de la etiqueta.",
+ "Name or the {0}-digit number on the label": "Nombre o número de {0} dígitos de la etiqueta"
+}

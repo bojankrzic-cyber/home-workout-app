@@ -1,0 +1,7 @@
+{
+ "✓ The small square code": "✓ Den lilla fyrkantiga QR-koden",
+ "✗ Not the barcode": "✗ Inte streckkoden",
+ "Hold the phone {0}–{1} cm from the small square code on the label – it is usually next to the nutrition table.": "Håll telefonen {0}–{1} cm från den lilla fyrkantiga QR-koden på etiketten – den sitter oftast bredvid näringstabellen.",
+ "Can’t find it? Move closer to the square code, turn the pack so the code faces the camera, or type the {0}-digit number from the label below.": "Hittar du den inte? Gå närmare QR-koden, vrid förpackningen så att koden är vänd mot kameran, eller skriv in det {0}-siffriga numret från etiketten nedan.",
+ "Name or the {0}-digit number on the label": "Namn eller det {0}-siffriga numret på etiketten"
+}

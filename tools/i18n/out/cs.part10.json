@@ -1,0 +1,7 @@
+{
+ "✓ The small square code": "✓ Malý čtvercový QR kód",
+ "✗ Not the barcode": "✗ Ne čárový kód",
+ "Hold the phone {0}–{1} cm from the small square code on the label – it is usually next to the nutrition table.": "Drž telefon {0}–{1} cm od malého čtvercového QR kódu na etiketě – obvykle bývá u tabulky výživových hodnot.",
+ "Can’t find it? Move closer to the square code, turn the pack so the code faces the camera, or type the {0}-digit number from the label below.": "Nemůžeš ho najít? Přibliž se k QR kódu, otoč balení tak, aby kód mířil do kamery, nebo níže zadej {0}místné číslo z etikety.",
+ "Name or the {0}-digit number on the label": "Název nebo {0}místné číslo z etikety"
+}

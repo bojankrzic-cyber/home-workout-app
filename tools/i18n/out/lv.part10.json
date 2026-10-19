@@ -1,0 +1,7 @@
+{
+ "✓ The small square code": "✓ Mazais kvadrātveida QR kods",
+ "✗ Not the barcode": "✗ Ne svītrkods",
+ "Hold the phone {0}–{1} cm from the small square code on the label – it is usually next to the nutrition table.": "Turi telefonu {0}–{1} cm attālumā no mazā kvadrātveida QR koda uz etiķetes – parasti tas ir blakus uzturvērtības tabulai.",
+ "Can’t find it? Move closer to the square code, turn the pack so the code faces the camera, or type the {0}-digit number from the label below.": "Nevari atrast? Pietuvojies QR kodam, pagriez iepakojumu tā, lai kods būtu vērsts pret kameru, vai ievadi zemāk {0} ciparu numuru no etiķetes.",
+ "Name or the {0}-digit number on the label": "Nosaukums vai {0} ciparu numurs no etiķetes"
+}

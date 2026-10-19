@@ -1,0 +1,7 @@
+{
+ "✓ The small square code": "✓ Mažas kvadratinis QR kodas",
+ "✗ Not the barcode": "✗ Ne brūkšninis kodas",
+ "Hold the phone {0}–{1} cm from the small square code on the label – it is usually next to the nutrition table.": "Laikyk telefoną {0}–{1} cm atstumu nuo mažo kvadratinio QR kodo etiketėje – dažniausiai jis būna šalia maistingumo lentelės.",
+ "Can’t find it? Move closer to the square code, turn the pack so the code faces the camera, or type the {0}-digit number from the label below.": "Nerandi? Priartėk prie QR kodo, pasuk pakuotę taip, kad kodas būtų nukreiptas į kamerą, arba žemiau įvesk {0} skaitmenų numerį iš etiketės.",
+ "Name or the {0}-digit number on the label": "Pavadinimas arba {0} skaitmenų numeris iš etiketės"
+}

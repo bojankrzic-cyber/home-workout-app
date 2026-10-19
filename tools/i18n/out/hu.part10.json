@@ -1,0 +1,7 @@
+{
+ "✓ The small square code": "✓ A kis négyzet alakú QR-kód",
+ "✗ Not the barcode": "✗ Nem a vonalkód",
+ "Hold the phone {0}–{1} cm from the small square code on the label – it is usually next to the nutrition table.": "Tartsd a telefont {0}–{1} cm-re a címkén lévő kis négyzet alakú QR-kódtól – általában a tápértéktáblázat mellett van.",
+ "Can’t find it? Move closer to the square code, turn the pack so the code faces the camera, or type the {0}-digit number from the label below.": "Nem találod? Menj közelebb a QR-kódhoz, fordítsd a csomagot úgy, hogy a kód a kamera felé nézzen, vagy írd be lent a címkén lévő {0} jegyű számot.",
+ "Name or the {0}-digit number on the label": "Név vagy a címkén lévő {0} jegyű szám"
+}
