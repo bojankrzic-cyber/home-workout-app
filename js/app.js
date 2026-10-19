@@ -326,7 +326,8 @@
     var idx = restoring && top.focusIdx >= 0 ? top.focusIdx : 0;
     var auto = (fid && $('[data-fid="' + fid + '"]', scope)) || $('[data-autofocus]', scope);
     var el = restoring ? list[idx] : (auto || list[0]);
-    if (el) el.focus({ preventScroll: !!fid || restoring || TOUCH });
+    // touch screens: no auto-focus (it scrolls iOS Safari and paints a TV focus ring on a random button)
+    if (el && !TOUCH) el.focus({ preventScroll: !!fid || restoring });
   }
 
   // Every screen except home and the workout player gets the same "← Back" in the same place
