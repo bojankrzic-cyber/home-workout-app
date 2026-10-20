@@ -1091,23 +1091,31 @@
     document.body.appendChild(el);
     keepAwake(true);
     Sound.unlock(); Sound.session(true);
-    // Phones: timer and technique can't both fit, so the screen alternates between them
-    // (technique 7 s → timer 6.3 s); tapping a tab takes over for 20 s. TVs/desktops show both side by side.
+    // Phones: timer and technique can't both fit, so the screen alternates between them. Per step (exercise or rest):
+    // first 15 s technique only, then timer 3 s / technique 6 s, and the last 3 s of a timed step always technique.
+    // Tapping a tab takes over for 20 s. TVs/desktops show both side by side.
     var narrow = window.matchMedia('(max-width: 900px)');
-    var view = 'form', viewT = 0, manualUntil = 0, done = false;
+    var view = 'form', stepT = 0, manualUntil = 0, done = false;
     if (narrow.matches) el.appendChild($('.controls', el));
     function setView(v) {
-      view = v; viewT = 0;
+      view = v;
       el.classList.toggle('v-form', v === 'form');
       $$('[data-view]', el).forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-view') === v); });
     }
     $$('[data-view]', el).forEach(function (b) {
       b.onclick = function () { setView(b.getAttribute('data-view')); manualUntil = Date.now() + 20000; };
     });
+    function stepLeft() {   // seconds left in the current step, null when it ends on a tap (reps)
+      var s = st[i];
+      if (phase === 'rest' || (s && s.kind === 'time')) return remain;
+      if (s && s.kind === 'dist') return s.dist * (ex(s.id).secPerM || 0.27) - elapsed;
+      return null;
+    }
     function autoView() {
+      stepT += 0.25;
       if (!narrow.matches || done || Date.now() < manualUntil) return;
-      viewT += 0.25;
-      if (viewT >= (view === 'form' ? 7 : 6.3)) setView(view === 'form' ? 'timer' : 'form');
+      var left = stepLeft(), want = stepT < 15 || (left != null && left <= 3) ? 'form' : (stepT - 15) % 9 < 3 ? 'timer' : 'form';
+      if (want !== view) setView(want);
     }
     setView('form');
     var pl = new Figure.Player($('#wFig'), { aspect: 1.45, labels: true, onPhase: cueHolder($('#wPhase')) });
@@ -1159,7 +1167,7 @@
       i = n;
       if (i >= st.length) return finish();
       var s = st[i], e = ex(s.id), it = s.item;
-      phase = 'work'; elapsed = 0; pacerHit = false; autoAt = 0; lastHype = '';
+      phase = 'work'; elapsed = 0; stepT = 0; pacerHit = false; autoAt = 0; lastHype = '';
       var enterHype = lastWorkStep(n) && st.length > 3 ? hype('finalExercise') : n > 0 && s.sets > 1 && s.set === s.sets ? hype('lastSet') : s.set === 1 && s.sets > 1 ? hype('firstSet') : hype('start');
       lastMilestone = -1; setHype(enterHype, lastWorkStep(n), true);
       var hk = hypeKey(enterHype), spokenHype = Coach.has(hk) ? hk : null;   // e.g. 'Last set, make it count.' instead of 'Set four.'
@@ -1250,7 +1258,7 @@
 
     function e0name(s) { return ex(s.id).name.split(' (')[0]; }
     function startRest(sec) {
-      phase = 'rest'; remain = sec; restTotal = sec;
+      phase = 'rest'; remain = sec; restTotal = sec; stepT = 0;
       el.classList.add('resting');
       var nx = st[i + 1], ne = ex(nx.id);
       showAnim(nx.id);
