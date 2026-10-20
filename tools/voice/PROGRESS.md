@@ -5,6 +5,8 @@ Status: **NOT swapped**. audio/voice still holds the old clips. audio/voice_new 
 
 2026-10-19: the first call was refused with "Today's free limit for voiceover-generator (mode: eleven_v3) is used up" (0 credits charged). simulate_cost reported isFree:true, but it does not see the daily cap. The limit resets at 00:00 UTC.
 
+2026-10-20: refused again at 00:16 UTC with the same daily-limit message on the first call (0 credits). The free eleven_v3 voiceover allowance appears to be 0 on this account; nothing recorded.
+
 ## Resume
 ```
 python3 tools/voice/make_lists.py          # idempotent: rebuilds/extends the 4 lists
