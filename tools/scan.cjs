@@ -26,6 +26,7 @@ const path = require('path'), os = require('os'), fs = require('fs');
   ok(r[0].sku === '5634' && r[1].sku === '5465' && r[2].sku === '5482' && r[3].sku === '5465', 'printed short link, app link, number, old PDF link → product: ' + JSON.stringify(r.slice(0, 4)));
   ok(r[4].url && !r[5] && r[6] >= 1, 'other links → open-link offer; junk → nothing; search works');
   // entry points: no routine yet → Today invites to scan; Health sheet has "Scan a product"
+  if (await page.$('[data-wl="train"]')) { await page.click('[data-wl="train"]'); await page.waitForTimeout(300); }   // first visit: "Training & movement"
   await page.fill('#pName', 'Ana').catch(() => {}); await page.click('#pSave').catch(() => {}); await page.waitForTimeout(600);
   await page.evaluate(() => window.__go('home')); await page.waitForTimeout(400);
   ok(await page.$('.scan-hero.first [data-go="scan"]'), 'Today: scan hero right under the greeting');

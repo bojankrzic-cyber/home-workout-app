@@ -12,6 +12,7 @@ const path = require('path');
   const log = (...a) => console.log(...a);
   const titles = () => p.$$eval('.ex-row h4', els => els.map(e => e.textContent));
   await p.goto(url); await p.evaluate(() => localStorage.clear()); await p.reload(); await p.waitForTimeout(400);
+  if (await p.$('[data-wl="train"]')) { await p.click('[data-wl="train"]'); await p.waitForTimeout(300); }   // first visit: "Training & movement"
   await p.keyboard.type('Bojan'); await p.click('#pMore'); await p.waitForTimeout(200); await p.click('#pEquip'); await p.waitForTimeout(700);
   log('onboarding equipment:', await p.$eval('.eq-head h1', e => e.textContent), '| selected', await p.$$eval('.eq-tile.on', els => els.length), '| score', await p.$eval('.eq-score', e => e.textContent));
   await p.screenshot({ path: out + '/e1-equipment.png' });

@@ -13,7 +13,7 @@
   'use strict';
     // English source – every language comes from the dictionaries (js/i18n.js, lang/<code>.js)
   var T = {
-    en: { kicker: 'Your Nature’s Finest product', how: 'How to use', amount: 'Daily amount', when: 'When', often: 'How often', daily: 'Every day', perWeek: '%n× a week', lasts: 'One pack ≈ %n days', label: 'From the label', fullLabel: 'Full label text', warn: 'Read before use', pdf: 'Full label (PDF)', start: 'Start my %n-day routine', start0: 'Start my routine', startSub: 'Today counts as day 1 ✓ · takes 10 seconds', anchorQ: 'When will you take it?', anchorSub: 'Tie it to something you already do every day – that is what makes it stick.', a_coffee: '☕ With my morning coffee', a_breakfast: '🍳 With breakfast', a_lunch: '🥗 With lunch', a_evening: '🌙 In the evening', d1: 'Day 1 ✓ You’ve started', d1Sub: '%n days to go in this pack. I count with you and remind you 5 days before it runs out.', d1Sub0: 'I count with you – one tap a day.', reward7: '🎁 7 check-ins = member badge + free shipping on your next order', saveT: 'Save your routine', saveS: 'Free account with the e-mail you shop with: reminders, your rewards and progress on every device. No password.', google: 'Continue with Google', email: 'Continue with e-mail', later: 'Not now', instT: 'Put FinestMe on your home screen', instS: 'One tap to check in – like an app, no store needed.', instIos: 'Tap Share ⬆︎ and then “Add to Home Screen”.', instBtn: 'Add to home screen', open: 'Open my routine', have: 'Already in your routine', newPack: '📦 I opened a new pack', noLabel: 'The instructions for this product are being updated. Until then, please follow the label on the pack.', s_morning: 'Morning', s_evening: 'Evening', s_pre: 'Before training', s_post: 'After training', s_meal: 'With a meal', u_capsule: 'capsule', u_tablet: 'tablet', u_teabag: 'tea bag', u_sachet: 'sachet', soon: 'Accounts open at launch – your routine is saved on this phone.' }
+    en: { kicker: 'Your Nature’s Finest product', how: 'How to use', amount: 'Daily amount', when: 'When', often: 'How often', daily: 'Every day', perWeek: '%n× a week', lasts: 'One pack ≈ %n days', label: 'From the label', fullLabel: 'Full label text', warn: 'Read before use', pdf: 'Full label (PDF)', start: 'Start my %n-day routine', start0: 'Start my routine', startSub: 'Starts your routine and ticks today as day 1 – you can untick it on Today', packQ: 'Your pack', p_new: 'New pack', p_75: 'Already using it · about ¾ left', p_50: 'about ½ left', p_25: 'about ¼ left', anchorQ: 'When will you take it?', anchorSub: 'Tie it to something you already do every day – that is what makes it stick.', a_coffee: '☕ With my morning coffee', a_breakfast: '🍳 With breakfast', a_lunch: '🥗 With lunch', a_evening: '🌙 In the evening', d1: 'Day 1 ✓ You’ve started', d1Sub: '%n days to go in this pack. I count with you and remind you 5 days before it runs out.', d1Sub0: 'I count with you – one tap a day.', reward7: '🎁 7 check-ins = member badge + free shipping on your next order', saveT: 'Save your routine', saveS: 'Free account with the e-mail you shop with: reminders, your rewards and progress on every device. No password.', google: 'Continue with Google', email: 'Continue with e-mail', later: 'Not now', instT: 'Put FinestMe on your home screen', instS: 'One tap to check in – like an app, no store needed.', instIos: 'Tap Share ⬆︎ and then “Add to Home Screen”.', instBtn: 'Add to home screen', open: 'Open my routine', have: 'Already in your routine', newPack: '📦 I opened a new pack', noLabel: 'The instructions for this product are being updated. Until then, please follow the label on the pack.', s_morning: 'Morning', s_evening: 'Evening', s_pre: 'Before training', s_post: 'After training', s_meal: 'With a meal', u_capsule: 'capsule', u_tablet: 'tablet', u_teabag: 'tea bag', u_sachet: 'sachet', soon: 'Accounts open at launch – your routine is saved on this phone.' }
   };
   // webshop per language/region – reorder goes to the customer's own market (product ids differ per market)
   var SHOPS = {
@@ -110,21 +110,28 @@
     function anchorSheet(sku, e, src) {
       var w = document.createElement('div'); w.className = 'sheet-wrap';
       w.innerHTML = '<div class="sheet"><div class="sh-grab"></div><h3>' + esc(t('anchorQ')) + '</h3><p class="sh-sub">' + esc(t('anchorSub')) + '</p>' +
+        // "already using this pack": the supply starts from roughly what is left, not from a full pack
+        (e.days ? '<div class="qr-pack"><span class="label">' + esc(t('packQ')) + '</span><div class="chips-row">' + [['1', 'p_new'], ['0.75', 'p_75'], ['0.5', 'p_50'], ['0.25', 'p_25']].map(function (o, i) {
+          return '<button class="chip focusable' + (i ? '' : ' on') + '" data-left="' + o[0] + '">' + esc(t(o[1])) + '</button>'; }).join('') + '</div></div>' : '') +
         ['coffee', 'breakfast', 'lunch', 'evening'].map(function (k) { return '<button class="btn focusable qr-anchor" data-anchor="' + k + '">' + esc(t('a_' + k)) + '</button>'; }).join('') + '</div>';
       document.body.appendChild(w);
       w.addEventListener('click', function (ev) { if (ev.target === w) w.remove(); });
-      $$('[data-anchor]', w).forEach(function (b) { b.onclick = function () { w.remove(); start(sku, e, src, b.getAttribute('data-anchor')); }; });
+      var left = 1;
+      $$('[data-left]', w).forEach(function (b) { b.onclick = function () { left = +b.getAttribute('data-left'); $$('[data-left]', w).forEach(function (x) { x.classList.toggle('on', x === b); }); }; });
+      $$('[data-anchor]', w).forEach(function (b) { b.onclick = function () { w.remove(); start(sku, e, src, b.getAttribute('data-anchor'), left); }; });
     }
-    function start(sku, e, src, anchor) {
+    function start(sku, e, src, anchor, left) {
       var s = st(), first = !H.items(s).length, p = H.prog(s);
+      // a pack already in use: date its start back so the supply shows roughly what is left
+      var used = e.days && left && left < 1 ? Math.round(e.days * (1 - left)) : 0, d0 = new Date(); d0.setDate(d0.getDate() - used);
       var it = { id: 'r' + Date.now().toString(36), pid: sku, name: e.n, dose: amountText(e), slot: e.s ? SLOTS[e.s] || 'morning' : anchor === 'evening' ? 'evening' : 'morning', days: 'daily',
-        pack: { start: H.ymd(), servings: e.days || 30 }, perDay: 1 };
+        pack: { start: H.ymd(d0), servings: e.days || 30 }, perDay: 1 };
       s.settings.routine = H.items(s).concat([it]);
       if (first) { p.checkinTime = anchor; p.start = p.start || H.ymd(); }
       p.src = p.src || src || 'qr';
       H.checkin(s, 'done');                                     // the scan + start is day 1
       App.save();
-      emit('routine_started', { product: e.n, product_id: sku, checkin_time: anchor, src: src || '', lang: lang(), days_per_pack: e.days || null });
+      emit('routine_started', { product: e.n, product_id: sku, checkin_time: anchor, pack_left: left || 1, src: src || '', lang: lang(), days_per_pack: e.days || null });
       App.go('qrWelcome', { sku: sku }, true);
     }
 

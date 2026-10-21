@@ -27,6 +27,7 @@ const path = require('path');
   const url = 'file://' + path.resolve(__dirname, '../index.html');
   await page.goto(url); await page.evaluate(() => localStorage.clear()); await page.reload();
   await page.clock.runFor(400);
+  if (await page.$('[data-wl="train"]')) { await page.click('[data-wl="train"]'); await page.waitForTimeout(300); }   // first visit: "Training & movement"
   await page.fill('#pName', 'Ana'); await page.click('#pSave'); await page.clock.runFor(600);
   ok(/FINEST/.test(await page.textContent('.brand')), 'new wordmark');
   ok((await page.title()).startsWith('FinestMe'), 'new title');

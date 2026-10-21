@@ -36,6 +36,7 @@ const path = require('path');
     ok(await page.$('#peLang'), lang + ': language picker on the very first screen');
     const welcome = await page.textContent('.topbar h1');
     ok(welcome && !/who’s training/.test(welcome), lang + ': first screen translated (' + welcome + ')');
+    if (await page.$('[data-wl="train"]')) { await page.click('[data-wl="train"]'); await page.waitForTimeout(300); }   // first visit: "Training & movement"
     await page.fill('#pName', 'Ana'); await page.click('#pSave'); await page.waitForTimeout(600);
     const screens = [['home'], ['settings'], ['scan'], ['product', { id: '5634', src: 'qr' }]];
     for (const [s, p] of screens) {

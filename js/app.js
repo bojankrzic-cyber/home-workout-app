@@ -42,7 +42,11 @@
     $('[data-a="yes"]', d).focus();
   }
   function closeAsk() { var d = $('.dlg'); if (d) d.remove(); }
-  var DAYN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  // short weekday names in the chosen language (Sun..Sat); 1 Jan 2023 was a Sunday
+  var DAYN = [0, 1, 2, 3, 4, 5, 6].map(function (i) {
+    try { var n = new Date(2023, 0, 1 + i).toLocaleDateString((window.I18N && I18N.locale) || 'en-GB', { weekday: 'short' }).replace(/\.$/, ''); return n.charAt(0).toUpperCase() + n.slice(1); }
+    catch (e) { return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][i]; }
+  });
   // English plural forms: [singular, plural]
   function pl(n, f) { return n + ' ' + (Math.abs(n) === 1 ? f[0] : f[1]); }
   var VAJ = ['exercise', 'exercises'], TRN = ['workout', 'workouts'], NAP = ['item', 'items'];
@@ -624,7 +628,7 @@
       '<button class="btn sm ghost focusable who" data-go="profiles" title="Switch person" aria-label="Switch person">' + avatar(state) + '<span class="who-name" translate="no">' + esc(state.name) + '</span></button></div>' +
       '<div class="hero"><div class="hero-card' + (heroPhoto ? ' has-photo' : '') + '"' + photoBg(heroPhoto) + '><div class="eyebrow">Today’s workout · ' + esc(sess.weekInfo.label) + '</div>' +
       '<h1>' + esc(sess.name) + '</h1>' +
-      '<div class="meta"><div><b>~' + mins + ' min</b>duration</div><div><b>' + exCount + '</b>' + (exCount === 1 ? 'exercise' : 'exercises') + '</div><div><b>RIR ' + sess.weekInfo.rir + '</b>effort</div></div>' +
+      '<div class="meta"><div><b>~' + mins + ' min</b>duration</div><div><b>' + exCount + '</b>' + (exCount === 1 ? 'exercise' : 'exercises') + '</div><div><b>' + sess.weekInfo.rir + ' in reserve</b>reps left at the end of a set</div></div>' +
       '<div class="hint">' + esc(sess.weekInfo.note) + '</div>' +
       '<div class="actions"><button class="btn primary focusable" data-autofocus data-go="player" data-p=\'{"key":"' + nextKey + '"}\'>▶ Start workout</button>' +
       '<button class="btn focusable" data-go="preview" data-p=\'{"key":"' + nextKey + '"}\'>📺 Preview</button>' +
@@ -640,8 +644,15 @@
       homeProducts() +
       '<div class="section-title"><h2>Quick workouts</h2><span>pick a focus or type – built only from your equipment</span></div>' +
       '<div class="row">' + QUICK.map(function (q, i) {
-        var qp = q.photo && photo(q.photo);
-        return '<div class="session-card focusable quick' + (qp ? ' photo-card' : '') + '" tabindex="0" data-quick="' + i + '"' + cardBg(qp) + '><div class="tag" style="color:' + q.color + '">' + q.tag + '</div><h3>' + esc(q.name) + '</h3><p>' + esc(q.sub) + '</p></div>';
+        var qp = q.photo && photo(q.photo), qn = q.name;
+        // cardio cards are named after the machines this profile actually has (no bike/rower → no "Bike + rower")
+        if (q.opts.type === 'kardio') {
+          try {
+            var g = Program.generate(Object.assign({ level: state.settings.level, owned: Program.owned(state) }, q.opts));
+            qn = g.name.replace(/^Cardio: /, ''); qp = photo((g.blocks[1] || g.blocks[0]).items[0].id) || null;
+          } catch (e) {}
+        }
+        return '<div class="session-card focusable quick' + (qp ? ' photo-card' : '') + '" tabindex="0" data-quick="' + i + '"' + cardBg(qp) + '><div class="tag" style="color:' + q.color + '">' + q.tag + '</div><h3>' + esc(qn) + '</h3><p>' + esc(q.sub) + '</p></div>';
       }).join('') + '<div class="session-card focusable quick" tabindex="0" data-go="builder"><div class="tag">CUSTOM</div><h3>＋ Build your own</h3><p>strength / cardio / mixed · focus · duration</p></div></div>' +
       '<div class="section-title"><h2>🏁 Hybrid race</h2><span>race simulation on your equipment – for time, with splits</span></div>' +
       '<div class="row">' + Program.HX_KEYS.map(function (k) {
@@ -801,7 +812,7 @@
   };
 
   SCREENS.history = function () {
-    var log = state.log.slice().reverse();
+    var log = state.log.slice().reverse(), fresh = !state.log.length && !(state.activities || []).length;
     // weekly volume bars (sessions per week, last 12 weeks)
     var bars = '';
     for (var w = 11; w >= 0; w--) {
@@ -832,18 +843,24 @@
       '<div class="hint">' + (change != null && bl.length > 1 ? (change > 0 ? '+' : '') + change + ' kg since ' + bl[0].date + ' · ' : '') + (bs.targetWeight ? 'target ' + bs.targetWeight + ' kg (dashed line)' : 'set a target weight in your profile') + '</div></div>' +
       (spark || '<div class="hint">Log your weight a few times to see the trend.</div>') + '</div>';
     root.innerHTML = '<div class="screen"><div class="topbar"><h1>Progress</h1><div class="spacer"></div><button class="btn sm ghost focusable" data-autofocus data-go="settings">Backup</button></div>' +
-      '<div class="hero"><div class="panel"><h3>Workouts per week (12 weeks)</h3><div class="bars">' + bars + '</div><div class="hint">Goal: ' + state.settings.days + ' per week</div></div>' +
+      (fresh ? '<div class="panel first-steps"><h3>Your first steps</h3><p class="hint">Charts and records appear here as soon as there is something to show.</p><div class="fs-list">' +
+        '<button class="fs-item focusable" id="fsWeight"><span>⚖️</span><div><b>Log your first weight</b><small>the start of your trend line</small></div><span class="set-chev">›</span></button>' +
+        '<button class="fs-item focusable" data-go="train"><span>🏋️</span><div><b>Do your first workout</b><small>sets, weights and records start here</small></div><span class="set-chev">›</span></button>' +
+        '<button class="fs-item focusable" data-go="record" data-p=\'{"type":"walk"}\'><span>🚶</span><div><b>Record your first walk or run</b><small>distance, time and running records</small></div><span class="set-chev">›</span></button>' +
+        '</div></div>' : '') +
+      (fresh ? '' : '<div class="hero"><div class="panel"><h3>Workouts per week (12 weeks)</h3><div class="bars">' + bars + '</div><div class="hint">Goal: ' + state.settings.days + ' per week</div></div>' +
       '<div class="panel"><h3>Recent workouts</h3><div class="hist">' + (log.slice(0, 6).map(function (l) {
         var s = Program.get(state, l.session);
-        return '<div class="hist-item"><div class="d">' + new Date(l.date).toLocaleDateString('en-GB') + '</div><div style="flex:1">' + esc(l.name || (s ? s.name : 'Workout')) + '</div><div>' + l.min + ' min · ' + l.sets.length + (l.sets.length === 1 ? ' set' : ' sets') + '</div></div>';
-      }).join('') || '<div class="hint">No workouts logged yet.</div>') + '</div></div></div>' +
+        return '<div class="hist-item"><div class="d">' + new Date(l.date).toLocaleDateString((window.I18N && I18N.locale || 'en-GB')) + '</div><div style="flex:1">' + esc(l.name || (s ? s.name : 'Workout')) + '</div><div>' + l.min + ' min · ' + l.sets.length + (l.sets.length === 1 ? ' set' : ' sets') + '</div></div>';
+      }).join('') || '<div class="hint">No workouts logged yet.</div>') + '</div></div></div>') +
       hookHtml('progress') + weightPanel +
-      '<div class="panel"><h3>Current working weights (double progression)</h3><div class="hist">' + (prs || '<div class="hint">After your first workout, weights and reps for each exercise show up here.</div>') + '</div></div></div>';
+      (prs ? '<div class="panel"><h3>Current working weights (double progression)</h3><div class="hist">' + prs + '</div></div>' : '') + '</div>';
     var wv = bs.weight || 75;
     $$('[data-wl]').forEach(function (b) {
       b.onclick = function () { readW(); wv = Math.round((wv + parseFloat(b.getAttribute('data-wl'))) * 10) / 10; $('#wlv').value = wv; };
     });
     function readW() { var v = parseFloat(String($('#wlv').value).replace(',', '.')); if (v >= 30 && v <= 250) wv = v; }
+    if ($('#fsWeight')) $('#fsWeight').onclick = function () { var w = $('.weight-panel'); w.scrollIntoView({ block: 'center', behavior: 'smooth' }); $('#wlv').focus(); };
     $('#wlSave').onclick = function () {
       readW(); logWeight(state, wv); Store.save(); toast('Logged ' + wv + ' kg'); refresh(); };
   };
@@ -912,7 +929,7 @@
         row('💾', 'Backup', 'Everyone’s data is stored on this device. The export includes all profiles – use it to move data between phone and TV.',
           '<button class="btn sm focusable" id="exp">⬇ Export</button><label class="btn sm focusable" tabindex="0" id="impL">⬆ Import<input type="file" id="imp" accept="application/json" hidden></label>') +
         row('🗑️', 'Reset my progress', 'Deletes your history and weights on this device', '<button class="btn sm ghost focusable danger" id="rst">Reset</button>')) +
-      '<div class="set-foot hint"><span class="kbd">← ↑ → ↓</span> move · <span class="kbd">OK</span> select / set done · <span class="kbd">Back</span> back · <span class="kbd">▶❚❚</span> pause</div></div>';
+      '<div class="set-foot hint"><span class="kbd">← ↑ → ↓</span> move · <span class="kbd">OK</span> select / set done · <span class="kbd">↩</span> back · <span class="kbd">▶❚❚</span> pause</div></div>';
     $$('[data-set]').forEach(function (b) {
       b.onclick = function () {
         s[b.getAttribute('data-set')] = JSON.parse(b.getAttribute('data-val'));
@@ -1085,7 +1102,7 @@
       '<div class="logger" id="wLog"></div>' +
       '<div class="controls"><button class="btn primary focusable" id="wDone" data-autofocus></button>' +
       '<button class="btn focusable" id="wMinus" hidden>−15 s</button><button class="btn focusable" id="wPlus" hidden>+15 s</button>' +
-      '<button class="btn focusable" id="wPause">Pause</button><button class="btn ghost focusable" id="wSkip">Skip</button>' +
+      '<button class="btn focusable" id="wPause">Pause</button><button class="btn ghost focusable" id="wSkip">Skip exercise</button>' +
       '<button class="btn ghost focusable" id="wExit">End</button></div>' +
       (race ? '<div class="splits" id="wSplits"></div>' : '') + '</div>';
     document.body.appendChild(el);
@@ -1192,8 +1209,8 @@
         cur.reps = prev ? prev.reps : (race ? it.reps[1] : sug.reps);
         cur.load = prev ? prev.load : sug.load;
         var target = it.reps[0] === it.reps[1] ? it.reps[0] : it.reps[0] + '–' + it.reps[1];
-        $('#wWhy').textContent = race ? 'For time – ' + target + ' reps' + (s.perSide ? ' per side' : '') : (sug.why || 'Target ' + target + ' reps, RIR ' + sess.weekInfo.rir);
-        $('#wRx').innerHTML = chips([[target + (s.perSide ? '/side' : ''), 'target'], [loadTxt(e, cur.load), 'load'], [race ? 'for time' : 'RIR ' + sess.weekInfo.rir, race ? 'mode' : 'effort'], [e.tempo || '—', 'tempo']]);
+        $('#wWhy').textContent = race ? 'For time – ' + target + ' reps' + (s.perSide ? ' per side' : '') : (sug.why || 'Target ' + target + ' reps – stop when you could still do about ' + sess.weekInfo.rir + ' more');
+        $('#wRx').innerHTML = chips([[target + (s.perSide ? '/side' : ''), 'target'], [loadTxt(e, cur.load), 'load'], [race ? 'for time' : sess.weekInfo.rir + ' in reserve', race ? 'mode' : 'effort'], [e.tempo || '—', 'tempo']]);
         var lg = stepper('reps', cur.reps, 1, 'reps');
         if (e.unit === 'kg') lg += stepper('load', cur.load, e.id.indexOf('kb_') === 0 ? 4 : (e.inc || 2), 'kg');
         if (e.unit === 'stopnja') lg += stepper('load', cur.load, 1, 'level');
@@ -1219,7 +1236,7 @@
         }
         $('#wRx').innerHTML = chips(rx);
         $('#wLog').innerHTML = ''; $('#wLog').hidden = true;
-        $('#wDone').textContent = race ? '✓ Station done' : '⏭ Next';
+        $('#wDone').textContent = race ? '✓ Station done' : '✓ Done – next';
         if (s.hard) { Audio.beep(1200, 0.35); Voice.cue('Go hard!', ['hard']); setHype(hype('hard'), true); }
         else if (s.easy) { Audio.beep(600, 0.3); Voice.cue('Easy pace.', ['easy']); setHype(hype('easy')); }
         else Voice.cue(e.name + '. ' + e.cues[0], ['ex_' + s.id, 'cue_' + s.id]);
@@ -1300,7 +1317,7 @@
       }
       if (s.kind === 'reps') {
         var tgt = s.item.reps[1], pr = Math.min(pacerReps(), tgt);
-        top.textContent = s.sets > 1 ? 'SET ' + s.set + ' OF ' + s.sets : 'REPS'; val.textContent = pr; sub.textContent = 'of ' + tgt + ' reps';
+        top.textContent = s.sets > 1 ? 'SET ' + s.set + ' OF ' + s.sets : 'REPS'; val.textContent = pr; sub.textContent = 'pace guide · of ' + tgt + ' reps';   // the pacer counts the tempo, it does not see your reps
         setRing('wRing', pr / tgt);
         if (!pacerHit && tgt >= 6 && pr !== lastMilestone) {
           lastMilestone = pr;
@@ -1326,7 +1343,7 @@
         top.textContent = s.hard ? 'HARD' : s.easy ? 'EASY' : race ? 'STATION' : 'TIME';
         val.textContent = fmt(remain);
         var e = ex(s.id);
-        sub.textContent = e.type === 'cardio' && !/^(bike|row|hx_|airbike|rope_waves)/.test(s.id) ? '≈ ' + pacerReps() + ' reps' : 'of ' + fmt(s.sec);
+        sub.textContent = e.type === 'cardio' && !/^(bike|row|hx_|airbike|rope_waves)/.test(s.id) ? '≈ ' + pacerReps() + ' reps at the pace guide' : 'of ' + fmt(s.sec);
         setRing('wRing', remain / s.sec);
       }
     }
@@ -1355,14 +1372,16 @@
     }
     var iv = setInterval(tick, 250);
 
-    function finish() {
+    // partial = ended early with the end button: saved and labelled as such, never "workout complete"
+    function finish(partial) {
+      partial = partial === true;
       clearInterval(iv);
       done = true; setView('form');
       var min = Math.max(1, Math.round(total / 60));
       if (logged.length || min >= 10) {
-        Store.recordSession(state, { date: new Date().toISOString(), session: sess.key, name: sess.name, min: min, sec: Math.round(total), splits: race ? splits : undefined, sets: logged, items: itemsById });
+        Store.recordSession(state, { date: new Date().toISOString(), session: sess.key, name: sess.name, min: min, sec: Math.round(total), splits: race ? splits : undefined, sets: logged, items: itemsById, partial: partial || undefined });
       }
-      Voice.cue('Great job. Workout complete.', ['done']);
+      if (partial) Voice.say('Workout saved.'); else Voice.cue('Great job. Workout complete.', ['done']);
       pl.stop(); nextPl.stop();
       var vol = logged.reduce(function (a, l) { return a + (ex(l.id).unit === 'kg' ? l.reps * l.load : 0); }, 0);
       var reps = logged.reduce(function (a, l) { return a + l.reps; }, 0);
@@ -1376,8 +1395,8 @@
       var proud = [weekN + ' of ' + plan.order.length + ' workouts this week' + (weekN >= plan.order.length ? ' – weekly goal hit 🎯' : '')];
       if (prs.length) proud.unshift('🏆 ' + prs.length + (prs.length === 1 ? ' personal best: ' : ' personal bests: ') + prs.map(function (id) { return ex(id).name.split(' (')[0]; }).join(', '));
       if (wk != null && wk >= 0) proud.push(wk + (wk === 1 ? ' week' : ' weeks') + ' to your target date');
-      f.innerHTML = '<div class="fin-card"><div class="fin-burst"></div><div class="kicker">' + (race ? 'RACE TIME' : 'WORKOUT COMPLETE') + '</div>' +
-        (race ? '' : '<div class="fin-head">' + esc(hype('done')) + ', ' + (window.I18N ? I18N.nm(state.name) : esc(state.name)) + '!</div>') + '<div class="fin-time">' + fmt(total) + '</div>' +
+      f.innerHTML = '<div class="fin-card"><div class="fin-burst"></div><div class="kicker">' + (partial ? 'ENDED EARLY · SAVED' : race ? 'RACE TIME' : 'WORKOUT COMPLETE') + '</div>' +
+        (race && !partial ? '' : '<div class="fin-head">' + esc(partial ? 'Good start' : hype('done')) + ', ' + (window.I18N ? I18N.nm(state.name) : esc(state.name)) + '!</div>') + '<div class="fin-time">' + fmt(total) + '</div>' +
         '<div class="fin-proud">' + proud.map(function (t) { return '<div>' + esc(t) + '</div>'; }).join('') + '</div>' +
         '<div class="fin-stats"><div><b>' + logged.length + '</b><span>sets</span></div><div><b>' + reps + '</b><span>reps</span></div><div><b>' + Math.round(vol) + ' kg</b><span>volume</span></div>' + (kcal ? '<div><b>~' + kcal + '</b><span>kcal</span></div>' : '') + '</div>' +
         (race ? '<div class="splits fin-splits">' + splits.filter(function (x) { return x.station; }).map(function (r) { return '<div class="split"><span>' + esc(r.name) + '</span><b>' + fmt(r.sec) + '</b></div>'; }).join('') + '</div>' : '') +
@@ -1391,8 +1410,8 @@
       $('#wHome').onclick = function () { resetTo(window.__HOME || 'home'); };
       if ($('#wShare')) $('#wShare').onclick = function () {
         App.share({ kind: race ? 'race' : 'workout', eyebrow: race ? 'Hybrid race' : 'Workout complete', title: race ? fmt(total) : sess.name.split(' – ')[0],
-          subtitle: race ? sess.name : (sess.name.split(' – ')[1] || '') + (sess.name.indexOf(' – ') > 0 ? ' · ' : '') + new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }),
-          stats: [[fmt(total), 'time'], [logged.length, 'sets'], vol ? [Math.round(vol).toLocaleString('en-GB') + ' kg', 'lifted'] : [reps, 'reps']],
+          subtitle: race ? sess.name : (sess.name.split(' – ')[1] || '') + (sess.name.indexOf(' – ') > 0 ? ' · ' : '') + new Date().toLocaleDateString((window.I18N && I18N.locale || 'en-GB'), { weekday: 'short', day: 'numeric', month: 'short' }),
+          stats: [[fmt(total), 'time'], [logged.length, 'sets'], vol ? [Math.round(vol).toLocaleString((window.I18N && I18N.locale || 'en-GB')) + ' kg', 'lifted'] : [reps, 'reps']],
           badge: prs.length ? '🏆 ' + prs.length + (prs.length === 1 ? ' personal best' : ' personal bests') : '',
           caption: (race ? 'Hybrid race simulation done in ' + fmt(total) : sess.name + ' done – ' + logged.length + ' sets in ' + fmt(total)) + ' 💪' + (prs.length ? ' New personal best!' : ''),
           tags: ['#FinestMe', '#NaturesFinest', race ? '#hybridrace' : '#homeworkout'] });
@@ -1414,7 +1433,16 @@
       el.classList.toggle('paused', paused);
       if (paused) pl.stop(); else pl.start();
     };
-    $('#wExit').onclick = function () { ask('End workout and save completed sets?', 'End workout', finish); };
+    $('#wExit').onclick = function () {
+      // nothing done yet: leave without a record or a "workout complete" card
+      if (!logged.length && total < 60) { ask('Leave without saving? Nothing has been recorded yet.', 'Leave', leaveUnsaved); return; }
+      ask('End the workout now? The sets you completed are saved.', 'End and save', function () { finish(true); });
+    };
+    function leaveUnsaved() {
+      clearInterval(iv); done = true; pl.stop(); nextPl.stop();
+      activeSession.confirmExit = null;
+      resetTo(window.__HOME || 'home');
+    }
 
     activeSession = {
       onKey: function (code) {
@@ -1425,6 +1453,40 @@
       destroy: function () { clearInterval(iv); el.remove(); Sound.session(false); if ('speechSynthesis' in window) speechSynthesis.cancel(); }
     };
     enter(0);
+    // "Get ready" 3-2-1 before the clock starts (the first exercise already plays behind it); tap to skip.
+    // Automated tests skip it unless they ask for it (window.__readyCountdown).
+    if (navigator.webdriver && !window.__readyCountdown) return;
+    paused = true;
+    var rd = document.createElement('div'); rd.className = 'ready'; el.appendChild(rd);
+    var rn = 3, go = function () { if (!rd.isConnected) return; rd.remove(); paused = false; Audio.beep(1320, 0.2); };
+    (function count() {
+      if (!rd.isConnected) return;
+      if (!rn) return go();
+      rd.innerHTML = '<div><span>Get ready</span><b>' + rn + '</b></div>'; Audio.beep(880, 0.08); rn--;
+      setTimeout(count, 1000);
+    })();
+    rd.onclick = go;
+  };
+
+  // ---------------------------------------------------------------- first visit: what do you want to start?
+  // Value first: a product or a supplement routine needs no training profile (a quiet local one is made);
+  // the training questions come only with "Training & movement".
+  SCREENS.welcome = function () {
+    function quiet() { var me = Store.addProfile(Store.newProfile('Me')); me.settings.qr = true; Store.save(); state = Store.setActive(me.id); }
+    root.innerHTML = '<div class="screen welcome-screen"><div class="topbar">' + brandMark() + '<div class="spacer"></div>' + (window.I18N ? '🌐 ' + I18N.select('wlLang') : '') + '</div>' +
+      '<div class="wl-head"><h1>What would you like to start?</h1><p class="hint">Pick one – you can add the others any time.</p></div>' +
+      '<div class="wl-list">' +
+      '<button class="wl-opt focusable" data-wl="scan" data-autofocus><span class="wl-ico">📷</span><div><b>I have a Nature’s Finest product</b><small>scan the pack – how to use it, your daily routine and rewards</small></div><span class="set-chev">›</span></button>' +
+      '<button class="wl-opt focusable" data-wl="routine"><span class="wl-ico">🌿</span><div><b>A daily supplement routine</b><small>what to take and when – I’ll remind you and count with you</small></div><span class="set-chev">›</span></button>' +
+      '<button class="wl-opt focusable" data-wl="train"><span class="wl-ico">🏋️</span><div><b>Training & movement</b><small>home and gym workouts, walks, runs and rides – built for your equipment</small></div><span class="set-chev">›</span></button>' +
+      '</div><p class="hint wl-note">🔒 Everything stays on this device. Create a free account any time to keep it on your phone and computer.</p></div>';
+    $$('[data-wl]').forEach(function (b) {
+      b.onclick = function () {
+        var w = b.getAttribute('data-wl');
+        if (w === 'train') { go('profileEdit', {}); return; }
+        quiet(); resetTo('home'); go(w === 'scan' ? 'scan' : 'routine', {});
+      };
+    });
   };
 
   // ---------------------------------------------------------------- profiles ("Kdo trenira?")
@@ -1870,7 +1932,7 @@
     go: go, back: back, refresh: refresh, resetTo: resetTo, toast: toast, ask: ask, esc: esc, fmt: fmt, pl: pl, $: $, $$: $$,
     state: function () { return state; }, save: function () { Store.save(); },
     // after cloud data arrived: re-pick the active person and redraw (the profile object may be new)
-    reload: function () { state = Store.active() || Store.list()[0] || null; if (state) Store.setActive(state.id); if (!state) resetTo('profileEdit', {}); else if (stack.length) refresh(); },
+    reload: function () { state = Store.active() || Store.list()[0] || null; if (state) Store.setActive(state.id); if (!state) resetTo('welcome', {}); else if (stack.length) refresh(); },
     keepAwake: keepAwake, say: function (t) { Voice.say(t); }, beep: function (f, d) { Audio.beep(f, d); },
     // recorded coach when EVERY clip of the phrase exists (numbers must not have gaps), device voice otherwise
     cue: function (t, keys) { if (keys.every(function (k) { return Coach.has(k); })) Voice.cue(t, keys); else Voice.say(t); },
@@ -1889,7 +1951,7 @@
     try { qr = sessionStorage.getItem('fs.product'); } catch (e) {}
     // value before account: a scanned pack opens its guide at once – a quiet local profile is made for the routine
     if (!list.length && qr) { var me = Store.addProfile(Store.newProfile('Me')); me.settings.qr = true; Store.save(); state = Store.setActive(me.id); resetTo('home'); }
-    else if (!list.length) go('profileEdit', {});
+    else if (!list.length) go('welcome', {});
     else if (last && !last.pin) { state = last; go(window.__HOME || 'home'); }
     else if (last) go('pin', { id: last.id, quick: true });
     else if (list.length === 1 && !list[0].pin) { state = Store.setActive(list[0].id); go(window.__HOME || 'home'); }

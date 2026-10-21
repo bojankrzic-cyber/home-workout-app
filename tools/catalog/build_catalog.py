@@ -15,6 +15,19 @@ import csv, json, os, re, sys
 cache, repo = sys.argv[1], sys.argv[2]
 rows = json.load(open(cache + '/rows.json'))
 HERE = os.path.dirname(os.path.abspath(__file__))
+
+FIX = {'compley': 'complex'}
+def clean_name(raw):
+    """Customer-facing name from the QR sheet name: 'Magnesium_capsules' → 'Magnesium capsules',
+    'Creamy_Rice_Breakfast_Chocolate' → 'Creamy Rice Breakfast – Chocolate', typos fixed."""
+    n = re.sub(r'\s+', ' ', raw).strip()
+    n = re.sub(r'_(capsules)$', r' \1', n)
+    n = re.sub(r'_(\d+)$', r' (\1 capsules)', n)
+    if '_' in n:
+        parts = n.split('_'); n = ' '.join(parts[:-1]) + ' – ' + parts[-1]
+    for a, b in FIX.items(): n = n.replace(a, b)
+    return n
+
 def side(name): return json.load(open(os.path.join(HERE, name))) if os.path.exists(os.path.join(HERE, name)) else {}
 IMAGES, COMPL = side('images.json'), {k: v for k, v in side('complements.json').items() if not k.startswith('_')}
 EANS = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ean.json'))) if os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ean.json')) else {}
@@ -180,7 +193,7 @@ for sku, r in sorted(best.items()):
     txt = open(p).read() if os.path.exists(p) else ''
     secs = sections(txt) if txt else {}
     en = secs.get('en', '')
-    name = re.sub(r'\s+', ' ', r['name']).strip()
+    name = clean_name(r['name'])
     pack = pack_of(en, name, txt) if en else None
     use = {l: field(t, USE[l], STOP[l]) for l, t in secs.items()}
     warn = {l: field(t, WARN[l], STORE[l] + '|' + STOP[l].split('|Origin')[0] if l == 'en' else STORE[l]) for l, t in secs.items()}

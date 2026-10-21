@@ -233,7 +233,7 @@
       var q = $('#scQ'), res = $('#scRes'), cat = global.FS_CATALOG || {};
       q.oninput = function () {
         var hits = search(q.value);
-        res.innerHTML = hits.length ? hits.map(function (k) { return '<button class="sh-line focusable" data-sku="' + k + '"><span class="ico">' + (cat[k].k === 'supplement' ? '🌿' : cat[k].k === 'drink' ? '☕' : '🥣') + '</span><span><b translate="no">' + esc(cat[k].n) + '</b><small>#' + k + (cat[k].days ? ' · ' + cat[k].days + ' days per pack' : '') + '</small></span></button>'; }).join('')
+        res.innerHTML = hits.length ? hits.map(function (k) { return '<button class="sh-line focusable" data-sku="' + k + '">' + (cat[k].img ? '<img class="sr-img" src="' + esc(cat[k].img) + '" alt="" loading="lazy" referrerpolicy="no-referrer">' : '<span class="ico">' + (cat[k].k === 'supplement' ? '🌿' : cat[k].k === 'drink' ? '☕' : '🥣') + '</span>') + '<span><b translate="no">' + esc(cat[k].n) + '</b><small>#' + k + (cat[k].days ? ' · ' + cat[k].days + ' days per pack' : '') + '</small></span></button>'; }).join('')
           : q.value.trim().length > 1 ? '<p class="hint">No product found – try another word.</p>' : '';
       };
       res.addEventListener('click', function (e) { var b = e.target.closest('[data-sku]'); if (b) { stop(); open({ sku: b.getAttribute('data-sku') }, 'search'); } });

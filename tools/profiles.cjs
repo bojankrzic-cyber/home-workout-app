@@ -27,6 +27,7 @@ const path = require('path');
   await p.click('#pMore'); await p.waitForTimeout(200);
   await p.fill('#pPin', '1234');
   await p.screenshot({ path: out + '/p2-edit.png' });
+  if (await p.$('[data-wl="train"]')) { await p.click('[data-wl="train"]'); await p.waitForTimeout(300); }   // first visit: "Training & movement"
   await p.click('#pSave'); await p.waitForTimeout(300);
   log('active after create:', await p.$eval('.who', e => e.textContent));
   // profile picker on reload (2 profiles)

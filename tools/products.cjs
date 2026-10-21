@@ -12,6 +12,7 @@ const path = require('path');
     p.on('pageerror', e => errs.push(e.message));
     await p.goto('file://' + path.resolve(__dirname, '../index.html'));
     await p.evaluate(() => localStorage.clear()); await p.reload(); await p.waitForTimeout(300);
+    if (await p.$('[data-wl="train"]')) { await p.click('[data-wl="train"]'); await p.waitForTimeout(300); }   // first visit: "Training & movement"
     await p.keyboard.type('Bojan'); await p.click('#pSave'); await p.waitForTimeout(300);
     log(tag, 'default (pilot off):', await p.$$eval('.prod-card', e => e.length));
     await p.evaluate(() => { Store.active().settings.tips = true; Store.save(); }); await p.reload(); await p.waitForTimeout(300);

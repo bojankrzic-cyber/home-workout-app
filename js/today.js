@@ -79,6 +79,8 @@
     var N = window.I18N ? I18N.nm : esc, P = window.I18N ? I18N.ph : esc;
     var h = new Date().getHours(), name = N(s.name), seed = new Date().getDate() + s.name.length;
     var hello = h < 5 ? 'Up late, ' + name + '?' : h < 11 ? 'Good morning, ' + name : h < 17 ? 'Hi ' + name : 'Good evening, ' + name;
+    // the quiet profile from a scan or the welcome screen has no real name yet: greet without one
+    if (s.settings.qr && s.name === 'Me') hello = h < 5 ? 'Up late?' : h < 11 ? 'Good morning' : h < 17 ? 'Hi there' : 'Good evening';
     var left = plan.items.filter(function (i) { return !i.done; });
     var dueSupp = left.filter(function (i) { return i.kind === 'supp' && i.due; });
     var w = plan.items.filter(function (i) { return i.kind === 'workout' || i.kind === 'move'; })[0];
@@ -122,26 +124,27 @@
       '<button class="btn sm ghost focusable who" data-go="profiles" title="Switch person" aria-label="Switch person">' + U.avatar(s) + '<span class="who-name" translate="no">' + esc(s.name) + '</span></button></div>' +
       '<div class="buddy"><div class="buddy-face">' + BUDDY + '</div><div class="buddy-talk"><div class="buddy-hello">' + b.hello + '</div><div class="buddy-line">' + b.line + '</div>' +
       (b.badge ? '<span class="buddy-badge">' + esc(b.badge) + '</span>' : '') + '</div>' +
-      '<div class="day-ring" title="' + plan.done + ' of ' + n + ' done"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" class="dr-bg"/><circle cx="32" cy="32" r="26" class="dr-fg" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + (C * (1 - pct)).toFixed(1) + '"/></svg><b>' + plan.done + '/' + n + '</b><span>today</span></div></div>' +
+      '<div class="day-ring" title="' + plan.done + ' of ' + n + ' done"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" class="dr-bg"/><circle cx="32" cy="32" r="26" class="dr-fg" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + (C * (1 - pct)).toFixed(1) + '"/></svg><b>' + plan.done + '/' + n + '</b><span>tasks</span></div></div>' +
       (window.Scan && Scan.hero ? Scan.hero(s, 'home') : '') +
       (rec ? '<div class="t-banner focusable" tabindex="0" data-go="record">● Your ' + esc(T.TYPES[rec.type].name.toLowerCase()) + ' is paused at ' + T.km(rec.d) + ' km – tap to resume</div>' : '') +
       (window.Health && Health.todayCard ? Health.todayCard(s) : '') + (window.FinestQR && FinestQR.homeCard ? FinestQR.homeCard(s) : '') +
-      '<div class="section-title"><h2>Today’s plan</h2><span>' + (plan.training ? 'training day' : 'rest day') + ' · ' + new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }) + '</span></div>' +
+      '<div class="section-title"><h2>Today’s plan</h2><span><span>' + (plan.training ? 'Training day' : 'Rest day') + '</span> · <span translate="no">' + new Date().toLocaleDateString((window.I18N && I18N.locale || 'en-GB'), { weekday: 'long', day: 'numeric', month: 'long' }) + '</span></span></div>' +
       '<div class="t-list">' + plan.items.map(row).join('') +
       (routine(s).length ? '<button class="t-edit btn sm ghost focusable" data-go="routine">✎ Edit my supplement routine</button>'
         : '<div class="t-item k-setup"><span class="t-check plain">💊</span><div class="t-body"><div class="t-when">Health</div><b>Add your supplements</b><span>pick from Nature’s Finest or add your own – I’ll remind you when to take them</span></div><button class="btn sm primary focusable" data-go="routine">Set up</button></div>') +
       '</div>' +
       '<div class="t-week"><div class="tw-head"><b>This week</b><span>' + active + ' active ' + (active === 1 ? 'day' : 'days') + ' · goal ' + s.settings.days + '</span>' +
       (App.share && active ? '<button class="btn sm ghost focusable" data-share-week>↗ Share</button>' : '') + '</div><div class="tw-days">' + days + '</div>' +
-      '<div class="tw-legend"><span><i class="gym"></i>gym</span><span><i class="trail"></i>trail</span><span><i class="planned"></i>planned</span></div></div>' +
+      '<div class="tw-legend"><span><i class="gym"></i>Workout</span><span><i class="trail"></i>Walk, run or ride</span><span><i class="planned"></i>Planned</span></div></div>' +
       ((lastA || lastW) ? '<div class="section-title"><h2>Recently</h2></div><div class="row t-recent">' +
-        (lastA ? '<div class="session-card focusable last-act" tabindex="0" data-go="activity" data-p=\'{"id":"' + lastA.id + '"}\'><div class="tag">TRAIL · ' + esc(Sport.dateTxt(lastA.start).split(' · ')[0].toUpperCase()) + '</div><h3>' + esc(lastA.title) + '</h3><p>' +
+        (lastA ? '<div class="session-card focusable last-act" tabindex="0" data-go="activity" data-p=\'{"id":"' + lastA.id + '"}\'><div class="tag">ACTIVITY · ' + esc(Sport.dateTxt(lastA.start).split(' · ')[0].toUpperCase()) + '</div><h3>' + esc(lastA.title) + '</h3><p>' +
           (lastA.dist ? T.km(lastA.dist) + ' km · ' : '') + T.clock(lastA.moving || lastA.elapsed) + '</p>' + (lastA.pts && lastA.pts.length > 1 ? Sport.routeSvg(lastA.pts, 'card') : '') + '</div>' : '') +
-        (lastW ? '<div class="session-card focusable" tabindex="0" data-go="history"><div class="tag">GYM · ' + new Date(lastW.date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase() + '</div><h3>' + esc(lastW.name || 'Workout') + '</h3><p>' + lastW.min + ' min · ' + lastW.sets.length + ' sets</p></div>' : '') +
+        (lastW ? '<div class="session-card focusable" tabindex="0" data-go="history"><div class="tag">GYM · ' + new Date(lastW.date).toLocaleDateString((window.I18N && I18N.locale || 'en-GB'), { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase() + '</div><h3>' + esc(lastW.name || 'Workout') + '</h3><p>' + lastW.min + ' min · ' + lastW.sets.length + ' sets</p></div>' : '') +
         '</div>' : '') +
       U.homeProducts() +
       '</div>';
     App.$('#app').innerHTML = html;
+    setTimeout(columns, 0);   // after the other modules have added their cards
     $$('[data-take]').forEach(function (btn) {
       btn.onclick = function () {
         var id = btn.getAttribute('data-take'), s2 = st(), ds = ymd();
@@ -161,20 +164,36 @@
     Object.keys(s.settings.intake || {}).forEach(function (k) { if (k < cut) delete s.settings.intake[k]; });
   }
 
+  // Wide screens (desktop, TV): two columns – today's tasks on the left; the week, the program card,
+  // the shelf and adding a product on the right. Phones keep one column in the same order.
+  function columns() {
+    var sc = document.querySelector('.today-screen');
+    if (!sc || sc.querySelector('.td-cols') || !window.matchMedia('(min-width: 1100px)').matches) return;
+    var buddy = sc.querySelector('.buddy'); if (!buddy) return;
+    var hasRoutine = routine(st()).length > 0;
+    var cols = document.createElement('div'); cols.className = 'td-cols';
+    var main = document.createElement('div'); main.className = 'td-main';
+    var side = document.createElement('div'); side.className = 'td-side';
+    var sideSel = '.t-week, .hp-card, .hp-check, .shelf-strip, .rem-card, .qr-home' + (hasRoutine ? ', .scan-hero' : '');
+    var rest = []; for (var n = buddy.nextElementSibling; n; n = n.nextElementSibling) rest.push(n);
+    rest.forEach(function (el) { (el.matches(sideSel) ? side : main).appendChild(el); });
+    cols.appendChild(main); cols.appendChild(side); buddy.insertAdjacentElement('afterend', cols);
+  }
+
   // ---------------------------------------------------------------- ＋ Start: Trail · Gym · Health
   var SHEETS = {
     start: function () {
       return '<h3>What are we doing?</h3>' + (window.Scan && Scan.hero ? Scan.hero(st(), 'sheet') : '') + '<div class="sh-worlds">' +
-        world('trail', '🌲', 'Trail', 'run · walk · hike · ride · any sport') +
+        world('trail', '🌲', 'Outdoors & sports', 'walk · run · hike · ride · any sport') +
         world('gym', '🏋️', 'Gym', 'today’s workout · pick one · build your own') +
         world('health', '🌿', 'Health', 'supplements · body weight') + '</div>';
       function world(k, ico, name, sub) { return '<button class="sh-world focusable w-' + k + '" data-sheet="' + k + '"><span class="ico">' + ico + '</span><b>' + name + '</b><small>' + sub + '</small></button>'; }
     },
     trail: function () {
-      return head('🌲 Trail', 'Record with GPS – live map, pace, splits') + '<div class="sh-grid">' +
+      return head('🌲 Outdoors & sports', 'Record with GPS – live map, pace, splits') + '<div class="sh-grid">' +
         T.GPS_TYPES.map(function (k) { return opt('record', { type: k }, T.TYPES[k].ico, T.TYPES[k].name); }).join('') + '</div>' +
         '<div class="sh-list">' + line('logSport', {}, '✍️', 'Log another sport', 'football, tennis, padel, swim, yoga…') +
-        line('devices', {}, '⌚', 'Watch & heart rate', 'import from Garmin, Apple Watch, Polar… · live heart rate') + line('activities', {}, '🗺️', 'My activities', 'maps, splits, records') + '</div>';
+        line('devices', {}, '⌚', 'Watch & heart rate', 'import workout files · live heart rate (Bluetooth strap)') + line('activities', {}, '🗺️', 'My activities', 'maps, splits, records') + '</div>';
     },
     gym: function () {
       var s = st(), key = Program.nextSessionKey(s), sess = Program.build(s, key);
@@ -200,7 +219,7 @@
         '<button class="btn primary focusable sh-save" id="shWSave">Save</button>';
     }
   };
-  function head(t, sub) { return '<button class="sh-back focusable" data-sheet="start" aria-label="Back">←</button><h3>' + t + '</h3><p class="sh-sub">' + sub + '</p>'; }
+  function head(t, sub) { return '<button class="sh-back focusable" data-sheet="start" aria-label="Go back">←</button><h3>' + t + '</h3><p class="sh-sub">' + sub + '</p>'; }
   function opt(go, p, ico, name) { return '<button class="sh-opt focusable" data-sgo="' + go + '" data-p=\'' + JSON.stringify(p) + '\'><span class="ico">' + ico + '</span>' + esc(name) + '</button>'; }
   function line(go, p, ico, name, sub, primary) {
     return '<button class="sh-line focusable' + (primary ? ' primary' : '') + '" data-sgo="' + go + '" data-p=\'' + JSON.stringify(p) + '\'><span class="ico">' + ico + '</span><span><b>' + esc(name) + '</b><small>' + esc(sub) + '</small></span></button>';
@@ -247,7 +266,7 @@
     var km = a.reduce(function (x, y) { return x + (y.dist || 0); }, 0) / 1000;
     var sec = w.reduce(function (x, l) { return x + (l.sec || l.min * 60 || 0); }, 0) + a.reduce(function (x, y) { return x + (y.moving || y.elapsed || 0); }, 0);
     var streak = U.weeksStreak();
-    App.share({ kind: 'week', eyebrow: 'My week · ' + mon.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }), title: (w.length + a.length) + ((w.length + a.length) === 1 ? ' session' : ' sessions'),
+    App.share({ kind: 'week', eyebrow: 'My week · ' + mon.toLocaleDateString((window.I18N && I18N.locale || 'en-GB'), { day: 'numeric', month: 'short' }), title: (w.length + a.length) + ((w.length + a.length) === 1 ? ' session' : ' sessions'),
       subtitle: (w.length ? w.length + ' gym' : '') + (w.length && a.length ? ' · ' : '') + (a.length ? a.length + ' trail' : ''),
       stats: [[Math.floor(sec / 3600) + 'h ' + Math.round(sec % 3600 / 60) + 'm', 'active time'], [km ? km.toFixed(1) + ' km' : '–', 'distance'], [streak >= 2 ? streak : w.length + a.length, streak >= 2 ? 'week streak' : 'this week']],
       badge: streak >= 2 ? '🔥 ' + streak + '-week streak' : '',
@@ -278,7 +297,7 @@
           '<div><h3>' + esc(r.name) + '</h3><input class="field focusable r-dose" data-rdose="' + r.id + '" data-fid="rd-' + r.id + '" value="' + esc(r.dose || '') + '" placeholder="dose, e.g. 1 capsule"></div>' +
           '<button class="btn sm ghost focusable" data-rdel="' + r.id + '" aria-label="Remove">✕</button></div>' +
           (c && c.use && c.use.tip ? '<div class="hint">💡 ' + esc(c.use.tip) + '</div>' : '') +
-          (window.Health ? (function () { var sup = Health.supply(s, r); return '<div class="opt-row r-pack"><span class="hint">📦 ' + (sup ? sup.left + ' of ' + sup.servings + ' servings left · until ' + new Date(sup.runOut).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : 'Add your pack – I’ll remind you before it runs out') + '</span><button class="btn sm ghost focusable" data-rpack="' + r.id + '">' + (sup ? 'New pack' : 'Add pack') + '</button></div>'; })() : '') +
+          (window.Health ? (function () { var sup = Health.supply(s, r); return '<div class="opt-row r-pack"><span class="hint">📦 ' + (sup ? sup.left + ' of ' + sup.servings + ' servings left · until ' + new Date(sup.runOut).toLocaleDateString((window.I18N && I18N.locale || 'en-GB'), { day: 'numeric', month: 'short' }) : 'Add your pack – I’ll remind you before it runs out') + '</span><button class="btn sm ghost focusable" data-rpack="' + r.id + '">' + (sup ? 'New pack' : 'Add pack') + '</button></div>'; })() : '') +
           '<div class="opt-row r-slots">' + slotChips(r) + '</div>' +
           '<div class="opt-row"><button class="chip focusable' + (r.days !== 'training' ? ' on' : '') + '" data-rdays="' + r.id + '" data-val="daily" data-fid="rdy-' + r.id + '">Every day</button>' +
           '<button class="chip focusable' + (r.days === 'training' ? ' on' : '') + '" data-rdays="' + r.id + '" data-val="training" data-fid="rdt-' + r.id + '">Training days only</button></div></div>';

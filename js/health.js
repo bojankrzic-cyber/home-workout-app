@@ -136,11 +136,12 @@
       d = addDays(d, 1);
     }
     var left = Math.max(0, servings - used);
-    // calendar days until empty (training-days-only items last longer)
-    var daysLeft = 0, x = addDays(now, 1), rest = left;
-    if (!((s.settings.intake || {})[today] || {})[it.id] && due(s, it, now)) rest -= per;
+    // calendar days the pack still covers, today included until today's dose is confirmed
+    // (85 servings, nothing taken yet → 85 days; training-days-only items last longer)
+    var takenToday = !!((s.settings.intake || {})[today] || {})[it.id];
+    var daysLeft = 0, x = takenToday ? addDays(now, 1) : new Date(now), rest = left;
     while (rest > 0 && daysLeft < 400) { if (due(s, it, x)) rest -= per; daysLeft++; x = addDays(x, 1); }
-    return { servings: servings, used: used, left: left, daysLeft: Math.max(0, daysLeft), runOut: ymd(addDays(now, daysLeft)) };
+    return { servings: servings, used: used, left: left, daysLeft: Math.max(0, daysLeft), runOut: ymd(addDays(x, -1)) };
   }
   function lowSupply(s, now) {
     var p = prog(s), today = ymd(now || new Date());
@@ -278,14 +279,16 @@
           '<div class="hp-btns"><button class="btn sm focusable" data-hp="time">Change time</button><button class="btn sm focusable" data-hp="fewer">Fewer reminders</button><button class="btn sm ghost focusable" data-hp="pause">Pause 1 week</button></div></div>';
       }
       if (weeklyDue(s, now)) html += '<div class="hp-card weekly" data-hp="weekly" tabindex="0"><div><b>📊 Your weekly check-in · 20 seconds</b><span>Three taps – see your progress week by week</span></div><button class="btn sm primary focusable" data-hp="weekly">Start</button></div>';
+      // one name for the whole-day confirmation: per-product ticks live in Today's plan below
+      var doneLbl = items(s).length > 1 ? '✅ All taken' : '✅ Taken';
       html += '<div class="hp-check' + (mark === 'done' ? ' done' : '') + '">' +
         '<div class="hp-top"><span class="hp-day">' + (TIMES[p.checkinTime] || '').split(' ')[0] + ' Day ' + dayN + '</span>' + (stk > 1 ? '<span class="hp-streak">🔥 ' + stk + ' in a row</span>' : '') + '</div>' +
         '<b class="hp-q">' + (mark === 'done' ? '✓ Checked in today – nice!' : mark === 'skip' ? 'No problem – tomorrow is a fresh start.' : 'Took your supplements today?') + '</b>' +
         (nx ? '<div class="hp-bar"><i style="width:' + Math.round(pct * 100) + '%"></i></div><div class="hp-next">' + c + ' check-ins · <b>' + nx.left + ' more</b> to ' + nx.step.ico + ' ' + esc(nx.step.title.toLowerCase()) + '</div>'
           : '<div class="hp-next">' + c + ' check-ins · every reward unlocked 🏆</div>') +
         (mark ? (mark === 'done' ? '' : '<div class="hp-btns"><button class="btn sm focusable" data-hp="done">Actually, I did ✅</button></div>')
-          : (p.snooze > Date.now() ? '<div class="hp-btns"><button class="btn sm primary focusable" data-hp="done">✅ Done</button><span class="hint">I’ll ask again later</span></div>'
-            : '<div class="hp-btns"><button class="btn primary focusable" data-hp="done">✅ Done</button><button class="btn sm focusable" data-hp="later">⏰ Later</button><button class="btn sm ghost focusable" data-hp="skip">Not today</button></div>')) +
+          : (p.snooze > Date.now() ? '<div class="hp-btns"><button class="btn sm primary focusable" data-hp="done">' + doneLbl + '</button><span class="hint">I’ll ask again later</span></div>'
+            : '<div class="hp-btns"><button class="btn primary focusable" data-hp="done">' + doneLbl + '</button><button class="btn sm focusable" data-hp="later">⏰ Later</button><button class="btn sm ghost focusable" data-hp="skip">Not today</button></div>')) +
         '<button class="hp-link focusable" data-go="program">My program →</button></div>';
       return html;
     };
@@ -350,7 +353,7 @@
       var s = st();
       if (!App.share) return;
       var c = count(s), p = prog(s), wk = Object.keys(p.weekly).sort(), first = p.weekly[wk[0]], last = p.weekly[wk[wk.length - 1]];
-      App.share({ kind: 'routine', eyebrow: 'My routine · since ' + new Date(p.start).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }), title: c + ' check-ins',
+      App.share({ kind: 'routine', eyebrow: 'My routine · since ' + new Date(p.start).toLocaleDateString((window.I18N && I18N.locale || 'en-GB'), { day: 'numeric', month: 'short' }), title: c + ' check-ins',
         subtitle: items(s).map(function (x) { return x.name; }).slice(0, 3).join(' · '),
         stats: [[streak(s) + ' days', 'in a row'], [Object.keys(p.rewards).length, 'rewards'], first && last ? [(last.energy - first.energy >= 0 ? '+' : '') + (last.energy - first.energy), 'energy trend'] : [wk.length, 'weekly reviews']],
         badge: c >= 90 ? '🏆 90 days of looking after myself' : c >= 30 ? '🏅 30 check-ins' : '',
@@ -371,7 +374,7 @@
       }).join('');
       var supplies = list.map(function (it) {
         var sup = supply(s, it, now), c2 = it.pid && catalog(it.pid);
-        return '<div class="sup-row"><div><b>' + esc(it.name) + '</b><small>' + (sup ? sup.left + ' of ' + sup.servings + ' servings · lasts until ' + new Date(sup.runOut).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : 'Add your pack to get a run-out reminder') + '</small>' +
+        return '<div class="sup-row"><div><b>' + esc(it.name) + '</b><small>' + (sup ? sup.left + ' of ' + sup.servings + ' servings · lasts until ' + new Date(sup.runOut).toLocaleDateString((window.I18N && I18N.locale || 'en-GB'), { day: 'numeric', month: 'short' }) : 'Add your pack to get a run-out reminder') + '</small>' +
           (sup ? '<div class="sbar"><i style="width:' + Math.round(sup.left / sup.servings * 100) + '%"' + (sup.daysLeft <= 5 ? ' class="low"' : '') + '></i></div>' : '') + '</div>' +
           '<div class="hp-btns">' + (sup && c2 ? '<a class="btn sm' + (sup.daysLeft <= 5 ? ' primary' : '') + ' focusable" data-reorder="' + it.id + '" href="' + esc(H.reorderUrl(it, bestCode(s), 'program') || '#') + '" target="_blank" rel="noopener">🛒 ' + (sup.daysLeft <= 5 ? 'Reorder' : 'Order') + '</a>' : '') +
           '<button class="btn sm ghost focusable" data-pack="' + it.id + '">' + (sup ? 'New pack' : 'Add pack') + '</button></div></div>';
@@ -388,7 +391,7 @@
         '<div class="pg-hero-txt"><h2>' + (nx ? nx.left + ' more to ' + nx.step.ico + ' ' + esc(nx.step.title.toLowerCase()) : 'Every reward unlocked 🏆') + '</h2><p>' + esc(H.expectation(s, now)) + '</p>' +
         '<div class="pg-chips"><span>🔥 ' + stk + ' in a row</span>' + (H.freezes(s) ? '<span>❄️ ' + H.freezes(s) + (H.freezes(s) === 1 ? ' streak freeze' : ' streak freezes') + '</span>' : '') + '<span>' + (TIMES[pr.checkinTime] || '') + '</span><span>🔔 ' + (pr.reminders === 'off' ? 'no reminders' : pr.reminders === '3x' ? 'reminders 3× a week' : 'daily reminder') + '</span></div></div></div>' +
         '<div class="panel"><h3>Rewards for consistency</h3><div class="ladder">' + ladder + '</div><div class="hint">Check-ins add up – a missed day never takes anything away.</div></div>' +
-        '<div class="panel"><h3>Your last 5 weeks</h3><div class="cal">' + 'MTWTFSS'.split('').map(function (x) { return '<span>' + x + '</span>'; }).join('') + cal + '</div><div class="tw-legend"><span><i class="gym"></i>checked in</span><span><i class="skipd"></i>not today</span></div></div>' +
+        '<div class="panel"><h3>Your last 5 weeks</h3><div class="cal">' + [1, 2, 3, 4, 5, 6, 0].map(function (i) { var x = new Date(2023, 0, 1 + i).toLocaleDateString((global.I18N && I18N.locale) || 'en-GB', { weekday: 'narrow' }); return '<span translate="no">' + x + '</span>'; }).join('') + cal + '</div><div class="tw-legend"><span><i class="gym"></i>checked in</span><span><i class="skipd"></i>not today</span></div></div>' +
         '<div class="panel"><h3>Supply</h3>' + supplies + '<div class="hint">I’ll tell you 5 days before you run out – reorder in one tap, your reward code included.</div></div>' +
         '<div class="panel"><h3>Weekly progress</h3>' + (rv ? '<div class="act-tot"><div><b>' + rv.adh.done + '/' + rv.adh.due + '</b><span>this week' + (rv.adhPrev.due ? ' (was ' + rv.adhPrev.done + '/' + rv.adhPrev.due + ')' : '') + '</span></div>' +
           '<div><b>' + rv.cur.energy + delta('energy') + '</b><span>⚡ energy</span></div><div><b>' + rv.cur.sleep + delta('sleep') + '</b><span>😴 sleep</span></div></div>' + spark('energy') + spark('sleep') : '<div class="hint">Your first weekly check-in comes after a few days – three taps, then your trend appears here.</div>') +

@@ -22,8 +22,8 @@
   function paceUnit(a) { return isSpeed(a) ? 'km/h' : '/km'; }
   function dateTxt(iso) {
     var d = new Date(iso), now = new Date(), y = new Date(); y.setDate(now.getDate() - 1);
-    var day = d.toDateString() === now.toDateString() ? 'Today' : d.toDateString() === y.toDateString() ? 'Yesterday' : d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-    return day + ' · ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    var day = d.toDateString() === now.toDateString() ? 'Today' : d.toDateString() === y.toDateString() ? 'Yesterday' : d.toLocaleDateString((window.I18N && I18N.locale || 'en-GB'), { weekday: 'short', day: 'numeric', month: 'short' });
+    return day + ' · ' + d.toLocaleTimeString((window.I18N && I18N.locale || 'en-GB'), { hour: '2-digit', minute: '2-digit' });
   }
   function save() { App.save(); }
 
@@ -401,7 +401,7 @@
       var pr = acts().filter(function (x) { return x.type === a.type; }).length > 1 &&
         Object.keys(a.best || {}).filter(function (L) { return recs[L] && recs[L].id === a.id; }).map(Number).sort(function (x, y) { return y - x; })[0];
       var prName = pr ? T.EFFORTS.filter(function (e) { return e[0] === pr; })[0][1] : '';
-      App.share({ kind: 'activity', eyebrow: t.name + ' · ' + new Date(a.start).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }),
+      App.share({ kind: 'activity', eyebrow: t.name + ' · ' + new Date(a.start).toLocaleDateString((window.I18N && I18N.locale || 'en-GB'), { weekday: 'short', day: 'numeric', month: 'short' }),
         title: a.dist ? T.km(a.dist) + ' km' : T.clock(sec), subtitle: a.title, pts: a.pts,
         stats: (a.dist ? [[paceTxt(a, sec, a.dist), sp ? 'km/h' : 'per km'], [T.clock(sec), 'time']] : [[T.clock(sec), 'time']]).concat(a.hr ? [[a.hr + ' bpm', 'avg heart rate']] : a.gain ? [[a.gain + ' m', 'elevation']] : a.kcal ? [[a.kcal, 'kcal']] : []),
         badge: pr ? '🏆 New ' + prName + ' record' : '',
@@ -502,7 +502,7 @@
       }).join('') + '</div>' : '');
     var month = '';
     html += '<div class="act-list">' + (list.map(function (a) {
-      var m = new Date(a.start).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }), h = '';
+      var m = new Date(a.start).toLocaleDateString((window.I18N && I18N.locale || 'en-GB'), { month: 'long', year: 'numeric' }), h = '';
       if (m !== month) { month = m; h = '<div class="act-month">' + m + '</div>'; }
       return h + actRow(a);
     }).join('') || '<div class="empty-state"><div class="big">🏃</div><h3>No activities yet</h3><p>Record a run, walk, hike or ride with GPS – or log any other sport in seconds.</p>' +
@@ -580,6 +580,7 @@
   // ---------------------------------------------------------------- progress panel (Today shows activity via js/today.js)
   App.hooks.progress.push(function () {
     var list = acts();
+    if (!list.length) return '';   // no empty charts: Progress shows "first steps" until there is something to plot
     var wk = T.weeks(list, 12), maxD = Math.max.apply(null, wk.map(function (w) { return w.dist; }).concat([1]));
     var maxS = Math.max.apply(null, wk.map(function (w) { return w.sec; }).concat([1]));
     var useDist = wk.some(function (w) { return w.dist > 0; });
@@ -591,7 +592,7 @@
     var runRec = T.records(list, 'run');
     var prs = [[1000, '1 km'], [5000, '5 km'], [10000, '10 km'], [21097, 'Half']].map(function (e) {
       var r = runRec[e[0]];
-      return '<div class="effort' + (r ? ' pr' : '') + '"><span>' + e[1] + '</span><b>' + (r ? T.clock(r.sec) : '—') + '</b>' + (r ? '<i>' + new Date(r.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + '</i>' : '') + '</div>';
+      return '<div class="effort' + (r ? ' pr' : '') + '"><span>' + e[1] + '</span><b>' + (r ? T.clock(r.sec) : '—') + '</b>' + (r ? '<i>' + new Date(r.date).toLocaleDateString((window.I18N && I18N.locale || 'en-GB'), { day: 'numeric', month: 'short' }) + '</i>' : '') + '</div>';
     }).join('');
     return '<div class="hero"><div class="panel"><h3>Activity ' + (useDist ? 'distance' : 'time') + ' per week (12 weeks)</h3><div class="bars act-bars">' + bars + '</div>' +
       '<div class="act-tot"><div><b>' + thisW.n + '</b><span>this week</span></div><div><b>' + T.km(thisW.dist) + '</b><span>km this week</span></div><div><b>' + Math.round(total / 1000) + '</b><span>km all time</span></div></div></div>' +

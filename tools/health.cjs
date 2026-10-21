@@ -39,7 +39,7 @@ ok(H.missedRun(s, day(S0, 8)) === 0, 'no misses after a check-in');
 // supply: creatine 85, used on done days + silent due days (assumed taken), not on the skip day
 const sup = H.supply(s, s.settings.routine[0], day(S0, 12));
 ok(sup.used === 11 && sup.left === 74, 'creatine used 11 left 74: ' + JSON.stringify(sup));
-ok(sup.daysLeft === 73, 'days left 73: ' + sup.daysLeft);
+ok(sup.daysLeft === 74, 'days left 74 (today included until its dose is confirmed): ' + sup.daysLeft);
 const rec = H.supply(s, s.settings.routine[1], day(S0, 12));
 ok(rec.left < 20 && rec.daysLeft > rec.left, 'training-only item lasts longer than its servings in days: ' + JSON.stringify(rec));
 ok(H.lowSupply(s, day(S0, 12)).length === 0, 'nothing low yet');
