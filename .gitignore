@@ -7,3 +7,7 @@ node_modules/
 tools/_en_*.cjs
 node_modules/
 www/
+!android/**/*.png
+!ios/**/*.png
+!assets/*.png
+!icons/*.png
