@@ -359,11 +359,9 @@
   }
 
   // Wordmark: condensed italic caps read as "sport" (scoreboards, kits); the brand line sits underneath
-  var BRAND_SYM = '<svg class="bm-sym" viewBox="0 0 48 48" aria-hidden="true"><path d="M34.28 11.74A16 16 0 1 1 16 10.14" fill="none" stroke="currentColor" stroke-width="5.2" stroke-linecap="round"/>' +
-    '<path d="M16 10.4C16.6 4 22.4 1 29.6 2.2C28.8 8.6 23.4 12.4 16 10.4Z" fill="var(--leaf)"/><path d="M17.6 9.4C21 6.6 24.4 4.8 27.4 3.8" fill="none" stroke="var(--bg)" stroke-width=".9" stroke-linecap="round"/></svg>';
   function brandMark(cls) {
-    // Rutina mark: an open loop (the daily round) that sprouts the Nature's Finest leaf
-    return '<div class="brand ' + (cls || '') + '" translate="no">' + BRAND_SYM + '<div class="wm"><span class="wm-top">rutina</span>' +
+    // wordmark only in the app; the loop-and-leaf symbol is the app icon (icons/icon.svg)
+    return '<div class="brand ' + (cls || '') + '" translate="no"><div class="wm"><span class="wm-top">rutina</span>' +
       '<span class="wm-by">' + 'by nature\u2019s finest'.split('').map(function (c) { return '<i>' + (c === ' ' ? '&nbsp;' : c) + '</i>'; }).join('') + '</span></div></div>';
   }
 

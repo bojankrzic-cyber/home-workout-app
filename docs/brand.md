@@ -4,10 +4,10 @@ The app was renamed from FinestMe to **Rutina** (October 2026).
 
 ## Logo
 - **Symbol:** an open loop (the daily round, a streak ring) that sprouts the Nature's Finest leaf at its open end. It stands for small steps repeated every day, rooted in nature.
-- **Files:** `icons/icon.svg` (app icon) and `icons/rutina-logo.svg` (horizontal lockup). In the app it is built by `brandMark()` in `js/app.js`; the share cards draw it in `js/share.js`.
+- **Where:** the symbol is used **only as the app icon** (`icons/icon.svg`). Inside the app, on share cards and in communication the brand is the **wordmark alone** (`icons/rutina-logo.svg`, `brandMark()` in `js/app.js`, `js/share.js`).
 - **Wordmark:** "rutina" in lowercase, Rethink Sans 700, tracking −0.035em, with the endorsement "BY NATURE'S FINEST" underneath.
 - **Colours:** ink #0f1b14 (light) / #eef4ef (dark); leaf #0ba74b (brand leaf green) or #3ec46d on dark.
-- **Clear space:** the height of the loop around the lockup. Minimum symbol size: 24 px.
+- **Clear space:** the height of the letter "r" around the wordmark. Minimum app-icon size: 24 px.
 
 ## Trademark (to do before launch – legal)
 - "Rutina" is an everyday word in sl, hr, cs, sk, es, pl ("rutyna") and similar languages, and it describes what the app does. A **word mark** at EUIPO is therefore likely to be refused as descriptive or lacking distinctiveness (Art. 7(1)(b),(c) EUTMR).
