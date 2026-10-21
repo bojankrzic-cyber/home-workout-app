@@ -33,9 +33,9 @@ const path = require('path');
     const page = await phone(lang);
     await page.goto(base); await page.waitForTimeout(700);
     ok(await page.evaluate((l) => document.documentElement.lang === l && I18N.lang === l && !!window.I18N_DICT, lang), lang + ': detected from the phone and dictionary loaded');
-    ok(await page.$('#peLang'), lang + ': language picker on the very first screen');
-    const welcome = await page.textContent('.topbar h1');
-    ok(welcome && !/who’s training/.test(welcome), lang + ': first screen translated (' + welcome + ')');
+    ok(await page.$('#wlLang'), lang + ': language picker on the very first screen');
+    const welcome = await page.textContent('.wl-head h1');
+    ok(welcome && !/would you like/.test(welcome), lang + ': first screen translated (' + welcome + ')');
     if (await page.$('[data-wl="train"]')) { await page.click('[data-wl="train"]'); await page.waitForTimeout(300); }   // first visit: "Training & movement"
     await page.fill('#pName', 'Ana'); await page.click('#pSave'); await page.waitForTimeout(600);
     const screens = [['home'], ['settings'], ['scan'], ['product', { id: '5634', src: 'qr' }]];
@@ -51,6 +51,7 @@ const path = require('path');
   // switching in Settings reloads into the new language and remembers it
   const page = await phone('en-GB');
   await page.goto(base); await page.waitForTimeout(500);
+  await page.click('[data-wl="train"]'); await page.waitForTimeout(300);
   await page.fill('#pName', 'Ana'); await page.click('#pSave'); await page.waitForTimeout(400);
   await page.evaluate(() => window.__go('settings')); await page.waitForTimeout(300);
   await Promise.all([page.waitForNavigation(), page.selectOption('#setLang', 'de')]); await page.waitForTimeout(700);
