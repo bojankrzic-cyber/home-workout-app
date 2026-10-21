@@ -1,6 +1,6 @@
-# Translating FinestMe
+# Translating Rutina
 
-FinestMe (by Nature's Finest, a European food-supplement brand) is a personal well-being coach app:
+Rutina (by Nature's Finest, a European food-supplement brand) is a personal well-being coach app:
 - the daily supplement routine (one-tap check-in, rewards, reorder before a pack runs out);
 - guided home and gym workouts (exercise names, technique cues, sets and reps);
 - GPS tracking for running, walking and riding ("Trail");
@@ -21,7 +21,7 @@ The buddy character is called **Finn**. The voice is warm, short and encouraging
 2. **Keep these unchanged:**
    - emoji and symbols: → ← ＋ ✓ · – … × % ⬆︎;
    - units: kg, km, m, min, s, bpm, km/h, /km, g, ml, IU;
-   - brand and product names: FinestMe, Nature's Finest, Finn, Google, Apple, Apple Watch, Garmin, Polar, Suunto, COROS, Fitbit, Samsung, Strava, HYROX, WhatsApp, Klaviyo, and product names such as "Detox - Belly Burn".
+   - brand and product names: Rutina, Nature's Finest, Finn, Google, Apple, Apple Watch, Garmin, Polar, Suunto, COROS, Fitbit, Samsung, Strava, HYROX, WhatsApp, Klaviyo, and product names such as "Detox - Belly Burn".
 3. **Register: informal and friendly everywhere** (du / tu / ti / te …), the way leading fitness apps (Freeletics, Strava, adidas Running) talk to users in your language. Be consistent. `tools/i18n/seed_qr.json` holds earlier translations of some keys. Use it for terminology only and rewrite to the informal register where it is formal.
 4. **Short UI text stays short.** Buttons, chips and labels should be about the length of the English. Capitalise as your language does: no English title case, sentence case for headings.
 5. **Sport and fitness terms:** use what people in your country actually say at the gym. English loanwords are fine where they are the norm (e.g. "Burpee", "Plank", "HIIT", "Zone 2" → your word for zone + 2). Exercise names should be recognisable.

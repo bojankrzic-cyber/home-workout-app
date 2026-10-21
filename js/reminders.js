@@ -114,7 +114,7 @@
         '<ul class="acct-why"><li>Only if today isn’t ticked yet</li><li>One a day at most – never at night</li><li>5 days before your pack runs out</li><li>Off with one tap, any time</li></ul>' +
         (needUser ? '<label class="check"><input type="checkbox" id="rmOk" class="focusable"><span>I agree that Nature’s Finest stores my routine check-ins (health-related data) in the EU to send me these reminders. No e-mail needed; I can switch it off and delete it any time.</span></label>' : '') +
         (pushPossible() ? '<button class="btn primary focusable" id="rmPush">🔔 Yes, remind me on this phone</button>'
-          : ios && !standalone() ? '<p class="hint">On iPhone, reminders work once FinestMe is on your home screen: tap Share ⬆︎ → “Add to Home Screen”, then open it from there.</p>' : '') +
+          : ios && !standalone() ? '<p class="hint">On iPhone, reminders work once Rutina is on your home screen: tap Share ⬆︎ → “Add to Home Screen”, then open it from there.</p>' : '') +
         '<button class="btn focusable" id="rmMail">✉️ Remind me by e-mail instead</button><button class="btn ghost focusable" id="rmNo">Not now</button></div>';
       document.body.appendChild(w);
       var close = function () { w.remove(); };

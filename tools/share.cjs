@@ -36,7 +36,7 @@ const path = require('path');
   const dims = await page.evaluate(() => new Promise(r => { const i = document.querySelector('#shImg'); if (i.complete) r([i.naturalWidth, i.naturalHeight]); else i.onload = () => r([i.naturalWidth, i.naturalHeight]); }));
   ok(dims[0] === 1080 && dims[1] === 1920, 'story is 1080×1920: ' + dims);
   ok(await page.isChecked('#shHide'), 'route privacy on by default');
-  ok(/#FinestMe/.test(await page.inputValue('#shCap')) && /3\.00 km run/.test(await page.inputValue('#shCap')), 'caption: ' + await page.inputValue('#shCap'));
+  ok(/#Rutina/.test(await page.inputValue('#shCap')) && /3\.00 km run/.test(await page.inputValue('#shCap')), 'caption: ' + await page.inputValue('#shCap'));
   ok(/wa\.me/.test(await page.getAttribute('[data-net="whatsapp"]', 'href')) && /utm_source=share/.test(decodeURIComponent(await page.getAttribute('[data-net="whatsapp"]', 'href'))), 'network links carry UTM');
   await page.screenshot({ path: out + '/s1-story.png' });
   await page.click('[data-fmt="post"]'); await page.waitForTimeout(900);

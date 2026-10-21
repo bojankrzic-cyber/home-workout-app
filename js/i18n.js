@@ -1,5 +1,5 @@
 /*
- * FinestMe in the customer's language.
+ * Rutina in the customer's language.
  *
  * The app renders English; this layer translates what is on screen. A MutationObserver walks every
  * rendered node and looks each "unit" up in the dictionary for the chosen language (lang/<code>.js):

@@ -406,7 +406,7 @@
         stats: (a.dist ? [[paceTxt(a, sec, a.dist), sp ? 'km/h' : 'per km'], [T.clock(sec), 'time']] : [[T.clock(sec), 'time']]).concat(a.hr ? [[a.hr + ' bpm', 'avg heart rate']] : a.gain ? [[a.gain + ' m', 'elevation']] : a.kcal ? [[a.kcal, 'kcal']] : []),
         badge: pr ? '🏆 New ' + prName + ' record' : '',
         caption: (a.dist ? T.km(a.dist) + ' km ' + t.name.toLowerCase() + ' in ' + T.clock(sec) + (sp ? '' : ' (' + paceTxt(a, sec, a.dist) + ' /km)') : t.name + ' – ' + T.clock(sec)) + ' ' + t.ico + (pr ? ' New ' + prName + ' personal best!' : ''),
-        tags: ['#FinestMe', '#NaturesFinest', '#' + t.name.toLowerCase().replace(/[^a-z]/g, '')] });
+        tags: ['#Rutina', '#NaturesFinest', '#' + t.name.toLowerCase().replace(/[^a-z]/g, '')] });
     }
     if ($('#aShare')) $('#aShare').onclick = share;
     if ($('#aShare2')) $('#aShare2').onclick = share;
