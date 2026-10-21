@@ -137,7 +137,7 @@
       (App.share && active ? '<button class="btn sm ghost focusable" data-share-week>↗ Share</button>' : '') + '</div><div class="tw-days">' + days + '</div>' +
       '<div class="tw-legend"><span><i class="gym"></i>Workout</span><span><i class="trail"></i>Walk, run or ride</span><span><i class="planned"></i>Planned</span></div></div>' +
       ((lastA || lastW) ? '<div class="section-title"><h2>Recently</h2></div><div class="row t-recent">' +
-        (lastA ? '<div class="session-card focusable last-act" tabindex="0" data-go="activity" data-p=\'{"id":"' + lastA.id + '"}\'><div class="tag">ACTIVITY · ' + esc(Sport.dateTxt(lastA.start).split(' · ')[0].toUpperCase()) + '</div><h3>' + esc(lastA.title) + '</h3><p>' +
+        (lastA ? '<div class="session-card focusable last-act" tabindex="0" data-go="activity" data-p=\'{"id":"' + lastA.id + '"}\'><div class="tag">TRAIL · ' + esc(Sport.dateTxt(lastA.start).split(' · ')[0].toUpperCase()) + '</div><h3>' + esc(lastA.title) + '</h3><p>' +
           (lastA.dist ? T.km(lastA.dist) + ' km · ' : '') + T.clock(lastA.moving || lastA.elapsed) + '</p>' + (lastA.pts && lastA.pts.length > 1 ? Sport.routeSvg(lastA.pts, 'card') : '') + '</div>' : '') +
         (lastW ? '<div class="session-card focusable" tabindex="0" data-go="history"><div class="tag">GYM · ' + new Date(lastW.date).toLocaleDateString((window.I18N && I18N.locale || 'en-GB'), { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase() + '</div><h3>' + esc(lastW.name || 'Workout') + '</h3><p>' + lastW.min + ' min · ' + lastW.sets.length + ' sets</p></div>' : '') +
         '</div>' : '') +
@@ -184,13 +184,13 @@
   var SHEETS = {
     start: function () {
       return '<h3>What are we doing?</h3>' + (window.Scan && Scan.hero ? Scan.hero(st(), 'sheet') : '') + '<div class="sh-worlds">' +
-        world('trail', '🌲', 'Outdoors & sports', 'walk · run · hike · ride · any sport') +
+        world('trail', '🌲', 'Trail', 'run · walk · hike · ride · any sport') +
         world('gym', '🏋️', 'Gym', 'today’s workout · pick one · build your own') +
         world('health', '🌿', 'Health', 'supplements · body weight') + '</div>';
       function world(k, ico, name, sub) { return '<button class="sh-world focusable w-' + k + '" data-sheet="' + k + '"><span class="ico">' + ico + '</span><b>' + name + '</b><small>' + sub + '</small></button>'; }
     },
     trail: function () {
-      return head('🌲 Outdoors & sports', 'Record with GPS – live map, pace, splits') + '<div class="sh-grid">' +
+      return head('🌲 Trail', 'Record with GPS – live map, pace, splits') + '<div class="sh-grid">' +
         T.GPS_TYPES.map(function (k) { return opt('record', { type: k }, T.TYPES[k].ico, T.TYPES[k].name); }).join('') + '</div>' +
         '<div class="sh-list">' + line('logSport', {}, '✍️', 'Log another sport', 'football, tennis, padel, swim, yoga…') +
         line('devices', {}, '⌚', 'Watch & heart rate', 'import workout files · live heart rate (Bluetooth strap)') + line('activities', {}, '🗺️', 'My activities', 'maps, splits, records') + '</div>';
