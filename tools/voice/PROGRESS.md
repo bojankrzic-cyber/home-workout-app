@@ -7,6 +7,8 @@ Status: **NOT swapped**. audio/voice still holds the old clips. audio/voice_new 
 
 2026-10-20: refused again at 00:16 UTC with the same daily-limit message on the first call (0 credits). The free eleven_v3 voiceover allowance appears to be 0 on this account; nothing recorded.
 
+2026-10-21: refused again on the first call (daily limit, 0 credits). Account is still on the Free plan; recording needs a paid plan.
+
 ## Resume
 ```
 python3 tools/voice/make_lists.py          # idempotent: rebuilds/extends the 4 lists
