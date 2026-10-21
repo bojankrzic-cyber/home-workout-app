@@ -1,5 +1,5 @@
 /* Offline cache: app works without internet once loaded (TV / gym corner with weak Wi-Fi). */
-var CACHE = 'finestme-v48';
+var CACHE = 'finestme-v49';
 var FILES = ['./', 'index.html', 'css/app.css', 'js/theme.js', 'js/i18n.js', 'js/config.js', 'js/photos.js', 'js/products.js', 'js/voiceclips.js', 'js/figure.js', 'js/exercises.js', 'js/program.js', 'js/store.js', 'js/cloud.js', 'js/track.js', 'js/imports.js', 'js/sport.js', 'js/today.js', 'js/complements.js', 'js/catalog.js', 'js/health.js', 'js/qr.js', 'js/scan.js', 'js/reminders.js', 'js/shelf.js', 'js/devices.js', 'js/share.js', 'js/account.js', 'js/app.js', 'manifest.webmanifest', 'icons/icon.svg'];
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(FILES); }).then(function () { return self.skipWaiting(); }));
@@ -26,10 +26,10 @@ self.addEventListener('fetch', function (e) {
 });
 // Reminders (supabase/functions/reminders): { title, body, url, tag, done } – "✅ Done" checks in straight from the notification
 self.addEventListener('push', function (e) {
-  var d = {}; try { d = e.data ? e.data.json() : {}; } catch (x) { d = { title: 'FinestMe', body: e.data ? e.data.text() : '' }; }
+  var d = {}; try { d = e.data ? e.data.json() : {}; } catch (x) { d = { title: 'Rutina', body: e.data ? e.data.text() : '' }; }
   var opts = { body: d.body || '', icon: 'icons/icon.svg', badge: 'icons/icon.svg', tag: d.tag || 'finestme', renotify: false, data: { url: d.url || './' } };
   if (d.done) opts.actions = [{ action: 'done', title: d.done }];
-  e.waitUntil(self.registration.showNotification(d.title || 'FinestMe', opts));
+  e.waitUntil(self.registration.showNotification(d.title || 'Rutina', opts));
 });
 self.addEventListener('notificationclick', function (e) {
   e.notification.close();

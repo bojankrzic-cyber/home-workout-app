@@ -357,7 +357,7 @@
         subtitle: items(s).map(function (x) { return x.name; }).slice(0, 3).join(' · '),
         stats: [[streak(s) + ' days', 'in a row'], [Object.keys(p.rewards).length, 'rewards'], first && last ? [(last.energy - first.energy >= 0 ? '+' : '') + (last.energy - first.energy), 'energy trend'] : [wk.length, 'weekly reviews']],
         badge: c >= 90 ? '🏆 90 days of looking after myself' : c >= 30 ? '🏅 30 check-ins' : '',
-        caption: c + ' days of my daily routine ✅ Small steps, every day.', tags: ['#FinestMe', '#NaturesFinest', '#dailyroutine'] });
+        caption: c + ' days of my daily routine ✅ Small steps, every day.', tags: ['#Rutina', '#NaturesFinest', '#dailyroutine'] });
     }
     App.SCREENS.program = function (p) {
       var s = st(), pr = prog(s), now = new Date(), c = count(s), nx = next(s), stk = streak(s, now), list = items(s);

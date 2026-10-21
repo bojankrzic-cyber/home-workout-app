@@ -359,8 +359,11 @@
   }
 
   // Wordmark: condensed italic caps read as "sport" (scoreboards, kits); the brand line sits underneath
+  var BRAND_SYM = '<svg class="bm-sym" viewBox="0 0 48 48" aria-hidden="true"><path d="M34.28 11.74A16 16 0 1 1 16 10.14" fill="none" stroke="currentColor" stroke-width="5.2" stroke-linecap="round"/>' +
+    '<path d="M16 10.4C16.6 4 22.4 1 29.6 2.2C28.8 8.6 23.4 12.4 16 10.4Z" fill="var(--leaf)"/><path d="M17.6 9.4C21 6.6 24.4 4.8 27.4 3.8" fill="none" stroke="var(--bg)" stroke-width=".9" stroke-linecap="round"/></svg>';
   function brandMark(cls) {
-    return '<div class="brand ' + (cls || '') + '" translate="no"><div class="wm"><span class="wm-top">FINEST<em>ME</em></span>' +
+    // Rutina mark: an open loop (the daily round) that sprouts the Nature's Finest leaf
+    return '<div class="brand ' + (cls || '') + '" translate="no">' + BRAND_SYM + '<div class="wm"><span class="wm-top">rutina</span>' +
       '<span class="wm-by">' + 'by nature\u2019s finest'.split('').map(function (c) { return '<i>' + (c === ' ' ? '&nbsp;' : c) + '</i>'; }).join('') + '</span></div></div>';
   }
 
@@ -906,7 +909,7 @@
         (window.Theme ? row('🌗', 'Appearance', 'Light or dark – “System” follows your phone.', ['light', 'dark', 'system'].map(function (t) {
           return '<button class="chip focusable' + (Theme.choice() === t ? ' on' : '') + '" data-theme-pick="' + t + '">' + { light: '☀️ Light', dark: '🌙 Dark', system: '📱 System' }[t] + '</button>';
         }).join('')) : '') +
-        (window.FinestQR && FinestQR.canInstall && FinestQR.canInstall() ? '<button class="set-row set-link focusable" id="setInstall"><span class="set-ico">📲</span><div class="set-lab"><b>Add FinestMe to your home screen</b><small>opens like an app, full screen, with reminders</small></div><span class="set-chev">›</span></button>' : '')) +
+        (window.FinestQR && FinestQR.canInstall && FinestQR.canInstall() ? '<button class="set-row set-link focusable" id="setInstall"><span class="set-ico">📲</span><div class="set-lab"><b>Add Rutina to your home screen</b><small>opens like an app, full screen, with reminders</small></div><span class="set-chev">›</span></button>' : '')) +
       group('Health & routine',
         link('📷', 'Scan a product', 'QR code on your Nature’s Finest pack → how to use it + your routine', 'scan') +
         (hasRoutine ? link('🏅', 'My program & reminders', 'check-ins, rewards, supply, reminder time', 'program') : '') +
@@ -1414,7 +1417,7 @@
           stats: [[fmt(total), 'time'], [logged.length, 'sets'], vol ? [Math.round(vol).toLocaleString((window.I18N && I18N.locale || 'en-GB')) + ' kg', 'lifted'] : [reps, 'reps']],
           badge: prs.length ? '🏆 ' + prs.length + (prs.length === 1 ? ' personal best' : ' personal bests') : '',
           caption: (race ? 'Hybrid race simulation done in ' + fmt(total) : sess.name + ' done – ' + logged.length + ' sets in ' + fmt(total)) + ' 💪' + (prs.length ? ' New personal best!' : ''),
-          tags: ['#FinestMe', '#NaturesFinest', race ? '#hybridrace' : '#homeworkout'] });
+          tags: ['#Rutina', '#NaturesFinest', race ? '#hybridrace' : '#homeworkout'] });
       };
       $('#wHome').focus();
       activeSession.confirmExit = null;

@@ -47,14 +47,14 @@
   // ---------------------------------------------------------------- brands
   var IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   var AUTO = 'Automatic sync – comes with your Nature’s Finest account';
-  var NATIVE = 'Automatic sync – comes with the FinestMe app for your phone';
+  var NATIVE = 'Automatic sync – comes with the Rutina app for your phone';
   var BRANDS = [
     { k: 'garmin', name: 'Garmin', ico: '⌚', auto: AUTO,
       imp: ['Garmin Connect (web or app): open the activity › ⚙ / ⋯ › <b>Export Original</b> (.zip) – or Export to GPX / TCX.', 'Import the file below – route, splits and heart rate come along.'],
       live: 'In the watch settings turn on <b>Broadcast Heart Rate</b> (Wrist Heart Rate or the controls menu), then connect below.' },
     { k: 'apple', name: 'Apple Watch', ico: '', auto: NATIVE,
       imp: ['The Health app can’t export single workouts. Use an export app such as <b>HealthFit</b> or <b>RunGap</b> to save the workout as FIT or GPX to Files.', 'Import the file below.'],
-      live: null, liveNo: 'Apple Watch doesn’t share live heart rate with web apps – it comes with the FinestMe iPhone app (Apple Health).' },
+      live: null, liveNo: 'Apple Watch doesn’t share live heart rate with web apps – it comes with the Rutina iPhone app (Apple Health).' },
     { k: 'polar', name: 'Polar', ico: '⌚', auto: AUTO,
       imp: ['Polar Flow (web): open the training session › ⋯ › <b>Export session</b> (TCX or GPX).', 'Import the file below.'],
       live: 'Polar H9/H10/Verity sensors pair directly. Polar watches: enable <b>Share HR with other devices</b> / HR sensor mode, then connect below.' },
@@ -69,9 +69,9 @@
       live: null, liveNo: 'Fitbit and Pixel Watch don’t broadcast standard heart rate – automatic sync will bring it in.' },
     { k: 'samsung', name: 'Samsung Galaxy Watch', ico: '⌚', auto: NATIVE,
       imp: ['Samsung Health doesn’t export single workouts. If you sync to another app (e.g. Strava), export GPX from there.', 'Import the file below.'],
-      live: null, liveNo: 'Galaxy Watch doesn’t broadcast standard heart rate – it comes with the FinestMe Android app (Health Connect).' },
+      live: null, liveNo: 'Galaxy Watch doesn’t broadcast standard heart rate – it comes with the Rutina Android app (Health Connect).' },
     { k: 'strap', name: 'Heart-rate strap', ico: '❤️', auto: null,
-      imp: ['Straps record no workouts of their own – pair it here and FinestMe records your heart rate while you train.'],
+      imp: ['Straps record no workouts of their own – pair it here and Rutina records your heart rate while you train.'],
       live: 'Polar H9/H10, Garmin HRM, Wahoo TICKR and any Bluetooth heart-rate strap: wet the electrodes, put it on, connect below.' },
     { k: 'other', name: 'Other', ico: '📲', auto: null,
       imp: ['Almost every watch and sports app can export <b>GPX, TCX or FIT</b> – import it below.'],
@@ -129,12 +129,12 @@
         '<div class="panel dv-card"><div class="dv-n">2</div><h3>Live heart rate</h3>' +
         (b.live ? (bt ? '<p>' + b.live + '</p>' + (hr ? '<div class="dv-live">❤ <b id="dvBpm">' + hr + '</b> bpm · ' + esc(HeartRate.name) + '</div><button class="btn ghost focusable" id="dvOff">Disconnect</button>'
           : '<button class="btn primary focusable" id="dvOn">❤ Connect heart rate</button>') + '<div class="hint">Once connected, Record shows it live and saves it with the activity.</div>'
-          : '<p class="dv-no">' + (IOS ? 'iPhone browsers can’t connect to Bluetooth sensors. Live heart rate comes with the FinestMe iPhone app; until then, import the workout from your watch afterwards.' : 'This browser can’t connect to Bluetooth sensors – use Chrome on Android or a computer.') + '</p>')
+          : '<p class="dv-no">' + (IOS ? 'iPhone browsers can’t connect to Bluetooth sensors. Live heart rate comes with the Rutina iPhone app; until then, import the workout from your watch afterwards.' : 'This browser can’t connect to Bluetooth sensors – use Chrome on Android or a computer.') + '</p>')
           : '<p class="dv-no">' + esc(b.liveNo || 'Not available for this device.') + '</p>') + '</div>' +
         '<div class="panel dv-card"><div class="dv-n">3</div><h3>Automatic sync</h3>' +
-        (b.auto ? '<p>' + esc(b.auto) + ' – your workouts, heart rate' + (k === 'garmin' ? ', and FinestMe workouts sent to your watch' : '') + ', without exporting.</p>' +
+        (b.auto ? '<p>' + esc(b.auto) + ' – your workouts, heart rate' + (k === 'garmin' ? ', and Rutina workouts sent to your watch' : '') + ', without exporting.</p>' +
           '<label class="check"><input type="checkbox" class="focusable" id="dvNotify"' + (s.settings.deviceNotify ? ' checked' : '') + '><span>Tell me when it’s ready for ' + esc(b.name) + '</span></label>'
-          : '<p class="dv-no">Nothing to sync – a strap only measures; FinestMe records it with your workout.</p>') + '</div></div>';
+          : '<p class="dv-no">Nothing to sync – a strap only measures; Rutina records it with your workout.</p>') + '</div></div>';
     }
     html += '</div>';
     App.$('#app').innerHTML = html;
