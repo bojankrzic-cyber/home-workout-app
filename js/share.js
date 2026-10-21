@@ -103,14 +103,10 @@
     }
     // brand footer
     var fy = H - (opt.format === 'story' ? 150 : 90);
-    // Rutina mark (same paths as the app header): loop + leaf, then the wordmark
-    g.save(); g.translate(pad, fy - 60); g.scale(1.45, 1.45);
-    g.lineWidth = 5.2; g.lineCap = 'round'; g.strokeStyle = INK; g.stroke(new Path2D('M34.28 11.74A16 16 0 1 1 16 10.14'));
-    g.fillStyle = GREEN; g.fill(new Path2D('M16 10.4C16.6 4 22.4 1 29.6 2.2C28.8 8.6 23.4 12.4 16 10.4Z'));
-    g.restore();
+    // Rutina wordmark
     g.font = '700 64px "Rethink Sans", sans-serif';
-    g.fillStyle = INK; g.fillText('rutina', pad + 84, fy);
-    text('BY NATURE’S FINEST', '600 24px "Rethink Sans", sans-serif', sticker ? INK : MUTED, pad + 86, fy + 36);
+    g.fillStyle = INK; g.fillText('rutina', pad, fy);
+    text('BY NATURE’S FINEST', '600 24px "Rethink Sans", sans-serif', sticker ? INK : MUTED, pad + 2, fy + 36);
     g.shadowBlur = 0;
     return c;
   }
