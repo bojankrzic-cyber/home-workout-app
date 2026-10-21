@@ -131,7 +131,7 @@
       '<div class="section-title"><h2>Today’s plan</h2><span><span>' + (plan.training ? 'Training day' : 'Rest day') + '</span> · <span translate="no">' + new Date().toLocaleDateString((window.I18N && I18N.locale || 'en-GB'), { weekday: 'long', day: 'numeric', month: 'long' }) + '</span></span></div>' +
       '<div class="t-list">' + plan.items.map(row).join('') +
       (routine(s).length ? '<button class="t-edit btn sm ghost focusable" data-go="routine">✎ Edit my supplement routine</button>'
-        : '<div class="t-item k-setup"><span class="t-check plain">💊</span><div class="t-body"><div class="t-when">Health</div><b>Add your supplements</b><span>pick from Nature’s Finest or add your own – I’ll remind you when to take them</span></div><button class="btn sm primary focusable" data-go="routine">Set up</button></div>') +
+        : '<div class="t-item k-setup"><span class="t-check plain">💊</span><div class="t-body"><div class="t-when">Routine</div><b>Add your supplements</b><span>pick from Nature’s Finest or add your own – I’ll remind you when to take them</span></div><button class="btn sm primary focusable" data-go="routine">Set up</button></div>') +
       '</div>' +
       '<div class="t-week"><div class="tw-head"><b>This week</b><span>' + active + ' active ' + (active === 1 ? 'day' : 'days') + ' · goal ' + s.settings.days + '</span>' +
       (App.share && active ? '<button class="btn sm ghost focusable" data-share-week>↗ Share</button>' : '') + '</div><div class="tw-days">' + days + '</div>' +
@@ -186,7 +186,7 @@
       return '<h3>What are we doing?</h3>' + (window.Scan && Scan.hero ? Scan.hero(st(), 'sheet') : '') + '<div class="sh-worlds">' +
         world('trail', '🌲', 'Trail', 'run · walk · hike · ride · any sport') +
         world('gym', '🏋️', 'Gym', 'today’s workout · pick one · build your own') +
-        world('health', '🌿', 'Health', 'supplements · body weight') + '</div>';
+        world('health', '🌿', 'Routine', 'supplements · body weight') + '</div>';
       function world(k, ico, name, sub) { return '<button class="sh-world focusable w-' + k + '" data-sheet="' + k + '"><span class="ico">' + ico + '</span><b>' + name + '</b><small>' + sub + '</small></button>'; }
     },
     trail: function () {
@@ -204,7 +204,7 @@
     },
     health: function () {
       var s = st(), plan = dayPlan(s), left = plan.items.filter(function (i) { return i.kind === 'supp' && !i.done; });
-      return head('🌿 Health', 'Your daily routine and body') + '<div class="sh-list">' +
+      return head('🌿 Routine', 'Your daily routine and body') + '<div class="sh-list">' +
         (left.length ? '<button class="sh-line focusable primary" data-take-all><span class="ico">💊</span><span><b>Take ' + (left.length === 1 ? left[0].title : 'my supplements now') + '</b><small>' + esc(left.map(function (i) { return i.title; }).join(', ')) + '</small></span></button>' : '') +
         (routine(s).length ? line('shelf', {}, '📦', 'My shelf', 'what’s left in each pack · reorder') : '') +
         (routine(s).length ? line('program', {}, '🏅', 'My program', window.Health ? Health.count(s) + ' check-ins · rewards · supply · weekly progress' : '') : '') +
