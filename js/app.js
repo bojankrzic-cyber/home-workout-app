@@ -613,11 +613,11 @@
     var streak = weeksStreak();
 
     var cards = plan.order.map(function (k) {
-      var s = Program.SESSIONS[k];
+      var s = Program.SESSIONS[k], built = Program.build(state, k);   // names follow the equipment actually used
       var cp = sessionPhoto(s);
       return '<div class="session-card focusable' + (cp ? ' photo-card' : '') + (k === nextKey ? ' next' : '') + '" tabindex="0" data-go="overview" data-p=\'{"key":"' + k + '"}\'' + cardBg(cp) + '>' +
         '<div class="tag" style="color:' + s.color + '">' + (k === nextKey ? 'UP NEXT' : 'WORKOUT ' + (plan.order.indexOf(k) + 1)) + '</div>' +
-        '<h3>' + esc(s.name) + '</h3><p>' + esc(s.short) + '</p></div>';
+        '<h3>' + esc(built.name) + '</h3><p>' + esc(built.short) + '</p></div>';
     }).join('');
 
     root.innerHTML =
