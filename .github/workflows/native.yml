@@ -1,0 +1,59 @@
+name: Native apps (iOS + Android)
+
+# Builds the App Store / Google Play apps from the same web code (Capacitor).
+# Runs on every push to main that touches the app, and on demand. Outputs are attached to the run:
+#   - rutina-android-debug.apk   → install directly on an Android phone for testing
+#   - rutina-android-release.aab → upload to Google Play (signed when the ANDROID_* secrets exist)
+#   - iOS: a simulator build proves the project compiles; the signed TestFlight upload is added once the
+#     Apple account exists (secrets APPLE_*, see docs/store-launch.md).
+on:
+  push:
+    branches: [main]
+    paths: ['index.html', 'css/**', 'js/**', 'lang/**', 'img/**', 'audio/**', 'icons/**', 'data/**', 'android/**', 'ios/**', 'capacitor.config.json', 'package.json', '.github/workflows/native.yml']
+  workflow_dispatch:
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - run: npm ci
+      - run: npm run build:web && npx cap sync android
+      - name: Build
+        working-directory: android
+        run: ./gradlew --no-daemon assembleDebug bundleRelease
+      - name: Sign the release bundle (when the upload key is configured)
+        env:
+          KS: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        if: env.KS != ''
+        run: |
+          echo "$KS" | base64 -d > upload.jks
+          jarsigner -keystore upload.jks -storepass "$KS_PASS" -keypass "$KEY_PASS" android/app/build/outputs/bundle/release/app-release.aab "$KEY_ALIAS"
+          rm upload.jks
+      - run: |
+          mkdir out
+          cp android/app/build/outputs/apk/debug/app-debug.apk out/rutina-android-debug.apk
+          cp android/app/build/outputs/bundle/release/app-release.aab out/rutina-android-release.aab
+      - uses: actions/upload-artifact@v4
+        with: { name: rutina-android, path: out/ }
+
+  ios:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm run build:web && npx cap sync ios
+      - name: Build for the simulator (no signing needed)
+        run: |
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO build | tail -20

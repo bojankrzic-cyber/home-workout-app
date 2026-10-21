@@ -56,7 +56,7 @@
   global.FS_MODULES.push(function (App) {
     var $ = App.$, $$ = App.$$, esc = App.esc, H = global.Health;
     var labels = {}, deferred = null, ios = /iphone|ipad|ipod/i.test(navigator.userAgent || '') && !global.MSStream;
-    var standalone = function () { return (global.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; };
+    var standalone = function () { return (global.Native && Native.is) || (global.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; };
     global.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferred = e; });
     function st() { return App.state(); }
     function emit(name, props) { try { if (global.Cloud && Cloud.user && Cloud.user() && Cloud.event) Cloud.event(name, props || {}, st().id); } catch (e) {} }

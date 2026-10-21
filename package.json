@@ -1,0 +1,24 @@
+{
+  "name": "rutina",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Rutina – by Nature's Finest. The web app (repo root) wrapped for the App Store and Google Play with Capacitor.",
+  "scripts": {
+    "build:web": "sh tools/native/build-web.sh",
+    "sync": "npm run build:web && npx cap sync",
+    "assets": "npx capacitor-assets generate --iconBackgroundColor '#050a07' --iconBackgroundColorDark '#050a07' --splashBackgroundColor '#f5f7f4' --splashBackgroundColorDark '#050a07'"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.3",
+    "@capacitor/app": "^8.0.0",
+    "@capacitor/browser": "^8.0.0",
+    "@capacitor/core": "8.5.3",
+    "@capacitor/ios": "8.5.3",
+    "@capacitor/splash-screen": "^8.0.0",
+    "@capacitor/status-bar": "^8.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "8.5.3"
+  }
+}
