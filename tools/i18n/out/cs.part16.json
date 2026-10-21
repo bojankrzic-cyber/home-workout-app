@@ -159,5 +159,7 @@
  ".t-week, .hp-card, .hp-check, .shelf-strip, .rem-card, .qr-home": ".t-week, .hp-card, .hp-check, .shelf-strip, .rem-card, .qr-home",
  ", .scan-hero": ", .scan-hero",
  ".screen .topbar": ".screen .topbar",
- "Shoulders, core": "Ramena, střed těla"
+ "Shoulders, core": "Ramena, střed těla",
+ "Routine": "Rutina",
+ "🌿 Routine": "🌿 Rutina"
 }
