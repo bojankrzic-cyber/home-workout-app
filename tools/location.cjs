@@ -29,7 +29,7 @@ const path = require('path');
   await page.clock.runFor(400);
   if (await page.$('[data-wl="train"]')) { await page.click('[data-wl="train"]'); await page.waitForTimeout(300); }   // first visit: "Training & movement"
   await page.fill('#pName', 'Ana'); await page.click('#pSave'); await page.clock.runFor(600);
-  ok(/FINEST/.test(await page.textContent('.brand')), 'new wordmark');
+  ok(/rutina/.test(await page.textContent('.brand')), 'Rutina wordmark');
   ok((await page.title()).startsWith('Rutina'), 'new title');
   await page.evaluate(() => window.__go('record', { type: 'walk' })); await page.clock.runFor(500);
   ok(/Location is off/.test(await page.textContent('#rGps')), 'status says location is off');
