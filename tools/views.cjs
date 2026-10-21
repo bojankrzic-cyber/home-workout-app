@@ -1,5 +1,5 @@
 // Phone workout player: Timer / How-to rhythm per step – 15 s How-to only, then Timer 3 s / How-to 6 s,
-// and the last 3 s of a timed step always How-to.   NODE_PATH=$(npm root -g) node tools/views.cjs [outdir]
+// and the last 3 s of a timed step always How-to; a 3-2-1 "Get ready" comes first.   NODE_PATH=$(npm root -g) node tools/views.cjs [outdir]
 const { chromium } = require('playwright');
 const { spawn } = require('child_process');
 const path = require('path');
@@ -12,12 +12,16 @@ const path = require('path');
   const page = await (await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, serviceWorkers: 'block' })).newPage();
   page.on('pageerror', e => errs.push(e.message));
   await page.clock.install();
+  await page.addInitScript(() => { window.__readyCountdown = true; });
   await page.goto(`http://127.0.0.1:${port}/index.html?p=5176&src=qr`); await page.clock.runFor(1500);
   await page.click('#qrStart'); await page.click('[data-anchor="breakfast"]'); await page.clock.runFor(500);
   await page.evaluate(() => window.__go('train')); await page.clock.runFor(500);
   await page.click('.hero-card .btn.primary'); await page.clock.runFor(100);   // first step: 6 min bike warm-up (timed)
   const v = () => page.evaluate(() => document.querySelector('.player').classList.contains('v-form') ? 'form' : 'timer');
   const at = async (t, want) => { const now = await page.evaluate(() => Date.now()); await page.clock.runFor(Math.max(0, t0 + t * 1000 - now)); const got = await v(); ok(got === want, `t=${t}s: ${got}, expected ${want}`); };
+  ok(await page.$('.ready'), '"Get ready" 3-2-1 before the clock starts');
+  await page.clock.runFor(3100);
+  ok(!(await page.$('.ready')), 'countdown done');
   const t0 = await page.evaluate(() => Date.now());
   await at(1, 'form'); await at(14.5, 'form');
   await at(16, 'timer'); await at(17.6, 'timer');

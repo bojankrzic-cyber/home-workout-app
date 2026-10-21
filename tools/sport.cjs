@@ -26,6 +26,7 @@ const fs = require('fs');
   const url = 'file://' + path.resolve(__dirname, '../index.html');
   await page.goto(url);
   await page.evaluate(() => localStorage.clear()); await page.reload(); await page.waitForTimeout(300);
+  if (await page.$('[data-wl="train"]')) { await page.click('[data-wl="train"]'); await page.waitForTimeout(300); }   // first visit: "Training & movement"
   await page.fill('#pName', 'Runner'); await page.click('#pSave'); await page.waitForTimeout(500);
   ok(await page.$('.main-nav [data-sheet="start"]'), 'Start in the nav');
   await page.screenshot({ path: out + '/s1-home.png' });

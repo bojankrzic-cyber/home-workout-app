@@ -15,6 +15,7 @@ const path = require('path');
   await page.reload(); await page.waitForTimeout(300);
   // first run: create a profile
   await page.screenshot({ path: out + '/0-first-run.png' });
+  if (await page.$('[data-wl="train"]')) { await page.click('[data-wl="train"]'); await page.waitForTimeout(300); }   // first visit: "Training & movement"
   await page.keyboard.type('Bojan');
   await page.click('#pSave'); await page.waitForTimeout(300);
   await page.waitForTimeout(600);

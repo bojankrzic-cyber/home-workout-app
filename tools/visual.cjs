@@ -10,6 +10,7 @@ const path = require('path');
   p.on('dialog', d => d.accept());
   await p.goto('file://' + path.resolve(__dirname, '../index.html'));
   await p.evaluate(() => localStorage.clear()); await p.reload(); await p.waitForTimeout(400);
+  if (await p.$('[data-wl="train"]')) { await p.click('[data-wl="train"]'); await p.waitForTimeout(300); }   // first visit: "Training & movement"
   await p.keyboard.type('Bojan'); await p.click('#pSave'); await p.waitForTimeout(300); await p.waitForTimeout(900);
   await p.screenshot({ path: out + '/v1-home.png' });
   await p.evaluate(() => document.querySelector('.screen').scrollTo(0, 900)); await p.waitForTimeout(400);

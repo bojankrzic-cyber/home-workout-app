@@ -13,6 +13,7 @@ const path = require('path');
     await p.addInitScript(() => { window.__HOME = 'train'; });   // these tests cover the Gym tab
     p.on('pageerror', e => errs.push(e.message));
     await p.goto(url); await p.evaluate(() => localStorage.clear()); await p.reload(); await p.waitForTimeout(300);
+    if (await p.$('[data-wl="train"]')) { await p.click('[data-wl="train"]'); await p.waitForTimeout(300); }   // first visit: "Training & movement"
     await p.keyboard.type('Bojan'); await p.click('#pSave'); await p.waitForTimeout(400);
     const before = await p.evaluate(() => { const s = Program.build(Store.active(), 'F1'); return { min: Program.estimateMin(s), main: s.blocks[1].items.map(i => i.id + ' ' + (i.reps || []).join('-')).join(', ') }; });
     await p.click('.goal-line'); await p.waitForTimeout(400);

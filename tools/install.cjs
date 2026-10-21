@@ -39,7 +39,8 @@ const path = require('path');
   // 3) Instagram / Chrome on iPhone: can't install → open in Safari
   ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, userAgent: IOS.replace('Safari/604.1', 'Instagram 300.0'), locale: 'en-GB', serviceWorkers: 'block' });
   page = await ctx.newPage(); page.on('pageerror', e => errs.push(e.message));
-  await page.goto(base); await page.fill('#pName', 'Ana'); await page.click('#pSave'); await page.waitForTimeout(400);
+  await page.goto(base); await page.click('[data-wl="train"]'); await page.waitForTimeout(300);   // first visit: "Training & movement"
+  await page.fill('#pName', 'Ana'); await page.click('#pSave'); await page.waitForTimeout(400);
   await page.evaluate(() => window.__go('settings')); await page.waitForTimeout(300);
   await page.click('#setInstall'); await page.waitForTimeout(300);
   ok(await page.$('#instCopy') && !(await page.$('.inst-steps')), 'in-app browser → "open in Safari" with the link to copy');

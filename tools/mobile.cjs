@@ -13,6 +13,7 @@ const path = require('path');
   await page.goto(url);
   await page.evaluate(() => localStorage.clear());
   await page.reload(); await page.waitForTimeout(300);
+  if (await page.$('[data-wl="train"]')) { await page.click('[data-wl="train"]'); await page.waitForTimeout(300); }   // first visit: "Training & movement"
   await page.fill('input', 'Bojan'); await page.click('#pSave'); await page.waitForTimeout(500);
   const screens = [['home'], ['library'], ['exercise', { id: 'k_pulldown' }], ['exercise', { id: 'pushup' }], ['overview'], ['preview'], ['history'],
     ['settings'], ['profiles'], ['profileEdit'], ['equipment'], ['builder'], ['player']];

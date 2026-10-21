@@ -137,7 +137,7 @@
     C.orders().then(function (o) {
       var el = $('#acOrders'); if (!el) return;
       el.innerHTML = o.length ? '<div class="hist">' + o.map(function (x) {
-        return '<div class="hist-item"><div class="d">' + (x.ordered_at ? new Date(x.ordered_at).toLocaleDateString('en-GB') : '') + '</div><div style="flex:1">' +
+        return '<div class="hist-item"><div class="d">' + (x.ordered_at ? new Date(x.ordered_at).toLocaleDateString((window.I18N && I18N.locale || 'en-GB')) : '') + '</div><div style="flex:1">' +
           esc((x.items || []).map(function (i) { return (i.qty > 1 ? i.qty + '× ' : '') + i.name; }).join(', ')) + '</div><div>' + (x.total != null ? x.total + ' ' + esc(x.currency || '€') : '') + '</div></div>';
       }).join('') + '</div>' : 'No orders linked yet. Orders placed with ' + esc(u.email) + ' on naturesfinest.si appear here automatically.';
     });

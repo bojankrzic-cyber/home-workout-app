@@ -150,7 +150,7 @@
   };
 
   var WEEK_INFO = {
-    1: { label: 'Week 1 – Intro', rir: 3, note: 'Leave 3 reps in reserve. Technique before load.' },
+    1: { label: 'Week 1 – Intro', rir: 3, note: 'Stop each set when you could still do about 3 more reps. Technique before load.' },
     2: { label: 'Week 2 – Build', rir: 2, note: '2 reps in reserve. Add load where you hit the top of the range.' },
     3: { label: 'Week 3 – Peak', rir: 1, note: '1 rep in reserve. Hardest week of the block.' },
     4: { label: 'Week 4 – Deload', rir: 4, note: 'Fewer sets, lighter loads. This is where you adapt – don’t skip it.' }
@@ -340,6 +340,8 @@
             if (o.cardio && o.cardio.min && /^(Run|Tek)/.test(b.title)) o.cardio.min = Math.max(2, Math.round(o.cardio.min * k));
             if (o.dist) { var stp = o.dist >= 500 ? 100 : 10; o.dist = Math.max(stp, Math.round(o.dist * k / stp) * stp); }
           }
+          // no cardio machine: a 6-min "steady" warm-up would become 6 min of high knees – easy intervals instead (≈4 min)
+          if (/Warm|Ogrev/.test(b.title) && o.swappedFrom && o.cardio && o.cardio.min && Exercises.BY_ID[o.id].equip.indexOf('floor') >= 0) o.cardio = { rounds: 4, work: 20, easy: 40 };
           if (o.reps) o.sug = suggest(state, o);
           return o;
         })
@@ -361,7 +363,14 @@
         best.sets--; trimmed = true;
       }
     }
-    return { key: key, name: src.name, short: src.short, color: src.color, custom: !!src.custom, race: !!src.race, missing: ad.missing, week: week, weekInfo: WEEK_INFO[week], blocks: blocks, goal: goal, trimmed: trimmed ? cap : 0 };
+    // names follow the equipment actually used: no cable machine → no "Cables" in the title
+    var ids = [].concat.apply([], blocks.map(function (b) { return b.items.map(function (it) { return it.id; }); }));
+    var cables = ids.some(function (id) { return /^k_/.test(id); }), name = src.name, short = src.short;
+    if (!cables) {
+      name = name.replace(/ & Cables\b/, '');
+      short = (short || '').replace(/^Cables, (\w)/, function (m, c) { return c.toUpperCase(); });
+    }
+    return { key: key, name: name, short: short, color: src.color, custom: !!src.custom, race: !!src.race, missing: ad.missing, week: week, weekInfo: WEEK_INFO[week], blocks: blocks, goal: goal, trimmed: trimmed ? cap : 0 };
   }
 
   // Flatten to an ordered list of steps (supersets interleaved by round)
@@ -373,7 +382,8 @@
         var it = items[0], c = it.cardio;
         if (c.min) out.push({ kind: 'time', id: it.id, item: it, block: b.title, sec: c.min * 60, set: 1, sets: 1, rest: 0, label: c.min + ' min steady' });
         else for (var r = 1; r <= c.rounds; r++) {
-          out.push({ kind: 'time', id: it.id, item: it, block: b.title, sec: c.work, set: r, sets: c.rounds, rest: 0, label: 'HARD ' + c.work + ' s', hard: true });
+          var warm = /Warm|Ogrev/.test(b.title);   // warm-up intervals are brisk, not "HARD"
+          out.push({ kind: 'time', id: it.id, item: it, block: b.title, sec: c.work, set: r, sets: c.rounds, rest: 0, label: (warm ? 'Brisk ' : 'HARD ') + c.work + ' s', hard: !warm });
           out.push({ kind: 'time', id: it.id, item: it, block: b.title, sec: c.easy, set: r, sets: c.rounds, rest: 0, label: 'Easy ' + c.easy + ' s', easy: true });
         }
         return;
