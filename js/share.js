@@ -104,7 +104,7 @@
     // brand footer
     var fy = H - (opt.format === 'story' ? 150 : 90);
     // Rutina wordmark
-    g.font = '700 64px "Rethink Sans", sans-serif';
+    g.font = '700 78px "Fraunces", Georgia, serif';
     g.fillStyle = INK; g.fillText('rutina', pad, fy);
     text('BY NATURE’S FINEST', '600 24px "Rethink Sans", sans-serif', sticker ? INK : MUTED, pad + 2, fy + 36);
     g.shadowBlur = 0;
