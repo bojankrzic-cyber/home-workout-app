@@ -74,7 +74,7 @@
     function prog() { return H.prog(st()); }
     function rem() { var p = prog(); return (p.remind = p.remind || {}); }
     var ios = /iphone|ipad|ipod/i.test(navigator.userAgent || '');
-    function standalone() { return (global.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; }
+    function standalone() { return (global.Native && Native.is) || (global.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; }
     function pushPossible() { return 'serviceWorker' in navigator && 'PushManager' in global && 'Notification' in global && !!CFG.vapidPublicKey && (!ios || standalone()); }
     function b64(s) { var p = '='.repeat((4 - s.length % 4) % 4), r = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')), a = new Uint8Array(r.length); for (var i = 0; i < r.length; i++) a[i] = r.charCodeAt(i); return a; }
 

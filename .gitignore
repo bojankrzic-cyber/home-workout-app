@@ -5,3 +5,5 @@ node_modules/
 .DS_Store
 !tools/fixtures/*.png
 tools/_en_*.cjs
+node_modules/
+www/

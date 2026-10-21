@@ -1923,7 +1923,7 @@
 
   // ---------------------------------------------------------------- boot
   if ('serviceWorker' in navigator && location.protocol === 'https:') {
-    navigator.serviceWorker.register('sw.js').catch(function () {});
+    if (!(window.Native && Native.is)) navigator.serviceWorker.register('sw.js').catch(function () {});   // native apps bundle their files
   }
   window.__go = function (screen, params) { go(screen, params); };   // test hook (tools/*.cjs)
   // module API: feature modules (sport tracker now; body tracker, supplement routine next) register

@@ -1,0 +1,11 @@
+{
+  "appId": "eu.naturesfinest.rutina",
+  "appName": "Rutina",
+  "webDir": "www",
+  "backgroundColor": "#050a07",
+  "ios": { "contentInset": "never", "scheme": "Rutina" },
+  "android": { "allowMixedContent": false },
+  "plugins": {
+    "SplashScreen": { "launchShowDuration": 600, "launchAutoHide": true, "backgroundColor": "#050a07", "showSpinner": false }
+  }
+}
