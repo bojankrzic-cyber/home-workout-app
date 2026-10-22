@@ -9,6 +9,8 @@ Status: **NOT swapped**. audio/voice still holds the old clips. audio/voice_new 
 
 2026-10-21: refused again on the first call (daily limit, 0 credits). Account is still on the Free plan; recording needs a paid plan.
 
+2026-10-22: account still Free; first call refused (daily limit, 0 credits).
+
 ## Resume
 ```
 python3 tools/voice/make_lists.py          # idempotent: rebuilds/extends the 4 lists
