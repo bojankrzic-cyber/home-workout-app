@@ -1275,7 +1275,7 @@
       $('#wDots').innerHTML = s.sets > 1 ? Array.apply(null, Array(s.sets)).map(function (_, k) { return '<i' + (k < s.set - 1 ? ' class="done"' : k === s.set - 1 ? ' class="cur"' : '') + '></i>'; }).join('') : '';
       $('#wName').textContent = e.name;
       $('#wMus').innerHTML = musChips(e.anim.muscles);
-      var pp = photo(s.id), pip = $('#wPip');
+      var pp = photo(s.id), pip = $('#wPip'); pip.classList.remove('big');
       pip.hidden = !pp; if (pp) pip.querySelector('img').src = pp;
       $('#wMinus').hidden = $('#wPlus').hidden = true;
       $('#wSkip').hidden = false;
@@ -1364,7 +1364,7 @@
       var nxWhat = nx.kind === 'reps' ? (nx.sets > 1 ? 'set ' + nx.set + ' of ' + nx.sets + ', ' : '') + nxReps + ' reps' : nx.kind === 'dist' ? nx.dist + ' meters' : nx.sec + ' seconds';
       $('#wName').textContent = 'Rest';
       $('#wMus').innerHTML = musChips(ne.anim.muscles);
-      var np = photo(nx.id); $('#wPip').hidden = !np; if (np) $('#wPip img').src = np;
+      var np = photo(nx.id); $('#wPip').classList.remove('big'); $('#wPip').hidden = !np; if (np) $('#wPip img').src = np;
       $('#wWhy').textContent = 'Get ready: ' + ne.name + (nx.kind === 'reps' ? ' · set ' + nx.set + '/' + nx.sets + ' · ' + nxReps + ' reps' : '');
       lastHype = ''; setHype(Math.round((i + 1) / st.length * 100) + '% done · ' + hype('rest'), false, true);
       $('#wLog').hidden = true;
@@ -1517,6 +1517,7 @@
       completeWork();
     };
     $('#wSkip').onclick = function () { enter(i + 1); };
+    $('#wPip').onclick = function () { this.classList.toggle('big'); };
     $('#wMinus').onclick = function () { remain = Math.max(1, remain - 15); restTotal = Math.max(restTotal - 15, remain); draw(); };
     $('#wPlus').onclick = function () { remain += 15; restTotal += 15; draw(); };
     $('#wPause').onclick = function () {
