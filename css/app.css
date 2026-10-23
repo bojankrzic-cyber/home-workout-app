@@ -741,6 +741,23 @@ h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -.015em; }
   .p2 .stage .phase { top: 6.9rem; font-size: .9rem; padding: .4rem 1rem; }
   .p2 .stage .fig { inset: 9.7rem .2rem 16.5rem; }
 }
+/* phone Timer view: set, reps, load and the logger must fit above the Done button without scrolling.
+   Muscles live in How-to (labelled on the figure); the prescription chips stay on one swipeable row. */
+@media (max-width: 900px) {
+  .p2 .side { gap: .6rem; }
+  .p2 #wMus { display: none; }
+  .p2 #wRx { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -1.2rem; padding: 0 1.2rem; }
+  .p2 #wRx::-webkit-scrollbar { display: none; }
+  .p2 #wRx .chip-stat { flex: none; }
+  .p2 .ring-wrap { width: min(100%, 17rem, 36vh); }
+  .p2 .ring-center b { font-size: min(5rem, 9vh); }
+}
+@media (max-width: 900px) and (max-height: 760px) {
+  .p2 .side h2 { font-size: 1.6rem; }
+  .p2 .side .why { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; min-height: 0; font-size: .9rem; }
+  .p2 .ring-wrap { width: min(100%, 17rem, 32vh); margin: 0 auto; }
+  .p2 .stepper button { height: 2.8rem; }
+}
 @media (max-width: 900px) and (max-height: 640px) {
   .p2 .stage .fig { top: 10rem; }
 }
