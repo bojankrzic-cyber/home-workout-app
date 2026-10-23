@@ -11,3 +11,6 @@ www/
 !ios/**/*.png
 !assets/*.png
 !icons/*.png
+/bled.gpx
+/treadmill.tcx
+/watch-run.tcx
