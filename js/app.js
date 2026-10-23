@@ -1207,7 +1207,7 @@
       if (want !== view) setView(want);
     }
     setView('form');
-    var pl = new Figure.Player($('#wFig'), { aspect: 1.45, labels: true, onPhase: cueHolder($('#wPhase')) });
+    var pl = new Figure.Player($('#wFig'), { aspect: 1.45, fit: true, labels: true, onPhase: cueHolder($('#wPhase')) });
     players.push(pl);
     var nextPl = new Figure.Player($('#wNextThumb'), { aspect: 1.2 });
     players.push(nextPl);
