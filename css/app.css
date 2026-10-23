@@ -722,7 +722,7 @@ h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -.015em; }
 @media (max-width: 900px) {
   /* phone How-to view: cue pill sits under the HUD instead of over the figure */
   .p2 .stage .phase { top: 9rem; bottom: auto; }
-  .p2 .stage .fig { inset: 12rem .4rem 11rem; }
+  .p2 .stage .fig { inset: 12rem .4rem 18rem; }
 }
 .cue-in { animation: cueIn .35s ease; }
 @keyframes cueIn { from { opacity: 0; } to { opacity: 1; } }

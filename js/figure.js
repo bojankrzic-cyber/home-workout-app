@@ -710,7 +710,8 @@
 
   // ---- auto camera -------------------------------------------------------------
   var SCENE_BOX = {
-    bench: function (o) { return [o.x - 90, -(o.h || 44) - 70, o.x + (o.len || 115) + 10, 0]; },
+    // flat bench: just the bench (the person on it is in the joint box); incline: room for the backrest
+    bench: function (o) { return o.incline ? [o.x - 90, -(o.h || 44) - 70, o.x + (o.len || 115) + 10, 0] : [o.x - 6, -(o.h || 44) - 6, o.x + (o.len || 115) + 6, 0]; },
     tria_abs: function (o) { return [o.x - 10, -80, o.x + 120, 0]; },
     tria_back: function (o) { return [o.x - 90, o.y - 15, o.x + 20, 0]; },
     wall: function (o) { return [o.x - 34, o.y - 30, o.bx + 10, 0]; },
@@ -732,7 +733,8 @@
     airbike: function (o) { return [o.sx - 42, o.py - o.pl - 6, o.fx + o.fr + 6, 0]; }
   };
 
-  function computeBox(anim) {
+  // tight: equipment may stick out at most 40 units past the person (a long bench is cut by the frame, the person stays big)
+  function computeBox(anim, tight) {
     var bx = [Infinity, Infinity, -Infinity, -Infinity];
     function ext(p, pad) {
       pad = pad || 0;
@@ -746,18 +748,22 @@
       ext(J.head, 14);
       if (anim.hold) { ext(J.hN, 24); ext(J.hF, 24); }
     }
+    var px0 = bx[0], px1 = bx[2];
     (anim.scene || []).forEach(function (o) {
       var f = SCENE_BOX[o.type];
-      if (f) { var b = f(o); ext([b[0], b[1]]); ext([b[2], b[3]]); }
+      if (!f) return;
+      var b = f(o);
+      if (tight) { b = [Math.max(b[0], px0 - 40), b[1], Math.min(b[2], px1 + 40), b[3]]; if (b[0] > b[2]) return; }
+      ext([b[0], b[1]]); ext([b[2], b[3]]);
     });
     (anim.cables || []).forEach(function (c) { ext(c.from, 8); });
     ext([bx[0], 0]);
     return bx;
   }
 
-  function viewBox(anim, aspect, extra) {
-    var b = computeBox(anim);
-    var pad = 16;
+  function viewBox(anim, aspect, extra, tight) {
+    var b = computeBox(anim, tight);
+    var pad = tight ? 8 : 16;
     var x0 = b[0] - pad - (extra || 0), x1 = b[2] + pad + (extra || 0), y0 = b[1] - pad, y1 = 0 + 18;
     var w = x1 - x0, h = y1 - y0;
     if (w / h > aspect) { var nh = w / aspect; y0 -= (nh - h); h = nh; }
@@ -791,19 +797,32 @@
     this.gStatic = this.svg.querySelector('.g-static');
     this.gDyn = this.svg.querySelector('.g-dyn');
     this.gFig = this.svg.querySelector('.g-fig');
+    this.autoFit = !!opts.fit;
+    if (this.autoFit && global.ResizeObserver) { var self = this; new ResizeObserver(function () { self.fit(); }).observe(container); }
   }
 
   Player.prototype.load = function (anim) {
     this.anim = anim;
     this.time = 0;
     this._lastIdx = -1;
-    var vb = viewBox(anim, this.aspect, this.labels ? 46 : 0);
-    this.svg.setAttribute('viewBox', vb.map(f1).join(' '));
-    this.gFloor.innerHTML = rect(vb[0] - 3000, 0, vb[2] + 6000, 600, '', 0).replace('class=""', 'fill="url(#floorg)"') +
-      line([vb[0] - 3000, 0], [vb[0] + vb[2] + 3000, 0], 1.5, 'p-floor-line');
+    this.fit();
     this.gStatic.innerHTML = (anim.scene || []).map(function (o) { return SCENE[o.type] ? SCENE[o.type](o) : ''; }).join('');
     this.render();
     this.start();
+  };
+
+  // frame the exercise: with opts.fit the frame takes the container's own shape, so the figure fills the space it has
+  // (a bench exercise spans the full phone width instead of a fixed 1.45 box floating in the middle)
+  Player.prototype.fit = function () {
+    if (!this.anim) return;
+    var a = this.aspect;
+    if (this.autoFit) { var w = this.el.clientWidth, h = this.el.clientHeight; if (w > 40 && h > 40) a = Math.max(0.6, Math.min(3, w / h)); }
+    if (a === this._fitA && this.anim === this._fitAnim) return;
+    this._fitA = a; this._fitAnim = this.anim;
+    var vb = this.autoFit ? viewBox(this.anim, a, this.labels ? 18 : 0, true) : viewBox(this.anim, a, this.labels ? 46 : 0);
+    this.svg.setAttribute('viewBox', vb.map(f1).join(' '));
+    this.gFloor.innerHTML = rect(vb[0] - 3000, 0, vb[2] + 6000, 600, '', 0).replace('class=""', 'fill="url(#floorg)"') +
+      line([vb[0] - 3000, 0], [vb[0] + vb[2] + 3000, 0], 1.5, 'p-floor-line');
   };
 
   Player.prototype.render = function () {
