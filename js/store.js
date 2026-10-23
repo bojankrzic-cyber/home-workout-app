@@ -21,7 +21,7 @@
       goal: 'general', why: '', targetWeight: null, targetDate: null,
       sex: null, birthYear: null, height: null, weight: null, bodyLog: [],   // bodyLog: [{ date, kg }]
       maxHr: null, restHr: null, limits: [], prefDays: [], sessionMin: null,
-      coachVoice: 'recorded', autoNext: true,
+      coachVoice: 'recorded', handsFree: false,   // off: every exercise and set waits for a tap (rest still counts down by itself)
       equipment: (global.Exercises ? Exercises.HOME_GYM : ['bike', 'rower', 'kb', 'db', 'tria', 'bench', 'kinesis', 'wall']).slice()
     };
   }

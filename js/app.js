@@ -955,7 +955,7 @@
         link('🏋️', 'My equipment', pl(nEq, NAP) + ' · ' + pl(unlocked(s.equipment || []), VAJ), 'equipment') +
         row('📅', 'Workouts per week', '', opt('days', 3, '3× – full body') + opt('days', 4, '4× – upper / lower')) +
         row('📈', 'Level', '', opt('level', 'beg', 'Beginner') + opt('level', 'mid', 'Intermediate') + opt('level', 'adv', 'Advanced')) +
-        row('🙌', 'Hands-free sets', 'The set completes itself 6 s after the rep pacer reaches the target', opt('autoNext', true, 'On') + opt('autoNext', false, 'Off')) +
+        row('🙌', 'Hands-free sets', 'The set completes itself 6 s after the rep pacer reaches the target', opt('handsFree', true, 'On') + opt('handsFree', false, 'Off')) +
         row('🗓️', '4-week block', 'started ' + esc(s.startDate), '<button class="btn sm focusable" id="newBlock">Start new block today</button>')) +
       group('Sound & voice',
         row('🔊', 'Voice coaching', esc(voiceInfo) + ' On iPhone, silent mode can mute sound outside workouts.', opt('voice', true, 'On') + opt('voice', false, 'Off') + '<button class="btn sm focusable" id="vTest">▶ Test</button>') +
@@ -1114,7 +1114,41 @@
       return load > b.load || (load === b.load && reps > Math.max.apply(null, b.reps));
     }
     function lastWorkStep(k) { for (var x = k + 1; x < st.length; x++) if (st[x].id !== st[k].id) return false; return true; }
-    function autoNext() { return state.settings.autoNext !== false && !race; }
+    // Hands-free is opt-in: by default every exercise and set ends on the user's tap, so the app never runs ahead of them.
+    // Rest always counts down by itself; interval blocks (hard/easy, warm-up rounds) and race stations keep flowing on the clock.
+    function autoNext() { return state.settings.handsFree === true && !race; }
+    var timeUp = false;   // timed step reached 0:00 and waits for the tap
+    // count-in overlay: countIn() holds the clock for 3-2-1 then flashes START; softCount(n) shows the last seconds of a
+    // rest without holding anything. Tap skips. Automated tests skip it unless they ask (window.__readyCountdown).
+    var counting = false, preCounted = false, rdEl = null, countT = 0;
+    var noCount = navigator.webdriver && !window.__readyCountdown;
+    function readyEl() {
+      if (!rdEl) { rdEl = document.createElement('div'); rdEl.className = 'ready'; rdEl.onclick = function () { if (counting) endCount(); else hideReady(); }; }
+      if (!rdEl.isConnected) el.appendChild(rdEl);
+      return rdEl;
+    }
+    function hideReady() { if (rdEl && rdEl.isConnected) rdEl.remove(); }
+    function showNum(n) { var r = readyEl(); r.className = 'ready'; r.innerHTML = '<div><span>Get ready</span><b>' + n + '</b></div>'; }
+    function softCount(n) { if (noCount) return; preCounted = true; showNum(n); }
+    function goFlash() {
+      clearTimeout(countT); counting = false; Audio.beep(1320, 0.3);
+      if (noCount) { hideReady(); return; }
+      var r = readyEl(); r.className = 'go-flash'; r.innerHTML = '<div><b>Start</b></div>';
+      countT = setTimeout(hideReady, 700);
+    }
+    function endCount() { goFlash(); }
+    function countIn() {
+      clearTimeout(countT);
+      if (noCount) { counting = false; return; }
+      counting = true;
+      var n = 3;
+      (function step() {
+        if (!counting) return;
+        if (!n) return endCount();
+        showNum(n); Audio.beep(880, 0.08); n--;
+        countT = setTimeout(step, 1000);
+      })();
+    }
     var itemsById = {};
     sess.blocks.forEach(function (b) { b.items.forEach(function (it) { itemsById[it.id] = it; }); });
     // block index per step for the segmented progress bar
@@ -1129,7 +1163,7 @@
       '<div class="hud-clock"><small>' + (race ? 'RACE TIME' : 'TOTAL') + '</small><b id="wClock">0:00</b></div></div>' +
       '<div class="next-card" id="wNextCard"><div class="nc-thumb" id="wNextThumb"></div><div><small id="wNextLbl"></small><b id="wNextName"></b></div></div>' +
       '<div class="pip" id="wPip" hidden><img alt=""><span>Real form</span></div>' +
-      '<div class="mini-time" id="wMini"><small></small><b></b></div>' +
+      '<div class="mini-time" id="wMini"><small></small><b></b><span></span></div>' +
       '<div class="cheer" id="wCheer" hidden><div class="cheer-burst"></div><b></b><span></span></div>' +
       '<div class="finish" id="wFinish" hidden></div></div>' +
       '<div class="view-tabs" role="tablist"><button class="focusable" data-view="timer">Timer</button><button class="focusable" data-view="form">How to</button></div>' +
@@ -1222,9 +1256,15 @@
       i = n;
       if (i >= st.length) return finish();
       var s = st[i], e = ex(s.id), it = s.item;
-      phase = 'work'; elapsed = 0; stepT = 0; pacerHit = false; autoAt = 0; lastHype = '';
+      phase = 'work'; elapsed = 0; stepT = 0; pacerHit = false; autoAt = 0; lastHype = ''; timeUp = false;
+      el.classList.remove('time-up');
       var enterHype = lastWorkStep(n) && st.length > 3 ? hype('finalExercise') : n > 0 && s.sets > 1 && s.set === s.sets ? hype('lastSet') : s.set === 1 && s.sets > 1 ? hype('firstSet') : hype('start');
       lastMilestone = -1; setHype(enterHype, lastWorkStep(n), true);
+      // 3-2-1 START before every exercise. Rest (and an easy interval) shows its last 3 s as the count, so the clock does not
+      // stop twice; any other way in (workout start, a tap, skip) holds the clock for the count. Race stations and the
+      // easy half of an interval never wait.
+      if (!race && !s.easy) { if (preCounted) goFlash(); else countIn(); }
+      preCounted = false;
       var hk = hypeKey(enterHype), spokenHype = Coach.has(hk) ? hk : null;   // e.g. 'Last set, make it count.' instead of 'Set four.'
       el.classList.remove('resting');
       if (Date.now() >= manualUntil) setView('form');
@@ -1314,6 +1354,7 @@
     function e0name(s) { return ex(s.id).name.split(' (')[0]; }
     function startRest(sec) {
       phase = 'rest'; remain = sec; restTotal = sec; stepT = 0;
+      timeUp = false; el.classList.remove('time-up'); preCounted = false; hideReady();
       el.classList.add('resting');
       var nx = st[i + 1], ne = ex(nx.id);
       showAnim(nx.id);
@@ -1343,6 +1384,7 @@
       drawRing();
       $('#wMini small').textContent = $('#wRingTop').textContent;
       $('#wMini b').textContent = $('#wRingVal').textContent;
+      $('#wMini span').textContent = phase !== 'rest' && st[i] && st[i].kind === 'reps' ? 'reps' : '';
     }
     function drawRing() {
       $('#wClock').textContent = fmt(total);
@@ -1355,7 +1397,10 @@
       }
       if (s.kind === 'reps') {
         var tgt = s.item.reps[1], pr = Math.min(pacerReps(), tgt);
-        top.textContent = s.sets > 1 ? 'SET ' + s.set + ' OF ' + s.sets : 'REPS'; val.textContent = pr; sub.textContent = 'pace guide · of ' + tgt + ' reps';   // the pacer counts the tempo, it does not see your reps
+        // big: which set and how many reps to do; the ring fills with the pace guide (it counts the tempo, it does not see your reps)
+        top.textContent = 'SET ' + s.set + ' OF ' + s.sets;
+        val.textContent = s.item.reps[0] === s.item.reps[1] ? s.item.reps[0] : s.item.reps[0] + '–' + s.item.reps[1];
+        sub.textContent = 'reps';
         setRing('wRing', pr / tgt);
         if (!pacerHit && tgt >= 6 && pr !== lastMilestone) {
           lastMilestone = pr;
@@ -1378,7 +1423,7 @@
         top.textContent = s.dist + ' m'; val.textContent = fmt(elapsed); sub.textContent = 'target ~' + fmt(est);
         setRing('wRing', elapsed / est);
       } else {
-        top.textContent = s.hard ? 'HARD' : s.easy ? 'EASY' : race ? 'STATION' : 'TIME';
+        top.textContent = s.hard ? 'HARD' : s.easy ? 'EASY' : race ? 'STATION' : s.sets > 1 ? 'SET ' + s.set + ' OF ' + s.sets : 'TIME';
         val.textContent = fmt(remain);
         var e = ex(s.id);
         sub.textContent = e.type === 'cardio' && !/^(bike|row|hx_|airbike|rope_waves)/.test(s.id) ? '≈ ' + pacerReps() + ' reps at the pace guide' : 'of ' + fmt(s.sec);
@@ -1387,23 +1432,27 @@
     }
 
     function tick() {
-      if (paused || !st[i]) return;
+      if (paused || counting || !st[i]) return;
       total += 0.25;
       autoView();
       if (phase === 'rest') {
         remain -= 0.25;
-        if (remain <= 3.01 && remain > 0 && Math.abs(remain - Math.round(remain)) < 0.01) Audio.beep(880, 0.12);
-        if (remain <= 0) { Audio.beep(1320, 0.3); enter(i + 1); return; }
+        if (remain <= 3.01 && remain > 0 && Math.abs(remain - Math.round(remain)) < 0.01) { Audio.beep(880, 0.12); softCount(Math.round(remain)); }
+        if (remain <= 0) { enter(i + 1); return; }
       } else {
         elapsed += 0.25;
         var s = st[i];
         if (s.kind === 'reps' && autoAt && elapsed >= autoAt) { Audio.beep(1320, 0.3); completeWork(); return; }
         if (s.kind === 'time') {
           remain -= 0.25;
-          if (remain <= 3.01 && remain > 0 && Math.abs(remain - Math.round(remain)) < 0.01) Audio.beep(880, 0.12);
+          if (remain <= 3.01 && remain > 0 && Math.abs(remain - Math.round(remain)) < 0.01) { Audio.beep(880, 0.12); if (s.easy && st[i + 1] && !st[i + 1].easy) softCount(Math.round(remain)); }
           if (s.sec >= 60 && Math.abs(remain - s.sec / 2) < 0.01) { Voice.cue('Halfway.', ['half']); setHype(hype('half')); }
           if (s.sec >= 30 && Math.abs(remain - 10) < 0.01) { var ht = hype('tenLeft'); setHype(ht, true); hypeVoice(ht); }
-          if (remain <= 0) { Audio.beep(1320, 0.3); completeWork(); return; }
+          if (remain <= 0 && (race || s.interval || autoNext())) { Audio.beep(1320, 0.3); completeWork(); return; }
+          if (remain <= 0) {
+            remain = 0;
+            if (!timeUp) { timeUp = true; Audio.beep(1320, 0.3); el.classList.add('time-up'); var hu = hype('hit'); setHype(hu, true); hypeVoice(hu); }
+          }
         }
       }
       draw();
@@ -1413,7 +1462,7 @@
     // partial = ended early with the end button: saved and labelled as such, never "workout complete"
     function finish(partial) {
       partial = partial === true;
-      clearInterval(iv);
+      clearInterval(iv); clearTimeout(countT); counting = false; hideReady();
       done = true; setView('form');
       var min = Math.max(1, Math.round(total / 60));
       if (logged.length || min >= 10) {
@@ -1490,20 +1539,7 @@
       confirmExit: function (leave) { ask('Leave workout? Unsaved sets will be lost.', 'Leave', leave); },
       destroy: function () { clearInterval(iv); el.remove(); Sound.session(false); if ('speechSynthesis' in window) speechSynthesis.cancel(); }
     };
-    enter(0);
-    // "Get ready" 3-2-1 before the clock starts (the first exercise already plays behind it); tap to skip.
-    // Automated tests skip it unless they ask for it (window.__readyCountdown).
-    if (navigator.webdriver && !window.__readyCountdown) return;
-    paused = true;
-    var rd = document.createElement('div'); rd.className = 'ready'; el.appendChild(rd);
-    var rn = 3, go = function () { if (!rd.isConnected) return; rd.remove(); paused = false; Audio.beep(1320, 0.2); };
-    (function count() {
-      if (!rd.isConnected) return;
-      if (!rn) return go();
-      rd.innerHTML = '<div><span>Get ready</span><b>' + rn + '</b></div>'; Audio.beep(880, 0.08); rn--;
-      setTimeout(count, 1000);
-    })();
-    rd.onclick = go;
+    enter(0);   // starts with the 3-2-1 count-in
   };
 
   // ---------------------------------------------------------------- first visit: what do you want to start?
