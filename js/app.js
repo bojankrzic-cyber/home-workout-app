@@ -1269,6 +1269,7 @@
       el.classList.remove('resting');
       if (Date.now() >= manualUntil) setView('form');
       showAnim(s.id, s.easy ? 0.7 : 1);
+      if (!paused) pl.start();   // moves again after a still rest
       pacerBase = pl.time;
       $('#wBlock').textContent = s.block + (s.tag ? ' · ' + s.tag : '');
       $('#wDots').innerHTML = s.sets > 1 ? Array.apply(null, Array(s.sets)).map(function (_, k) { return '<i' + (k < s.set - 1 ? ' class="done"' : k === s.set - 1 ? ' class="cur"' : '') + '></i>'; }).join('') : '';
@@ -1357,11 +1358,14 @@
       timeUp = false; el.classList.remove('time-up'); preCounted = false; hideReady();
       el.classList.add('resting');
       var nx = st[i + 1], ne = ex(nx.id);
-      showAnim(nx.id);
+      // rest is rest: the figure stands still in the next exercise's start position; the coach says what comes next
+      showAnim(nx.id); pl.stop(); pl.setTime(0); nextPl.stop();
+      var nxReps = nx.kind === 'reps' ? (nx.item.reps[0] === nx.item.reps[1] ? nx.item.reps[0] : nx.item.reps[0] + '–' + nx.item.reps[1]) : null;
+      var nxWhat = nx.kind === 'reps' ? (nx.sets > 1 ? 'set ' + nx.set + ' of ' + nx.sets + ', ' : '') + nxReps + ' reps' : nx.kind === 'dist' ? nx.dist + ' meters' : nx.sec + ' seconds';
       $('#wName').textContent = 'Rest';
       $('#wMus').innerHTML = musChips(ne.anim.muscles);
       var np = photo(nx.id); $('#wPip').hidden = !np; if (np) $('#wPip img').src = np;
-      $('#wWhy').textContent = 'Get ready: ' + ne.name + (nx.kind === 'reps' ? ' · set ' + nx.set + '/' + nx.sets : '');
+      $('#wWhy').textContent = 'Get ready: ' + ne.name + (nx.kind === 'reps' ? ' · set ' + nx.set + '/' + nx.sets + ' · ' + nxReps + ' reps' : '');
       lastHype = ''; setHype(Math.round((i + 1) / st.length * 100) + '% done · ' + hype('rest'), false, true);
       $('#wLog').hidden = true;
       $('#wRx').innerHTML = chips([[fmt(sec), 'rest'], [ne.name.split(' (')[0], 'up next']]);
@@ -1369,7 +1373,7 @@
       $('#wMinus').hidden = $('#wPlus').hidden = false;
       $('#wSkip').hidden = true;
       $('#wNextLbl').textContent = 'While you rest: next exercise technique';
-      Voice.cue('Rest ' + sec + ' seconds. Next up: ' + ne.name, Coach.has('rest_' + sec) ? ['rest_' + sec, 'next', 'ex_' + nx.id] : ['next', 'ex_' + nx.id]);
+      Voice.cue('Rest ' + sec + ' seconds. Next up: ' + ne.name + ', ' + nxWhat + '.', Coach.has('rest_' + sec) ? ['rest_' + sec, 'next', 'ex_' + nx.id] : ['next', 'ex_' + nx.id]);
       draw();
     }
 
@@ -1518,7 +1522,7 @@
     $('#wPause').onclick = function () {
       paused = !paused; this.textContent = paused ? 'Resume' : 'Pause';
       el.classList.toggle('paused', paused);
-      if (paused) pl.stop(); else pl.start();
+      if (paused) pl.stop(); else if (phase !== 'rest') pl.start();
     };
     $('#wExit').onclick = function () {
       // nothing done yet: leave without a record or a "workout complete" card
