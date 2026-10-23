@@ -594,15 +594,19 @@ h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -.015em; }
   .p2.v-form .side { opacity: 0; pointer-events: none; }
   .p2 .stage .fig { inset: 9.5rem .4rem 11rem; }
   .p2 .hud-top { top: 4.4rem; left: 1rem; right: 1rem; gap: 1rem; }
-  .p2 .hud-clock b { font-size: 1.8rem; }
+  /* phone: total time as a slim pill in the progress row – the height goes to the figure */
+  .p2 .hud-top { align-items: center; }
+  .p2 .hud-clock { display: flex; align-items: baseline; gap: .45rem; padding: .3rem .8rem; border-radius: 999px; }
+  .p2 .hud-clock small { font-size: .58rem; }
+  .p2 .hud-clock b { font-size: 1.25rem; }
   .p2 .next-card { display: none; }
-  .p2 .pip { top: auto; bottom: 10.5rem; right: 1rem; width: 11.5rem; }
+  .p2 .pip { top: auto; bottom: 9.6rem; right: 1rem; width: 11.5rem; }
   .p2 .pip.big { left: .8rem; right: .8rem; width: auto; top: 8rem; bottom: auto; }
   .p2 .stage .phase { bottom: 17.5rem; font-size: 1rem; max-width: 92%; white-space: normal; text-align: center; }
   .view-tabs { display: flex; position: absolute; top: max(1rem, env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%); z-index: 6; background: var(--glass); backdrop-filter: blur(12px); border: 1px solid rgba(var(--tint), .08); border-radius: 999px; padding: .25rem; }
   .view-tabs button { border: 0; background: transparent; color: var(--muted); font: inherit; font-weight: 600; font-size: .9rem; padding: .5rem 1.2rem; border-radius: 999px; }
   .view-tabs button.on { background: var(--accent); color: var(--on-accent); }
-  .mini-time { display: flex; flex-direction: column; position: absolute; left: 1rem; bottom: 10.5rem; z-index: 3; background: var(--glass); backdrop-filter: blur(12px); border: 1px solid rgba(var(--tint), .08); border-radius: 18px; padding: .5rem 1rem .6rem; }
+  .mini-time { display: flex; flex-direction: column; position: absolute; left: 1rem; bottom: 9.6rem; z-index: 3; background: var(--glass); backdrop-filter: blur(12px); border: 1px solid rgba(var(--tint), .08); border-radius: 18px; padding: .5rem 1rem .6rem; }
   .mini-time small { color: var(--muted); font-size: .78rem; font-weight: 700; letter-spacing: .12em; }
   .mini-time b { font-family: var(--font-sport); font-style: italic; font-size: 3rem; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
   .mini-time span { position: absolute; right: 1rem; bottom: .75rem; font-size: .8rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
@@ -611,6 +615,8 @@ h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -.015em; }
   .p2 > .controls { position: absolute; left: 0; right: 0; bottom: 0; z-index: 7; margin: 0; padding: 1.4rem 1rem max(1rem, env(safe-area-inset-bottom, 0px)); background: linear-gradient(0deg, var(--bg) 70%, transparent); display: grid; grid-template-columns: repeat(4, 1fr); gap: .5rem; }
   .p2 > .controls .btn { justify-content: center; padding: .8rem .4rem; font-size: .9rem; }
   .p2 > .controls #wDone { grid-column: 1 / -1; }
+  .p2 > .controls { padding-top: 1rem; }
+  .p2 > .controls .btn:not(#wDone) { padding: .55rem .4rem; font-size: .85rem; }
   .p2 .finish { z-index: 8; }
 }
 
@@ -726,17 +732,17 @@ h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -.015em; }
 }
 @media (max-width: 900px) {
   /* phone How-to view: cue pill sits under the HUD instead of over the figure */
-  .p2 .stage .phase { top: 9rem; bottom: auto; }
+  .p2 .stage .phase { top: 7.2rem; bottom: auto; }
   /* the figure lives between the cue pill and the set card / real-form photo – never under them */
-  .p2 .stage .fig { inset: 12rem .4rem 17.4rem; }
+  .p2 .stage .fig { inset: 10.4rem .2rem 16.5rem; }
 }
 @media (max-width: 900px) and (max-height: 760px) {
   /* short phone screens (browser bars showing): pill tucked under the HUD, figure gets the height */
-  .p2 .stage .phase { top: 8.2rem; font-size: .9rem; padding: .4rem 1rem; }
-  .p2 .stage .fig { inset: 10.6rem .4rem 17.4rem; }
+  .p2 .stage .phase { top: 6.9rem; font-size: .9rem; padding: .4rem 1rem; }
+  .p2 .stage .fig { inset: 9.7rem .2rem 16.5rem; }
 }
 @media (max-width: 900px) and (max-height: 640px) {
-  .p2 .stage .fig { top: 11rem; }
+  .p2 .stage .fig { top: 10rem; }
 }
 .cue-in { animation: cueIn .35s ease; }
 @keyframes cueIn { from { opacity: 0; } to { opacity: 1; } }

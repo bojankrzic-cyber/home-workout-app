@@ -763,7 +763,7 @@
 
   function viewBox(anim, aspect, extra, tight) {
     var b = computeBox(anim, tight);
-    var pad = tight ? 8 : 16;
+    var pad = tight ? 4 : 16;
     var x0 = b[0] - pad - (extra || 0), x1 = b[2] + pad + (extra || 0), y0 = b[1] - pad, y1 = 0 + 18;
     var w = x1 - x0, h = y1 - y0;
     if (w / h > aspect) { var nh = w / aspect; y0 -= (nh - h); h = nh; }
@@ -819,7 +819,7 @@
     if (this.autoFit) { var w = this.el.clientWidth, h = this.el.clientHeight; if (w > 40 && h > 40) a = Math.max(0.6, Math.min(3, w / h)); }
     if (a === this._fitA && this.anim === this._fitAnim) return;
     this._fitA = a; this._fitAnim = this.anim;
-    var vb = this.autoFit ? viewBox(this.anim, a, this.labels ? 18 : 0, true) : viewBox(this.anim, a, this.labels ? 46 : 0);
+    var vb = this.autoFit ? viewBox(this.anim, a, this.labels ? 12 : 0, true) : viewBox(this.anim, a, this.labels ? 46 : 0);
     this.svg.setAttribute('viewBox', vb.map(f1).join(' '));
     this.gFloor.innerHTML = rect(vb[0] - 3000, 0, vb[2] + 6000, 600, '', 0).replace('class=""', 'fill="url(#floorg)"') +
       line([vb[0] - 3000, 0], [vb[0] + vb[2] + 3000, 0], 1.5, 'p-floor-line');
