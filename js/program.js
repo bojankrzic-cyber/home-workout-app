@@ -383,8 +383,8 @@
         if (c.min) out.push({ kind: 'time', id: it.id, item: it, block: b.title, sec: c.min * 60, set: 1, sets: 1, rest: 0, label: c.min + ' min steady' });
         else for (var r = 1; r <= c.rounds; r++) {
           var warm = /Warm|Ogrev/.test(b.title);   // warm-up intervals are brisk, not "HARD"
-          out.push({ kind: 'time', id: it.id, item: it, block: b.title, sec: c.work, set: r, sets: c.rounds, rest: 0, label: (warm ? 'Brisk ' : 'HARD ') + c.work + ' s', hard: !warm });
-          out.push({ kind: 'time', id: it.id, item: it, block: b.title, sec: c.easy, set: r, sets: c.rounds, rest: 0, label: 'Easy ' + c.easy + ' s', easy: true });
+          out.push({ kind: 'time', id: it.id, item: it, block: b.title, sec: c.work, set: r, sets: c.rounds, rest: 0, label: (warm ? 'Brisk ' : 'HARD ') + c.work + ' s', hard: !warm, interval: true });
+          out.push({ kind: 'time', id: it.id, item: it, block: b.title, sec: c.easy, set: r, sets: c.rounds, rest: 0, label: 'Easy ' + c.easy + ' s', easy: true, interval: true });
         }
         return;
       }

@@ -193,14 +193,51 @@
   document.addEventListener('pointerdown', Sound.unlock, true);
   document.addEventListener('keydown', Sound.unlock, true);
 
-  // keep TV screen awake during workouts
-  var wake = null;
-  function keepAwake(on) {
+  // Keep the screen on while a workout or Trail recording is open (phone, tablet, TV).
+  //   Screen Wake Lock where supported. The browser drops the lock whenever the page is hidden (side button, notification,
+  //   app switch), so it is requested again on return. iPhone home-screen apps before iOS 18.4 ignore the lock, so on iOS
+  //   (and anywhere without the API) a tiny muted looping inline video runs as well – that keeps the display on too.
+  var AWAKE_MP4 = 'data:video/mp4;base64,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';
+  var wantAwake = false, wake = null, awakeVid = null;
+  var IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+  function lockScreen() {
+    if (!wantAwake || wake || document.hidden || !navigator.wakeLock) return;
+    navigator.wakeLock.request('screen').then(function (w) {
+      if (!wantAwake) { w.release(); return; }
+      wake = w;
+      w.addEventListener('release', function () { if (wake === w) wake = null; });
+    }).catch(function () {});
+  }
+  function awakeVideo(on) {
     try {
-      if (on && navigator.wakeLock && !wake) navigator.wakeLock.request('screen').then(function (w) { wake = w; }).catch(function () {});
-      if (!on && wake) { wake.release(); wake = null; }
+      if (on) {
+        if (!awakeVid) {
+          awakeVid = document.createElement('video');
+          awakeVid.muted = true; awakeVid.loop = true; awakeVid.playsInline = true;
+          awakeVid.setAttribute('muted', ''); awakeVid.setAttribute('playsinline', ''); awakeVid.setAttribute('aria-hidden', 'true');
+          awakeVid.style.cssText = 'position:fixed;left:0;top:0;width:1px;height:1px;opacity:.01;pointer-events:none;z-index:-1';
+          awakeVid.src = AWAKE_MP4;
+        }
+        if (!awakeVid.parentNode) document.body.appendChild(awakeVid);
+        var pr = awakeVid.play(); if (pr && pr.catch) pr.catch(function () {});
+      } else if (awakeVid) {
+        awakeVid.pause();
+        if (awakeVid.parentNode) awakeVid.parentNode.removeChild(awakeVid);
+      }
+    } catch (e) { /* ignore */ }
+  }
+  function keepAwake(on) {
+    wantAwake = !!on;
+    try {
+      if (on) { lockScreen(); if (IOS || !navigator.wakeLock) awakeVideo(true); }
+      else { awakeVideo(false); if (wake) { wake.release(); wake = null; } }
     } catch (e) { /* unsupported */ }
   }
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden || !wantAwake) return;
+    lockScreen();
+    if (awakeVid && awakeVid.parentNode) awakeVideo(true);
+  });
 
   // ---------------------------------------------------------------- spatial navigation (TV remote)
   var KEY = { LEFT: [37], UP: [38], RIGHT: [39], DOWN: [40], OK: [13, 32], BACK: [8, 27, 10009, 461, 166], PLAY: [179, 415, 19, 10252, 80] };
@@ -918,7 +955,7 @@
         link('🏋️', 'My equipment', pl(nEq, NAP) + ' · ' + pl(unlocked(s.equipment || []), VAJ), 'equipment') +
         row('📅', 'Workouts per week', '', opt('days', 3, '3× – full body') + opt('days', 4, '4× – upper / lower')) +
         row('📈', 'Level', '', opt('level', 'beg', 'Beginner') + opt('level', 'mid', 'Intermediate') + opt('level', 'adv', 'Advanced')) +
-        row('🙌', 'Hands-free sets', 'The set completes itself 6 s after the rep pacer reaches the target', opt('autoNext', true, 'On') + opt('autoNext', false, 'Off')) +
+        row('🙌', 'Hands-free sets', 'The set completes itself 6 s after the rep pacer reaches the target', opt('handsFree', true, 'On') + opt('handsFree', false, 'Off')) +
         row('🗓️', '4-week block', 'started ' + esc(s.startDate), '<button class="btn sm focusable" id="newBlock">Start new block today</button>')) +
       group('Sound & voice',
         row('🔊', 'Voice coaching', esc(voiceInfo) + ' On iPhone, silent mode can mute sound outside workouts.', opt('voice', true, 'On') + opt('voice', false, 'Off') + '<button class="btn sm focusable" id="vTest">▶ Test</button>') +
@@ -1077,7 +1114,41 @@
       return load > b.load || (load === b.load && reps > Math.max.apply(null, b.reps));
     }
     function lastWorkStep(k) { for (var x = k + 1; x < st.length; x++) if (st[x].id !== st[k].id) return false; return true; }
-    function autoNext() { return state.settings.autoNext !== false && !race; }
+    // Hands-free is opt-in: by default every exercise and set ends on the user's tap, so the app never runs ahead of them.
+    // Rest always counts down by itself; interval blocks (hard/easy, warm-up rounds) and race stations keep flowing on the clock.
+    function autoNext() { return state.settings.handsFree === true && !race; }
+    var timeUp = false;   // timed step reached 0:00 and waits for the tap
+    // count-in overlay: countIn() holds the clock for 3-2-1 then flashes START; softCount(n) shows the last seconds of a
+    // rest without holding anything. Tap skips. Automated tests skip it unless they ask (window.__readyCountdown).
+    var counting = false, preCounted = false, rdEl = null, countT = 0;
+    var noCount = navigator.webdriver && !window.__readyCountdown;
+    function readyEl() {
+      if (!rdEl) { rdEl = document.createElement('div'); rdEl.className = 'ready'; rdEl.onclick = function () { if (counting) endCount(); else hideReady(); }; }
+      if (!rdEl.isConnected) el.appendChild(rdEl);
+      return rdEl;
+    }
+    function hideReady() { if (rdEl && rdEl.isConnected) rdEl.remove(); }
+    function showNum(n) { var r = readyEl(); r.className = 'ready'; r.innerHTML = '<div><span>Get ready</span><b>' + n + '</b></div>'; }
+    function softCount(n) { if (noCount) return; preCounted = true; showNum(n); }
+    function goFlash() {
+      clearTimeout(countT); counting = false; Audio.beep(1320, 0.3);
+      if (noCount) { hideReady(); return; }
+      var r = readyEl(); r.className = 'go-flash'; r.innerHTML = '<div><b>Start</b></div>';
+      countT = setTimeout(hideReady, 700);
+    }
+    function endCount() { goFlash(); }
+    function countIn() {
+      clearTimeout(countT);
+      if (noCount) { counting = false; return; }
+      counting = true;
+      var n = 3;
+      (function step() {
+        if (!counting) return;
+        if (!n) return endCount();
+        showNum(n); Audio.beep(880, 0.08); n--;
+        countT = setTimeout(step, 1000);
+      })();
+    }
     var itemsById = {};
     sess.blocks.forEach(function (b) { b.items.forEach(function (it) { itemsById[it.id] = it; }); });
     // block index per step for the segmented progress bar
@@ -1092,7 +1163,7 @@
       '<div class="hud-clock"><small>' + (race ? 'RACE TIME' : 'TOTAL') + '</small><b id="wClock">0:00</b></div></div>' +
       '<div class="next-card" id="wNextCard"><div class="nc-thumb" id="wNextThumb"></div><div><small id="wNextLbl"></small><b id="wNextName"></b></div></div>' +
       '<div class="pip" id="wPip" hidden><img alt=""><span>Real form</span></div>' +
-      '<div class="mini-time" id="wMini"><small></small><b></b></div>' +
+      '<div class="mini-time" id="wMini"><small></small><b></b><span></span></div>' +
       '<div class="cheer" id="wCheer" hidden><div class="cheer-burst"></div><b></b><span></span></div>' +
       '<div class="finish" id="wFinish" hidden></div></div>' +
       '<div class="view-tabs" role="tablist"><button class="focusable" data-view="timer">Timer</button><button class="focusable" data-view="form">How to</button></div>' +
@@ -1185,13 +1256,20 @@
       i = n;
       if (i >= st.length) return finish();
       var s = st[i], e = ex(s.id), it = s.item;
-      phase = 'work'; elapsed = 0; stepT = 0; pacerHit = false; autoAt = 0; lastHype = '';
+      phase = 'work'; elapsed = 0; stepT = 0; pacerHit = false; autoAt = 0; lastHype = ''; timeUp = false;
+      el.classList.remove('time-up');
       var enterHype = lastWorkStep(n) && st.length > 3 ? hype('finalExercise') : n > 0 && s.sets > 1 && s.set === s.sets ? hype('lastSet') : s.set === 1 && s.sets > 1 ? hype('firstSet') : hype('start');
       lastMilestone = -1; setHype(enterHype, lastWorkStep(n), true);
+      // 3-2-1 START before every exercise. Rest (and an easy interval) shows its last 3 s as the count, so the clock does not
+      // stop twice; any other way in (workout start, a tap, skip) holds the clock for the count. Race stations and the
+      // easy half of an interval never wait.
+      if (!race && !s.easy) { if (preCounted) goFlash(); else countIn(); }
+      preCounted = false;
       var hk = hypeKey(enterHype), spokenHype = Coach.has(hk) ? hk : null;   // e.g. 'Last set, make it count.' instead of 'Set four.'
       el.classList.remove('resting');
       if (Date.now() >= manualUntil) setView('form');
       showAnim(s.id, s.easy ? 0.7 : 1);
+      if (!paused) pl.start();   // moves again after a still rest
       pacerBase = pl.time;
       $('#wBlock').textContent = s.block + (s.tag ? ' · ' + s.tag : '');
       $('#wDots').innerHTML = s.sets > 1 ? Array.apply(null, Array(s.sets)).map(function (_, k) { return '<i' + (k < s.set - 1 ? ' class="done"' : k === s.set - 1 ? ' class="cur"' : '') + '></i>'; }).join('') : '';
@@ -1277,13 +1355,17 @@
     function e0name(s) { return ex(s.id).name.split(' (')[0]; }
     function startRest(sec) {
       phase = 'rest'; remain = sec; restTotal = sec; stepT = 0;
+      timeUp = false; el.classList.remove('time-up'); preCounted = false; hideReady();
       el.classList.add('resting');
       var nx = st[i + 1], ne = ex(nx.id);
-      showAnim(nx.id);
+      // rest is rest: the figure stands still in the next exercise's start position; the coach says what comes next
+      showAnim(nx.id); pl.stop(); pl.setTime(0); nextPl.stop();
+      var nxReps = nx.kind === 'reps' ? (nx.item.reps[0] === nx.item.reps[1] ? nx.item.reps[0] : nx.item.reps[0] + '–' + nx.item.reps[1]) : null;
+      var nxWhat = nx.kind === 'reps' ? (nx.sets > 1 ? 'set ' + nx.set + ' of ' + nx.sets + ', ' : '') + nxReps + ' reps' : nx.kind === 'dist' ? nx.dist + ' meters' : nx.sec + ' seconds';
       $('#wName').textContent = 'Rest';
       $('#wMus').innerHTML = musChips(ne.anim.muscles);
       var np = photo(nx.id); $('#wPip').hidden = !np; if (np) $('#wPip img').src = np;
-      $('#wWhy').textContent = 'Get ready: ' + ne.name + (nx.kind === 'reps' ? ' · set ' + nx.set + '/' + nx.sets : '');
+      $('#wWhy').textContent = 'Get ready: ' + ne.name + (nx.kind === 'reps' ? ' · set ' + nx.set + '/' + nx.sets + ' · ' + nxReps + ' reps' : '');
       lastHype = ''; setHype(Math.round((i + 1) / st.length * 100) + '% done · ' + hype('rest'), false, true);
       $('#wLog').hidden = true;
       $('#wRx').innerHTML = chips([[fmt(sec), 'rest'], [ne.name.split(' (')[0], 'up next']]);
@@ -1291,7 +1373,7 @@
       $('#wMinus').hidden = $('#wPlus').hidden = false;
       $('#wSkip').hidden = true;
       $('#wNextLbl').textContent = 'While you rest: next exercise technique';
-      Voice.cue('Rest ' + sec + ' seconds. Next up: ' + ne.name, Coach.has('rest_' + sec) ? ['rest_' + sec, 'next', 'ex_' + nx.id] : ['next', 'ex_' + nx.id]);
+      Voice.cue('Rest ' + sec + ' seconds. Next up: ' + ne.name + ', ' + nxWhat + '.', Coach.has('rest_' + sec) ? ['rest_' + sec, 'next', 'ex_' + nx.id] : ['next', 'ex_' + nx.id]);
       draw();
     }
 
@@ -1306,6 +1388,7 @@
       drawRing();
       $('#wMini small').textContent = $('#wRingTop').textContent;
       $('#wMini b').textContent = $('#wRingVal').textContent;
+      $('#wMini span').textContent = phase !== 'rest' && st[i] && st[i].kind === 'reps' ? 'reps' : '';
     }
     function drawRing() {
       $('#wClock').textContent = fmt(total);
@@ -1318,7 +1401,10 @@
       }
       if (s.kind === 'reps') {
         var tgt = s.item.reps[1], pr = Math.min(pacerReps(), tgt);
-        top.textContent = s.sets > 1 ? 'SET ' + s.set + ' OF ' + s.sets : 'REPS'; val.textContent = pr; sub.textContent = 'pace guide · of ' + tgt + ' reps';   // the pacer counts the tempo, it does not see your reps
+        // big: which set and how many reps to do; the ring fills with the pace guide (it counts the tempo, it does not see your reps)
+        top.textContent = 'SET ' + s.set + ' OF ' + s.sets;
+        val.textContent = s.item.reps[0] === s.item.reps[1] ? s.item.reps[0] : s.item.reps[0] + '–' + s.item.reps[1];
+        sub.textContent = 'reps';
         setRing('wRing', pr / tgt);
         if (!pacerHit && tgt >= 6 && pr !== lastMilestone) {
           lastMilestone = pr;
@@ -1341,7 +1427,7 @@
         top.textContent = s.dist + ' m'; val.textContent = fmt(elapsed); sub.textContent = 'target ~' + fmt(est);
         setRing('wRing', elapsed / est);
       } else {
-        top.textContent = s.hard ? 'HARD' : s.easy ? 'EASY' : race ? 'STATION' : 'TIME';
+        top.textContent = s.hard ? 'HARD' : s.easy ? 'EASY' : race ? 'STATION' : s.sets > 1 ? 'SET ' + s.set + ' OF ' + s.sets : 'TIME';
         val.textContent = fmt(remain);
         var e = ex(s.id);
         sub.textContent = e.type === 'cardio' && !/^(bike|row|hx_|airbike|rope_waves)/.test(s.id) ? '≈ ' + pacerReps() + ' reps at the pace guide' : 'of ' + fmt(s.sec);
@@ -1350,23 +1436,27 @@
     }
 
     function tick() {
-      if (paused || !st[i]) return;
+      if (paused || counting || !st[i]) return;
       total += 0.25;
       autoView();
       if (phase === 'rest') {
         remain -= 0.25;
-        if (remain <= 3.01 && remain > 0 && Math.abs(remain - Math.round(remain)) < 0.01) Audio.beep(880, 0.12);
-        if (remain <= 0) { Audio.beep(1320, 0.3); enter(i + 1); return; }
+        if (remain <= 3.01 && remain > 0 && Math.abs(remain - Math.round(remain)) < 0.01) { Audio.beep(880, 0.12); softCount(Math.round(remain)); }
+        if (remain <= 0) { enter(i + 1); return; }
       } else {
         elapsed += 0.25;
         var s = st[i];
         if (s.kind === 'reps' && autoAt && elapsed >= autoAt) { Audio.beep(1320, 0.3); completeWork(); return; }
         if (s.kind === 'time') {
           remain -= 0.25;
-          if (remain <= 3.01 && remain > 0 && Math.abs(remain - Math.round(remain)) < 0.01) Audio.beep(880, 0.12);
+          if (remain <= 3.01 && remain > 0 && Math.abs(remain - Math.round(remain)) < 0.01) { Audio.beep(880, 0.12); if (s.easy && st[i + 1] && !st[i + 1].easy) softCount(Math.round(remain)); }
           if (s.sec >= 60 && Math.abs(remain - s.sec / 2) < 0.01) { Voice.cue('Halfway.', ['half']); setHype(hype('half')); }
           if (s.sec >= 30 && Math.abs(remain - 10) < 0.01) { var ht = hype('tenLeft'); setHype(ht, true); hypeVoice(ht); }
-          if (remain <= 0) { Audio.beep(1320, 0.3); completeWork(); return; }
+          if (remain <= 0 && (race || s.interval || autoNext())) { Audio.beep(1320, 0.3); completeWork(); return; }
+          if (remain <= 0) {
+            remain = 0;
+            if (!timeUp) { timeUp = true; Audio.beep(1320, 0.3); el.classList.add('time-up'); var hu = hype('hit'); setHype(hu, true); hypeVoice(hu); }
+          }
         }
       }
       draw();
@@ -1376,7 +1466,7 @@
     // partial = ended early with the end button: saved and labelled as such, never "workout complete"
     function finish(partial) {
       partial = partial === true;
-      clearInterval(iv);
+      clearInterval(iv); clearTimeout(countT); counting = false; hideReady();
       done = true; setView('form');
       var min = Math.max(1, Math.round(total / 60));
       if (logged.length || min >= 10) {
@@ -1432,7 +1522,7 @@
     $('#wPause').onclick = function () {
       paused = !paused; this.textContent = paused ? 'Resume' : 'Pause';
       el.classList.toggle('paused', paused);
-      if (paused) pl.stop(); else pl.start();
+      if (paused) pl.stop(); else if (phase !== 'rest') pl.start();
     };
     $('#wExit').onclick = function () {
       // nothing done yet: leave without a record or a "workout complete" card
@@ -1453,20 +1543,7 @@
       confirmExit: function (leave) { ask('Leave workout? Unsaved sets will be lost.', 'Leave', leave); },
       destroy: function () { clearInterval(iv); el.remove(); Sound.session(false); if ('speechSynthesis' in window) speechSynthesis.cancel(); }
     };
-    enter(0);
-    // "Get ready" 3-2-1 before the clock starts (the first exercise already plays behind it); tap to skip.
-    // Automated tests skip it unless they ask for it (window.__readyCountdown).
-    if (navigator.webdriver && !window.__readyCountdown) return;
-    paused = true;
-    var rd = document.createElement('div'); rd.className = 'ready'; el.appendChild(rd);
-    var rn = 3, go = function () { if (!rd.isConnected) return; rd.remove(); paused = false; Audio.beep(1320, 0.2); };
-    (function count() {
-      if (!rd.isConnected) return;
-      if (!rn) return go();
-      rd.innerHTML = '<div><span>Get ready</span><b>' + rn + '</b></div>'; Audio.beep(880, 0.08); rn--;
-      setTimeout(count, 1000);
-    })();
-    rd.onclick = go;
+    enter(0);   // starts with the 3-2-1 count-in
   };
 
   // ---------------------------------------------------------------- first visit: what do you want to start?
