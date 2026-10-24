@@ -2823,5 +2823,9 @@
 "Run, walk or ride – {0} to {1} min": "Beh, chôdza alebo bicykel – {0} až {1} min",
 "outdoors at your own pace – counts as one of this week’s workouts": "vonku vlastným tempom – počíta sa ako jeden z tréningov tohto týždňa",
 "▶ Start Trail": "▶ Začať Trasu",
-"{0}×": "{0}×"
+"{0}×": "{0}×",
+"<0/>: {0} days left": "<0/>: zostáva {0} dní",
+"<0/>: {0} day left": "<0/>: zostáva {0} deň",
+"<0/>: running out today": "<0/>: dnes sa minie",
+"Reorder now so your routine ({0} check-ins) doesn’t pause.": "Objednaj teraz, aby sa tvoja rutina ({0} odškrtnutí) neprerušila."
 }

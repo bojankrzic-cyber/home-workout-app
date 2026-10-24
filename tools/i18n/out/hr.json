@@ -2823,5 +2823,9 @@
 "Run, walk or ride – {0} to {1} min": "Trči, hodaj ili vozi – {0} do {1} min",
 "outdoors at your own pace – counts as one of this week’s workouts": "vani, svojim tempom – računa se kao jedan od treninga ovog tjedna",
 "▶ Start Trail": "▶ Kreni na Stazu",
-"{0}×": "{0}×"
+"{0}×": "{0}×",
+"<0/>: {0} days left": "<0/>: još {0} dana",
+"<0/>: {0} day left": "<0/>: još {0} dan",
+"<0/>: running out today": "<0/>: danas ponestaje",
+"Reorder now so your routine ({0} check-ins) doesn’t pause.": "Naruči ponovno sada da tvoja rutina ({0} kvačica) ne stane."
 }

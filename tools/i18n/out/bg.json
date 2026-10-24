@@ -2823,5 +2823,9 @@
 "Run, walk or ride – {0} to {1} min": "Бягане, ходене или колоездене – {0} до {1} min",
 "outdoors at your own pace – counts as one of this week’s workouts": "навън, в твоето темпо – брои се за една от тренировките тази седмица",
 "▶ Start Trail": "▶ Започни Трейл",
-"{0}×": "{0}×"
+"{0}×": "{0}×",
+"<0/>: {0} days left": "<0/>: остават {0} дни",
+"<0/>: {0} day left": "<0/>: остава {0} ден",
+"<0/>: running out today": "<0/>: свършва днес",
+"Reorder now so your routine ({0} check-ins) doesn’t pause.": "Поръчай отново сега, за да не прекъсне рутината ти ({0} отметки)."
 }

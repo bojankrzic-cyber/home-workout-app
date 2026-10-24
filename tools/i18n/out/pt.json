@@ -2823,5 +2823,9 @@
 "Run, walk or ride – {0} to {1} min": "Correr, caminhar ou pedalar – {0} a {1} min",
 "outdoors at your own pace – counts as one of this week’s workouts": "ao ar livre, ao teu ritmo – conta como um dos treinos desta semana",
 "▶ Start Trail": "▶ Começar Trail",
-"{0}×": "{0}×"
+"{0}×": "{0}×",
+"<0/>: {0} days left": "<0/>: faltam {0} dias",
+"<0/>: {0} day left": "<0/>: falta {0} dia",
+"<0/>: running out today": "<0/>: acaba hoje",
+"Reorder now so your routine ({0} check-ins) doesn’t pause.": "Encomenda já para a tua rotina ({0} check-ins) não parar."
 }

@@ -1,0 +1,6 @@
+{
+ "<0/>: {0} days left": "<0/> : encore {0} jours",
+ "<0/>: {0} day left": "<0/> : encore {0} jour",
+ "<0/>: running out today": "<0/> : se termine aujourd’hui",
+ "Reorder now so your routine ({0} check-ins) doesn’t pause.": "Recommande maintenant pour que ta routine ({0} check-ins) ne s’arrête pas."
+}

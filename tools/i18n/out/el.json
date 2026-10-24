@@ -2823,5 +2823,9 @@
 "Run, walk or ride – {0} to {1} min": "Τρέξιμο, περπάτημα ή ποδήλατο – {0} έως {1} min",
 "outdoors at your own pace – counts as one of this week’s workouts": "έξω, με τον δικό σου ρυθμό – μετράει ως μία από τις προπονήσεις της εβδομάδας",
 "▶ Start Trail": "▶ Έναρξη Trail",
-"{0}×": "{0}×"
+"{0}×": "{0}×",
+"<0/>: {0} days left": "<0/>: απομένουν {0} μέρες",
+"<0/>: {0} day left": "<0/>: απομένει {0} μέρα",
+"<0/>: running out today": "<0/>: τελειώνει σήμερα",
+"Reorder now so your routine ({0} check-ins) doesn’t pause.": "Παράγγειλε ξανά τώρα για να μη σταματήσει η ρουτίνα σου ({0} check-in)."
 }

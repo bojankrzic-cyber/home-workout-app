@@ -2823,5 +2823,9 @@
 "Run, walk or ride – {0} to {1} min": "Bėgimas, ėjimas ar važiavimas – nuo {0} iki {1} min",
 "outdoors at your own pace – counts as one of this week’s workouts": "lauke, savo tempu – įskaitoma kaip viena šios savaitės treniruočių",
 "▶ Start Trail": "▶ Pradėti Trasą",
-"{0}×": "{0}×"
+"{0}×": "{0}×",
+"<0/>: {0} days left": "<0/>: liko {0} d.",
+"<0/>: {0} day left": "<0/>: liko {0} diena",
+"<0/>: running out today": "<0/>: baigiasi šiandien",
+"Reorder now so your routine ({0} check-ins) doesn’t pause.": "Užsisakyk dabar, kad tavo rutina ({0} atžymos) nenutrūktų."
 }
