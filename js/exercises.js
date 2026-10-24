@@ -26,7 +26,7 @@
     wallball: { name: 'Wall ball (med ball)', group: 'utezi', desc: 'Race wall balls (needs a wall)', icon: { vb: [-50, -72, 100, 84], props: [{ t: 'ball', x: 0, y: -30 }] } },
     bench: { name: 'Adjustable weight bench', group: 'klopi', desc: 'Flat / incline bench, support', icon: { vb: [-82, -86, 180, 98], scene: [{ type: 'bench', x: -62, len: 118 }] } },
     tria: { name: 'Ab & back-extension bench', group: 'klopi', desc: 'Sit-ups and back extensions', icon: { vb: [-56, -92, 176, 104], scene: [{ type: 'tria_abs', x: -40 }] } },
-    wall: { name: 'Wall station: pull-up bar + leg raise', group: 'klopi', desc: 'Pull-ups, leg raises, hangs', icon: { vb: [-92, -252, 160, 264], scene: [{ type: 'wall', x: -48, y: -226, bx: 46 }] } },
+    wall: { name: 'Wall station: pull-up bar + leg raise', group: 'klopi', desc: 'Wall bars with pull-up bar and knee-raise pads – pull-ups, leg raises, hangs, decline push-ups', icon: { vb: [-92, -252, 160, 264], scene: [{ type: 'wall', x: -48, y: -226, bx: 46 }] } },
     box: { name: 'Plyo box', group: 'klopi', desc: 'Box jumps, step-ups', icon: { vb: [-60, -74, 120, 86], scene: [{ type: 'box', x: -32, w: 64, h: 54 }] } },
     kinesis: { name: 'Cable station', group: 'kabli', desc: 'Wall cable station (e.g. Technogym Kinesis Personal), levels 0–20', icon: { vb: [-62, -222, 124, 234], scene: [{ type: 'kinesis', x: 0, pulleys: [[-24, -186], [-24, -112], [-24, -36]] }] } },
     bands: { name: 'Resistance bands', group: 'kabli', desc: 'Rows, triceps, warm-ups', icon: { vb: [-62, -76, 124, 88], noFloor: true, props: [{ t: 'band', x: 0, y: -34 }] } },
@@ -168,6 +168,13 @@
   var WALL = { type: 'wall', x: -48, y: -226, bx: 46 };
   var BAR = ['hN', 30, -226];
   function hang(x) { return m({ t: 180, hd: -14, aN: [180, 180], aF: [178, 178], lN: [4, 0, 50], pin: BAR }, x); }
+  // wall bars with the knee-raise pads (forearms on the pads, back against the back pad)
+  var WALL_VKR = { type: 'wall', x: -48, y: -226, bx: 46, pads: -150 };
+  function vkr(x) { return m({ t: 180, hd: -6, aN: [-4, 92], aF: [-6, 90], lN: [4, 0, 50], pin: ['eN', -30, -152] }, x); }
+  // feet on a rung of the wall bars, hands on the floor
+  function wbPush(t, hand) { return { t: t, hd: -6, lN: [t - 180, t - 180, 15], pin: ['fN', -58, -50], ik: { hN: hand, hF: [hand[0] - 3, hand[1]] } }; }
+  // lying with the head toward the wall bars, hands on the lowest rung
+  function wbLie(lN, lF) { return { r: [10, -13], t: -90, hd: 0, aN: [-92, -92], aF: [-94, -94], lN: lN, lF: lF || lN }; }
 
   // ------------------------------------------------------------ ab & back-extension bench
   var TRIA_BACK = { type: 'tria_back', x: 2, y: -86 };
@@ -980,6 +987,68 @@
           { d: 1.4, l: 'Other leg', p: deadBug([168, 168], [168, 168], DB_REST_LEG, DB_REST_LEG) },
           { d: 0.6, l: 'Exhale, back flat', p: deadBug([168, 168], [168, 168], [94, 94, 160], DB_REST_LEG) },
           { d: 1.4, l: 'Return', p: deadBug([168, 168], [168, 168], [94, 94, 160], DB_REST_LEG) }
+        ]
+      }
+    },
+
+    // wall bars (Swedish ladder) – the rungs, the multi-grip bar and the knee-raise pads
+    {
+      id: 'chinup_neutral', name: 'Neutral-grip pull-up', equip: ['wall'], type: 'strength', unit: 'bw', load: 0, inc: 0,
+      muscles: 'Lats, biceps, forearms', tempo: '1-1-3',
+      cues: ['Palms facing each other on the parallel handles', 'Shoulder blades down first, then pull your chest up', 'Lower for 3 s to a full hang'],
+      mistakes: ['Kipping with the legs', 'Stopping halfway down'],
+      anim: {
+        scene: [WALL], focus: ['torso', 'upper'],
+        frames: [
+          { d: 1.0, l: 'Pull', p: hang({ lN: [12, -6, 40] }) },
+          { d: 0.4, l: 'Chin over bar', p: hang({ t: 184, hd: -8, aN: [36, 170], aF: [33, 168], lN: [22, -10, 40] }) },
+          { d: 2.2, l: 'Lower for 3 s', p: hang({ t: 184, hd: -8, aN: [36, 170], aF: [33, 168], lN: [22, -10, 40] }) },
+          { d: 0.5, l: 'Full hang', p: hang({ lN: [12, -6, 40] }) }
+        ]
+      }
+    },
+    {
+      id: 'vkr_knee_raise', name: 'Knee raise on the pads (captain’s chair)', equip: ['wall'], type: 'core', unit: 'bw', load: 0, inc: 0,
+      muscles: 'Lower abs, hip flexors', tempo: '1-1-2',
+      cues: ['Forearms on the pads, back flat against the back pad', 'Lift the knees to the chest and tilt the pelvis up', 'Lower slowly – no swinging'],
+      mistakes: ['Swinging the legs', 'Back coming off the pad'],
+      anim: {
+        scene: [WALL_VKR], focus: ['torso', 'thigh'],
+        frames: [
+          { d: 0.9, l: 'Knees up', p: vkr({}) },
+          { d: 0.4, l: 'Tilt the pelvis', p: vkr({ t: 186, lN: [122, 14, 50] }) },
+          { d: 1.6, l: 'Slowly down', p: vkr({ t: 186, lN: [122, 14, 50] }) },
+          { d: 0.3, l: '', p: vkr({}) }
+        ]
+      }
+    },
+    {
+      id: 'wb_decline_pushup', name: 'Decline push-up (feet on the wall bars)', equip: ['wall'], type: 'strength', unit: 'bw', load: 0, inc: 0,
+      muscles: 'Upper chest, shoulders, triceps', tempo: '2-0-1',
+      cues: ['Feet on a low rung, hands on the floor under the shoulders', 'Body in one straight line – squeeze glutes and abs', 'Lower the chest to just above the floor, then press'],
+      mistakes: ['Hips sagging', 'Feet too high too soon – start on a low rung'],
+      anim: {
+        scene: [WALL], focus: ['torso', 'upper'],
+        frames: [
+          { d: 1.5, l: 'Lower', p: wbPush(97, [66, -5]) },
+          { d: 0.2, l: 'Bottom', p: wbPush(80, [70, -5]) },
+          { d: 0.8, l: 'Press', p: wbPush(80, [70, -5]) },
+          { d: 0.4, l: '', p: wbPush(97, [66, -5]) }
+        ]
+      }
+    },
+    {
+      id: 'wb_leg_raise', name: 'Lying leg raise (hold the wall bars)', equip: ['wall'], type: 'core', unit: 'bw', load: 0, inc: 0,
+      muscles: 'Abs, hip flexors', tempo: '1-1-3',
+      cues: ['Lie with your head at the wall bars, hold the lowest rung', 'Lower back pressed into the floor', 'Legs straight up, then lower for 3 s – stop before the back arches'],
+      mistakes: ['Lower back arching off the floor', 'Dropping the legs fast'],
+      anim: {
+        scene: [WALL], focus: ['torso', 'thigh'],
+        frames: [
+          { d: 1.0, l: 'Legs up', p: wbLie([104, 104, 170]) },
+          { d: 0.4, l: 'Top', p: wbLie([176, 176, 170]) },
+          { d: 2.2, l: 'Lower for 3 s', p: wbLie([176, 176, 170]) },
+          { d: 0.3, l: '', p: wbLie([104, 104, 170]) }
         ]
       }
     },
@@ -1963,6 +2032,7 @@
     k_pushdown: ['roke'], k_pullthrough: ['zadnjica', 'noge'], k_woodchop: ['trup'],
     k_fly: ['prsa', 'rame'], k_shoulder_press: ['rame', 'roke', 'trup'], k_curl: ['roke'], k_squat: ['noge', 'zadnjica', 'trup'], k_crunch: ['trup'],
     k_pallof: ['trup'], k_lift: ['trup', 'rame'], k_row_1arm: ['hrbet', 'roke', 'trup'], k_press_1arm: ['prsa', 'roke', 'trup'], k_deadbug: ['trup'],
+    chinup_neutral: ['hrbet', 'roke'], vkr_knee_raise: ['trup'], wb_decline_pushup: ['prsa', 'rame', 'roke'], wb_leg_raise: ['trup'],
     pullup: ['hrbet', 'roke', 'trup'], hang_knee_raise: ['trup'], hang_leg_raise: ['trup'], dead_hang: ['mobilnost', 'hrbet'],
     back_ext: ['hrbet', 'zadnjica'], situp: ['trup'], pushup: ['prsa', 'roke', 'trup'], plank: ['trup'], dead_bug: ['trup'], bird_dog: ['trup', 'hrbet'],
     hip_flexor: ['mobilnost', 'noge'], hamstring_bench: ['mobilnost', 'noge'],
@@ -1983,7 +2053,7 @@
     hollow_hold: ['trup'], sl_glute_bridge: ['zadnjica', 'noge'], hamstring_floor: ['mobilnost', 'noge']
   };
   // Multi-joint lifts go first in a generated session
-  var COMPOUND = ['bb_squat', 'k_squat', 'k_shoulder_press', 'bb_deadlift', 'bb_bench', 'kb_goblet_squat', 'kb_deadlift', 'db_rdl', 'db_bulgarian', 'db_hip_thrust', 'kb_swing', 'db_bench', 'db_incline', 'pullup',
+  var COMPOUND = ['bb_squat', 'k_squat', 'k_shoulder_press', 'bb_deadlift', 'bb_bench', 'kb_goblet_squat', 'kb_deadlift', 'db_rdl', 'db_bulgarian', 'db_hip_thrust', 'kb_swing', 'db_bench', 'db_incline', 'pullup', 'chinup_neutral', 'wb_decline_pushup',
     'db_row', 'k_pulldown', 'db_shoulder_press', 'kb_press', 'k_chest_press', 'k_row', 'db_stepup', 'pushup', 'k_pullthrough', 'back_ext',
     'landmine_row', 'landmine_press', 'dips', 'susp_row', 'susp_pushup', 'susp_squat', 'pike_pushup'];
 
@@ -1998,16 +2068,16 @@
     stepup: ['db_stepup', 'box_jump', 'db_bulgarian', 'bw_lunge', 'jump_squat', 'wall_sit'],
     backext: ['back_ext', 'superman', 'k_pullthrough', 'glute_bridge', 'bird_dog'],
     hpush: ['db_bench', 'bb_bench', 'k_chest_press', 'k_press_1arm', 'pushup', 'susp_pushup', 'dips', 'knee_pushup'],
-    incline: ['db_incline', 'k_chest_press', 'bb_bench', 'pushup', 'landmine_press', 'susp_pushup', 'knee_pushup'],
+    incline: ['db_incline', 'k_chest_press', 'bb_bench', 'wb_decline_pushup', 'pushup', 'landmine_press', 'susp_pushup', 'knee_pushup'],
     vpush: ['db_shoulder_press', 'kb_press', 'k_shoulder_press', 'pike_pushup', 'pushup', 'landmine_press', 'knee_pushup'],
     hpull: ['db_row', 'k_row', 'k_row_1arm', 'band_row', 'pullup', 'landmine_row', 'susp_row', 'superman', 'prone_y_raise'],
-    vpull: ['pullup', 'k_pulldown', 'band_row', 'db_row', 'susp_row', 'landmine_row', 'superman', 'prone_y_raise'],
+    vpull: ['pullup', 'chinup_neutral', 'k_pulldown', 'band_row', 'db_row', 'susp_row', 'landmine_row', 'superman', 'prone_y_raise'],
     rear: ['k_face_pull', 'band_row', 'db_row', 'susp_row', 'prone_y_raise', 'superman'],
     curl: ['db_curl', 'k_curl', 'band_row'],
     fly: ['k_fly', 'db_bench', 'k_chest_press', 'pushup', 'knee_pushup'],
     triceps: ['k_pushdown', 'band_pushdown', 'pushup', 'dips', 'knee_pushup'],
-    corehang: ['hang_knee_raise', 'hang_leg_raise', 'situp', 'dead_bug', 'lsit', 'abwheel_rollout', 'hollow_hold'],
-    coreflex: ['situp', 'k_crunch', 'hang_knee_raise', 'dead_bug', 'abwheel_rollout', 'susp_fallout', 'hollow_hold'],
+    corehang: ['hang_knee_raise', 'hang_leg_raise', 'vkr_knee_raise', 'wb_leg_raise', 'situp', 'dead_bug', 'lsit', 'abwheel_rollout', 'hollow_hold'],
+    coreflex: ['situp', 'k_crunch', 'wb_leg_raise', 'hang_knee_raise', 'dead_bug', 'abwheel_rollout', 'susp_fallout', 'hollow_hold'],
     corerot: ['k_woodchop', 'k_pallof', 'k_lift', 'side_plank', 'bird_dog', 'plank', 'ball_rot_slam'],
     hang: ['dead_hang', 'hip_flexor', 'roll_tspine'],
     stretch: ['hamstring_bench', 'hamstring_floor', 'hip_flexor'],
@@ -2026,7 +2096,7 @@
     hxcarry: ['kb_farmers', 'db_farmers'],
     hxrow: ['row_steady', 'skierg', 'bike_z2', 'airbike_z2'],
     burpee: ['burpee_bj', 'burpee', 'mountain_climber', 'ball_slam'],
-    plank: ['plank', 'dead_bug', 'abwheel_rollout', 'susp_fallout', 'side_plank', 'hollow_hold'], deadbug: ['dead_bug', 'k_deadbug', 'plank', 'hollow_hold'], birddog: ['bird_dog', 'dead_bug', 'side_plank'], pushup: ['pushup', 'k_chest_press', 'susp_pushup', 'knee_pushup'], hipflex: ['hip_flexor', 'roll_quads'],
+    plank: ['plank', 'dead_bug', 'abwheel_rollout', 'susp_fallout', 'side_plank', 'hollow_hold'], deadbug: ['dead_bug', 'k_deadbug', 'plank', 'hollow_hold'], birddog: ['bird_dog', 'dead_bug', 'side_plank'], pushup: ['pushup', 'wb_decline_pushup', 'k_chest_press', 'susp_pushup', 'knee_pushup'], hipflex: ['hip_flexor', 'roll_quads'],
     // patterns introduced with the extra equipment
     rollout: ['abwheel_rollout', 'susp_fallout', 'plank', 'dead_bug'], lsit: ['lsit', 'hang_leg_raise', 'hang_knee_raise', 'plank'],
     dip: ['dips', 'db_bench', 'k_chest_press', 'pushup', 'k_pushdown', 'knee_pushup'], landmine: ['landmine_press', 'db_shoulder_press', 'kb_press', 'pike_pushup', 'pushup'],
@@ -2045,7 +2115,8 @@
     db_row: 'hpull', k_row: 'hpull', band_row: 'hpull', pullup: 'vpull', k_pulldown: 'vpull', k_face_pull: 'rear', db_curl: 'curl', k_pushdown: 'triceps', band_pushdown: 'triceps',
     hang_knee_raise: 'corehang', hang_leg_raise: 'corehang', situp: 'coreflex',
     k_fly: 'fly', k_shoulder_press: 'vpush', k_curl: 'curl', k_squat: 'squat', k_crunch: 'coreflex',
-    k_pallof: 'corerot', k_lift: 'corerot', k_row_1arm: 'hpull', k_press_1arm: 'hpush', k_deadbug: 'deadbug', k_woodchop: 'corerot', dead_hang: 'hang', hamstring_bench: 'stretch', hip_flexor: 'hipflex',
+    k_pallof: 'corerot', k_lift: 'corerot', k_row_1arm: 'hpull', k_press_1arm: 'hpush', k_deadbug: 'deadbug',
+    chinup_neutral: 'vpull', vkr_knee_raise: 'corehang', wb_decline_pushup: 'pushup', wb_leg_raise: 'coreflex', k_woodchop: 'corerot', dead_hang: 'hang', hamstring_bench: 'stretch', hip_flexor: 'hipflex',
     db_thruster: 'hxwb', kb_farmers: 'carry', db_farmers: 'carry', bike_z2: 'steady', row_steady: 'steadyRow', bike_hiit: 'intervals', row_hiit: 'intervalsRow',
     hx_bike_run: 'hxrun', treadmill_run: 'hxrun', k_ski: 'hxski', skierg: 'hxski', bike_sled: 'hxpush', sled_push: 'hxpush', k_sled_pull: 'hxpull', sled_pull: 'hxpull',
     wall_ball: 'hxwb', sandbag_lunge: 'hxlunge', burpee_bj: 'burpee', plank: 'plank', dead_bug: 'deadbug', bird_dog: 'birddog', pushup: 'pushup',
@@ -2074,7 +2145,9 @@
     k_fly: [['chest'], ['delts']], k_shoulder_press: [['delts', 'triceps'], ['traps', 'abs']], k_curl: [['biceps'], ['forearms']],
     k_squat: [['quads', 'glutes'], ['abs', 'hams']], k_crunch: [['abs'], ['obliques']],
     k_pallof: [['abs', 'obliques'], ['glutes', 'delts']], k_lift: [['obliques', 'abs'], ['delts', 'glutes']], k_row_1arm: [['lats', 'obliques'], ['biceps', 'traps', 'abs']],
-    k_press_1arm: [['chest', 'obliques'], ['triceps', 'delts', 'abs']], k_deadbug: [['abs'], ['obliques', 'hipflex']], pullup: [['lats', 'biceps'], ['traps', 'forearms', 'abs']],
+    k_press_1arm: [['chest', 'obliques'], ['triceps', 'delts', 'abs']], k_deadbug: [['abs'], ['obliques', 'hipflex']],
+    chinup_neutral: [['lats', 'biceps'], ['forearms', 'traps', 'abs']], vkr_knee_raise: [['abs', 'hipflex'], ['obliques']],
+    wb_decline_pushup: [['chest', 'delts'], ['triceps', 'abs']], wb_leg_raise: [['abs', 'hipflex'], ['obliques']], pullup: [['lats', 'biceps'], ['traps', 'forearms', 'abs']],
     hang_knee_raise: [['abs', 'hipflex'], ['obliques', 'forearms']], hang_leg_raise: [['abs', 'hipflex'], ['obliques', 'forearms']], dead_hang: [['forearms', 'lats'], ['delts']],
     back_ext: [['lowback', 'glutes'], ['hams']], situp: [['abs'], ['hipflex', 'obliques']], pushup: [['chest', 'triceps'], ['delts', 'abs']],
     plank: [['abs'], ['obliques', 'delts', 'glutes']], dead_bug: [['abs'], ['obliques', 'hipflex']], bird_dog: [['lowback', 'glutes'], ['abs', 'delts']],
