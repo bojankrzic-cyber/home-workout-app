@@ -193,7 +193,7 @@
     },
     trail: function () {
       return head('🌲 Trail', 'Record with GPS – live map, pace, splits') + '<div class="sh-grid">' +
-        T.GPS_TYPES.map(function (k) { return opt('record', { type: k }, T.TYPES[k].ico, T.TYPES[k].name); }).join('') + '</div>' +
+        T.MAIN_GPS.map(function (k) { return opt('record', { type: k }, T.TYPES[k].ico, T.TYPES[k].name); }).join('') + '</div>' +
         '<div class="sh-list">' + line('logSport', {}, '✍️', 'Log another sport', 'football, tennis, padel, swim, yoga…') +
         line('devices', {}, '⌚', 'Watch & heart rate', 'import workout files · live heart rate (Bluetooth strap)') + line('activities', {}, '🗺️', 'My activities', 'maps, splits, records') + '</div>';
     },

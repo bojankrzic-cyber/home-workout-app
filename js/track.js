@@ -65,6 +65,7 @@
     stretching: { name: 'Stretching / mobility', ico: '🧘‍♂️', met: 2.3 }
   };
   var GPS_TYPES = ['run', 'walk', 'hike', 'ride', 'trail_run', 'nordic_walk', 'mtb', 'ebike', 'inline', 'xc_ski', 'kayak', 'sup'];
+  var MAIN_GPS = ['run', 'walk', 'hike', 'ride'];   // the quick picks when recording; the other GPS sports stay in the log list
   var MANUAL_TYPES = ['swim', 'football', 'tennis', 'padel', 'basketball', 'ski', 'yoga', 'pilates', 'gym', 'indoor_run', 'indoor_ride',
     'hiit', 'crossfit', 'climbing', 'dance', 'boxing', 'martial', 'badminton', 'squash', 'table_tennis', 'volleyball', 'handball', 'hockey',
     'golf', 'snowboard', 'skating', 'rowing_water', 'stretching', 'other'];
@@ -364,7 +365,7 @@
   }
 
   global.Track = {
-    TYPES: TYPES, GPS_TYPES: GPS_TYPES, MANUAL_TYPES: MANUAL_TYPES, EFFORTS: EFFORTS, color: function (k) { return COLOR[k] || '#8a96a3'; },
+    TYPES: TYPES, GPS_TYPES: GPS_TYPES, MAIN_GPS: MAIN_GPS, MANUAL_TYPES: MANUAL_TYPES, EFFORTS: EFFORTS, color: function (k) { return COLOR[k] || '#8a96a3'; },
     dist: dist, kcal: kcal, pace: pace, speed: speed, km: km, clock: clock,
     Recorder: Recorder, bestEfforts: bestEfforts, parseGPX: parseGPX, manual: manual, weeks: weeks, records: records
   };

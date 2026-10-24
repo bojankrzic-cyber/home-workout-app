@@ -49,7 +49,7 @@ const path = require('path');
   ok((await page.$$('.sh-world')).length === 3, 'Start menu shows Trail, Gym, Health');
   await page.screenshot({ path: out + '/t4-start.png' });
   await page.click('.sh-world.w-trail'); await page.waitForTimeout(250);
-  ok((await page.$$('.sh-opt')).length === 12, 'Trail lists all GPS sports (run, walk, hike, ride, trail run, MTB …)');
+  ok((await page.$$('.sh-opt')).length === 4, 'Trail lists run/walk/hike/ride');
   await page.screenshot({ path: out + '/t5-trail.png' });
   await page.click('.sh-back'); await page.click('.sh-world.w-gym'); await page.waitForTimeout(250);
   ok(/Today’s workout/.test(await page.textContent('.sheet')), 'Gym offers today’s workout');
