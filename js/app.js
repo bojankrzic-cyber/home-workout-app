@@ -362,6 +362,7 @@
 
   function render(restoring, fid) {
     teardown();
+    if (window.Figure && Figure.setStyle) Figure.setStyle(state && state.settings && state.settings.sex);   // the figure looks like the person training
     var top = stack[stack.length - 1];
     SCREENS[top.screen](top.params);
     addBackButton(top.screen);

@@ -200,6 +200,12 @@
     var h = state.ex[item.id];
     var lo = item.reps ? item.reps[0] : 0, hi = item.reps ? item.reps[1] : 0;
     var load = h && h.load !== undefined ? h.load : (ex.load || 0);
+    // first time with no history: women start lighter – upper body ~55 %, legs and glutes ~70 % of the default
+    // (same movements and progression; only the starting estimate changes, the log takes over after set one)
+    if (!h && state.settings.sex === 'f' && ex.unit !== 'bw' && ex.unit !== 's') {
+      var lower = ['noge', 'zadnjica'].indexOf((ex.groups || [])[0]) >= 0;
+      load = ex.unit === 'stopnja' ? Math.max(1, load - (lower ? 1 : 3)) : load * (lower ? 0.7 : 0.55);
+    }
     if (state.settings.level === 'beg' && !h && ex.unit !== 'bw') load = ex.unit === 'stopnja' ? Math.max(1, load - 2) : Math.max(0, load * 0.75);
     var reps = lo, harder = null;
     var why = h ? '' : 'Starting estimate – adjust after the first set';
