@@ -76,7 +76,7 @@
         var sup = H.supply(s, it, now), d = sup ? sup.daysLeft : null;
         return '<span class="shelf-pill' + (d != null && d <= 5 ? ' low' : '') + '"><span translate="no">' + esc(it.name.length > 16 ? it.name.slice(0, 15) + '…' : it.name) + '</span>' + (d != null ? ' · <span class="ph">' + d + '</span> d' : '') + '</span>';
       }).join('') + '</button>' +
-        '<button class="btn primary focusable sc-scan" data-go="scan">📷 Scan a pack</button></div>';
+        (global.Scan ? Scan.hero(s, 'button') : '<button class="btn primary focusable sc-scan" data-go="scan">📷 Scan a pack</button>') + '</div>';
       var hero = document.querySelector('.scan-hero:not(.first)');
       if (hero) { hero.insertAdjacentHTML('afterend', html); hero.remove(); return; }
       var anchor = document.querySelector('.scan-hero') || document.querySelector('.buddy');

@@ -53,6 +53,8 @@
     var first = !(s && s.settings && (s.settings.routine || []).length);
     if (where === 'sheet') return '<button class="scan-line focusable" data-sgo="scan" data-p=\'{}\'><span class="scan-art">' + QR_ART + '<i></i></span><span><b>Scan a product</b><small>QR code on your Nature’s Finest pack → how to use it + your routine</small></span><span class="scan-go">📷</span></button>';
     if (where === 'small') return '<button class="btn focusable scan-small" data-go="scan">📷 Scan a pack</button>';
+    // big button with the live QR art (shelf card on Today)
+    if (where === 'button') return '<button class="btn primary focusable sc-scan" data-go="scan"><span class="scan-art">' + QR_ART + '<i></i></span><span>Scan a product</span></button>';
     return '<div class="scan-hero' + (first ? ' first' : '') + '"><div class="scan-art">' + QR_ART + '<i></i></div><div class="scan-txt">' +
       (first ? '<div class="kicker">Bought Nature’s Finest?</div><h3>Scan your product</h3><p>How to use exactly your product, your daily routine and rewards – in 10 seconds.</p>'
         : '<h3>New pack or another product?</h3><p>Scan the QR on the pack – your routine and rewards keep counting.</p>') +

@@ -475,6 +475,9 @@
     k_pallof: S('k_pallof', 3, [8, 10], 45, { perSide: true }), k_lift: S('k_lift', 3, [8, 10], 45, { perSide: true }),
     k_row_1arm: S('k_row_1arm', 3, [10, 12], 60, { perSide: true }), k_press_1arm: S('k_press_1arm', 3, [10, 12], 60, { perSide: true }),
     k_deadbug: S('k_deadbug', 3, [6, 8], 45, { perSide: true }),
+    // wall bars
+    chinup_neutral: S('chinup_neutral', 3, [5, 8], 90), vkr_knee_raise: S('vkr_knee_raise', 3, [10, 15], 60),
+    wb_decline_pushup: S('wb_decline_pushup', 3, [6, 12], 75), wb_leg_raise: S('wb_leg_raise', 3, [8, 12], 60),
     // bodyweight only
     knee_pushup: S('knee_pushup', 3, [8, 15], 60), pike_pushup: S('pike_pushup', 3, [6, 10], 75), superman: S('superman', 3, [10, 12], 60),
     prone_y_raise: S('prone_y_raise', 3, [10, 12], 45), side_plank: T('side_plank', 2, 30, 30), wall_sit: T('wall_sit', 3, 40, 60),
