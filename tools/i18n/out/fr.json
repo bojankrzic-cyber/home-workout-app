@@ -2815,5 +2815,13 @@
 "Exhale, back flat": "Expire, dos à plat",
 "Wall cable station (e.g. Technogym Kinesis Personal), levels {0}–{1}": "Station à poulies murale (ex. Technogym Kinesis Personal), niveaux {0}–{1}",
 "▶ Start next exercise": "▶ Lance l’exercice suivant",
-"▶ Start next set": "▶ Lance la série suivante"
+"▶ Start next set": "▶ Lance la série suivante",
+"of them Trail": "en Trail",
+"run, walk or ride outdoors – the rest are gym workouts": "course, marche ou vélo en extérieur – le reste, ce sont des séances en salle",
+"{0}× gym · {1}× Trail": "{0}× salle · {1}× Trail",
+"Trail day": "Jour de Trail",
+"Run, walk or ride – {0} to {1} min": "Course, marche ou vélo – {0} à {1} min",
+"outdoors at your own pace – counts as one of this week’s workouts": "en extérieur à ton rythme – compte comme une des séances de la semaine",
+"▶ Start Trail": "▶ Démarrer le Trail",
+"{0}×": "{0}×"
 }
