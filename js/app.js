@@ -1149,10 +1149,10 @@
         countT = setTimeout(step, 1000);
       })();
     }
-    // Gate before every NEW exercise: the clock holds on a big "Start next exercise" button until the user is ready,
-    // then 3-2-1. Further sets of the same exercise, interval rounds, race stations and hands-free mode run on as before.
+    // Gate before every exercise and every set: the clock holds on a big "Start next exercise / set" button until the user
+    // is ready, then 3-2-1. Interval rounds (hard/easy), race stations and hands-free mode keep running on the clock.
     var gateEl = null;
-    function needGate(n) { var s = st[n]; return !noCount && !race && !autoNext() && n > 0 && s && !s.easy && st[n - 1].id !== s.id; }
+    function needGate(n) { var s = st[n]; return !noCount && !race && !autoNext() && n > 0 && s && !s.easy && !(s.interval && st[n - 1].id === s.id); }
     function gate(n) {
       clearTimeout(countT); counting = true; hideReady();
       var s = st[n], e = ex(s.id);
@@ -1160,7 +1160,7 @@
       if (!gateEl) { gateEl = document.createElement('div'); gateEl.className = 'gate'; }
       gateEl.innerHTML = '<div class="gate-box"><span>Get ready</span><b>' + esc(e.name) + '</b>' +
         '<div class="gate-rx"><em>SET ' + s.set + ' OF ' + s.sets + '</em>' + (reps ? '<em>' + reps + ' <i>reps</i></em>' : s.kind === 'time' ? '<em>' + fmt(s.sec) + '</em>' : s.kind === 'dist' ? '<em>' + s.dist + ' m</em>' : '') + '</div>' +
-        '<button class="btn primary focusable gate-go" id="wGo" data-autofocus>▶ Start next exercise</button></div>';
+        '<button class="btn primary focusable gate-go" id="wGo" data-autofocus>' + (st[n - 1].id === s.id ? '▶ Start next set' : '▶ Start next exercise') + '</button></div>';
       el.appendChild(gateEl);
       $('#wGo').onclick = function () { gateEl.remove(); Sound.unlock(); countIn(); };
       $('#wGo').focus();
