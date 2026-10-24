@@ -111,7 +111,7 @@
       '<div class="rec-gps" id="rGps"><i></i><span>Searching for GPS…</span></div>' +
       '<button class="rec-hr focusable" id="rHr" hidden>❤ <b>–</b></button>' +
       '<div class="rec-panel">' +
-      '<div class="rec-pick" id="rPick">' + T.GPS_TYPES.map(function (k) {
+      '<div class="rec-pick" id="rPick">' + T.MAIN_GPS.concat(T.MAIN_GPS.indexOf(type) < 0 ? [type] : []).map(function (k) {
         return '<button class="chip focusable' + (k === type ? ' on' : '') + '" data-rt="' + k + '">' + typeOf(k).ico + ' ' + typeOf(k).name + '</button>';
       }).join('') + '<button class="chip focusable ghost" id="rOther">＋ Other sport / import</button></div>' +
       '<div class="rec-state" id="rState"></div>' +
