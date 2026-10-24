@@ -1,4 +1,4 @@
-// Every exercise and set ends on the user's tap (default): a timed step stops at 0:00 and waits, a rep set waits after the
+// Every exercise and set ends on the user's tap (default); a new exercise starts on the user's tap too: a timed step stops at 0:00 and waits, a rep set waits after the
 // pace guide hits the target; rest still counts down by itself; Hands-free on restores auto-advance.   NODE_PATH=$(npm root -g) node tools/tapnext.cjs
 const { chromium } = require('playwright');
 const { spawn } = require('child_process');
@@ -72,17 +72,26 @@ const path = require('path');
   ok(!(await has('.ready')) && await has('.go-flash'), 'START flashes after 3-2-1');
   await page.clock.runFor(2000);
   ok(await clock() !== c0 && !(await has('.go-flash')), 'clock runs after START');
+  // warm-up done -> a NEW exercise: the clock waits on the big start button, then 3-2-1
   await page.clock.runFor(366 * 1000);
   await page.evaluate(() => document.querySelector('#wDone').click()); await page.clock.runFor(200);
+  for (let k = 0; k < 400 && await resting(page); k++) await page.clock.runFor(500);
+  ok(await has('.gate #wGo'), 'new exercise waits on "Start next exercise"');
+  ok(!(await has('.ready')), 'no count-in before the tap');
+  const g0 = await clock(); await page.clock.runFor(20000);
+  ok(await has('.gate') && await clock() === g0, 'clock holds while waiting for the user');
+  await page.evaluate(() => document.querySelector('#wGo').click()); await page.clock.runFor(200);
+  ok(!(await has('.gate')) && await has('.ready'), 'tap starts the 3-2-1');
+  await page.clock.runFor(3300);
+  ok(!(await has('.ready')), 'count-in ends');
+  // next set of the SAME exercise after rest: no button, the rest's last 3 s are the count
+  const ex1 = await name(page);
+  await page.evaluate(() => document.querySelector('#wDone').click()); await page.clock.runFor(200);
   if (await resting(page)) {
-    for (let k = 0; k < 400 && !(await has('.ready')); k++) await page.clock.runFor(500);
-    ok(await resting(page), 'rest shows its last 3 s as the count');
-    for (let k = 0; k < 20 && await resting(page); k++) await page.clock.runFor(500);
-    ok(!(await has('.ready')), 'no second hold after a counted rest');
-  } else {
-    ok(await has('.ready'), 'count-in before the next exercise');
-    await page.clock.runFor(3200);
-    ok(!(await has('.ready')), 'count-in ends');
+    let sawCount = false;
+    for (let k = 0; k < 400 && await resting(page); k++) { await page.clock.runFor(500); if (await has('.ready')) sawCount = true; if (await has('.gate')) break; }
+    ok(await name(page) === ex1, 'same exercise next set');
+    ok(sawCount && !(await has('.gate')), 'same exercise: no start button, rest counts 3-2-1');
   }
   await browser.close(); srv.kill();
   console.log(errs.length ? 'ERRORS:\n' + errs.join('\n') : 'no errors');
