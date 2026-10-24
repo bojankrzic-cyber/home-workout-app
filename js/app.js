@@ -362,6 +362,7 @@
 
   function render(restoring, fid) {
     teardown();
+    if (window.Figure && Figure.setStyle) Figure.setStyle(state && state.settings && state.settings.sex);   // the figure looks like the person training
     var top = stack[stack.length - 1];
     SCREENS[top.screen](top.params);
     addBackButton(top.screen);
@@ -962,6 +963,7 @@
         row('📅', 'Workouts per week', weekSplit(s), [1, 2, 3, 4, 5, 6, 7].map(function (n) { return opt('days', n, n + '×'); }).join('')) +
         row('🏃', 'of them Trail', 'run, walk or ride outdoors – the rest are gym workouts', weekRange(s.days).map(function (n) { return opt('trail', n, n + '×'); }).join('')) +
         row('📈', 'Level', '', opt('level', 'beg', 'Beginner') + opt('level', 'mid', 'Intermediate') + opt('level', 'adv', 'Advanced')) +
+        row('⏱️', 'Countdown before each set', 'also chosen at the start of a workout', opt('countSec', 3, '3 s') + opt('countSec', 5, '5 s') + opt('countSec', 7, '7 s')) +
         row('🙌', 'Hands-free sets', 'The set completes itself 6 s after the rep pacer reaches the target', opt('handsFree', true, 'On') + opt('handsFree', false, 'Off')) +
         row('🗓️', '4-week block', 'started ' + esc(s.startDate), '<button class="btn sm focusable" id="newBlock">Start new block today</button>')) +
       group('Sound & voice',
@@ -1093,7 +1095,8 @@
     var i = 0, phase = 'work', remain = 0, elapsed = 0, paused = false, total = 0, restTotal = 0;
     var logged = [], splits = [];
     var cur = { reps: 0, load: 0 };
-    var pacerBase = 0, pacerHit = false;
+    var pacerOff = 0, pacerHit = false;   // pace guide runs on the workout clock (elapsed), not on the animation frames
+    var side = null;   // 'L' / 'R' while a per-side exercise is running
     // hands-free sets: once the rep pacer reaches the target, the set completes itself after a short
     // grace period (time to rack the weights) – no need to press "Set done" on the TV remote
     var AUTO_GRACE = 6, autoAt = 0;
@@ -1148,7 +1151,7 @@
       clearTimeout(countT);
       if (noCount) { counting = false; return; }
       counting = true;
-      var n = 3;
+      var n = countSec();
       (function step() {
         if (!counting) return;
         if (!n) return endCount();
@@ -1159,14 +1162,28 @@
     // Gate before every exercise and every set: the clock holds on a big "Start next exercise / set" button until the user
     // is ready, then 3-2-1. Interval rounds (hard/easy), race stations and hands-free mode keep running on the clock.
     var gateEl = null;
+    function countSec() { var c = state.settings.countSec; return c === 5 || c === 7 ? c : 3; }
     function needGate(n) { var s = st[n]; return !noCount && !race && !autoNext() && n > 0 && s && !s.easy && !(s.interval && st[n - 1].id === s.id); }
+    // the first exercise: pick the countdown for the whole workout (also in Settings), then go
+    function startGate() {
+      counting = true; hideReady();
+      if (!gateEl) { gateEl = document.createElement('div'); gateEl.className = 'gate'; }
+      var s = st[0], e = ex(s.id), c = countSec();
+      gateEl.innerHTML = '<div class="gate-box"><span>Get ready</span><b>' + esc(e.name) + '</b>' +
+        '<div class="gate-cd"><small>Countdown before each set</small><div>' + [3, 5, 7].map(function (n) { return '<button class="chip focusable' + (n === c ? ' on' : '') + '" data-cs="' + n + '">' + n + ' s</button>'; }).join('') + '</div></div>' +
+        '<button class="btn primary focusable gate-go" id="wGo" data-autofocus>▶ Start workout</button></div>';
+      el.appendChild(gateEl);
+      gateEl.querySelectorAll('[data-cs]').forEach(function (b) { b.onclick = function () { state.settings.countSec = +b.getAttribute('data-cs'); Store.save(); gateEl.querySelectorAll('[data-cs]').forEach(function (x) { x.classList.toggle('on', x === b); }); }; });
+      $('#wGo').onclick = function () { gateEl.remove(); Sound.unlock(); countIn(); };
+      $('#wGo').focus();
+    }
     function gate(n) {
       clearTimeout(countT); counting = true; hideReady();
       var s = st[n], e = ex(s.id);
       var reps = s.kind === 'reps' ? (s.item.reps[0] === s.item.reps[1] ? s.item.reps[0] : s.item.reps[0] + '–' + s.item.reps[1]) : null;
       if (!gateEl) { gateEl = document.createElement('div'); gateEl.className = 'gate'; }
       gateEl.innerHTML = '<div class="gate-box"><span>Get ready</span><b>' + esc(e.name) + '</b>' +
-        '<div class="gate-rx"><em>SET ' + s.set + ' OF ' + s.sets + '</em>' + (reps ? '<em>' + reps + ' <i>reps</i></em>' : s.kind === 'time' ? '<em>' + fmt(s.sec) + '</em>' : s.kind === 'dist' ? '<em>' + s.dist + ' m</em>' : '') + '</div>' +
+        '<div class="gate-rx"><em>SET ' + s.set + ' OF ' + s.sets + '</em>' + (reps ? '<em>' + reps + ' <i>reps</i></em>' : s.kind === 'time' ? '<em>' + fmt(s.sec) + '</em>' : s.kind === 'dist' ? '<em>' + s.dist + ' m</em>' : '') + (s.perSide ? '<em>Left side first</em>' : '') + '</div>' +
         '<button class="btn primary focusable gate-go" id="wGo" data-autofocus>' + (st[n - 1].id === s.id ? '▶ Start next set' : '▶ Start next exercise') + '</button></div>';
       el.appendChild(gateEl);
       $('#wGo').onclick = function () { gateEl.remove(); Sound.unlock(); countIn(); };
@@ -1241,10 +1258,11 @@
       if (id !== lastId) { pl.load(e.anim); lastId = id; }
       pl.speed = (e.speed || 1) * (speedMul || 1);
     }
+    // the clock that also drives the timer: it can't stall while the screen keeps running (animation frames can)
     function pacerReps() {
       var e = ex(st[i].id);
       var T = Figure.totalDur(e.anim);
-      return Math.floor((pl.time - pacerBase) * pl.speed / T) * (e.repsPerCycle || 1);
+      return Math.floor(Math.max(0, elapsed - pacerOff) * (pl.speed || 1) / T) * (e.repsPerCycle || 1);
     }
 
     function stepper(key, val, step, unit) {
@@ -1275,11 +1293,46 @@
       $('#wMeta').textContent = 'Block ' + (bi + 1) + '/' + blockTitles.length + ' · ' + Math.round(i / st.length * 100) + ' %';
     }
 
+    // "Cherry on top": before the cooldown (or the end) offer one bonus exercise for the abs – 3 sets of something
+    // not done today. Yes inserts it, no carries on. Asked once per workout; never in a race.
+    var bonusAsked = false;
+    function askBonus(n) {
+      var b = Program.bonusFor(state, st.map(function (x) { return x.id; }));
+      if (!b) return false;
+      state.customs.__bonus = b; var built = Program.build(state, '__bonus'); delete state.customs.__bonus;
+      var bs = Program.steps(built); if (!bs.length) return false;
+      bs.forEach(function (x) { x.block = 'Bonus'; });
+      var s0 = bs[0], e = ex(s0.id), reps = s0.kind === 'reps' ? (s0.item.reps[0] === s0.item.reps[1] ? s0.item.reps[0] : s0.item.reps[0] + '–' + s0.item.reps[1]) : null;
+      clearTimeout(countT); counting = true; hideReady();
+      if (!gateEl) { gateEl = document.createElement('div'); gateEl.className = 'gate'; }
+      gateEl.innerHTML = '<div class="gate-box bonus"><span>Cherry on top 🍒</span><b>Bonus round for your abs?</b>' +
+        '<div class="gate-rx"><em>' + esc(e.name) + '</em><em>' + s0.sets + '× ' + (reps ? reps + ' <i>reps</i>' : fmt(s0.sec)) + '</em></div>' +
+        '<button class="btn primary focusable gate-go" id="wBonusYes" data-autofocus>🍒 Yes, add it</button>' +
+        '<button class="btn ghost focusable" id="wBonusNo">No, cool down</button></div>';
+      el.appendChild(gateEl);
+      Voice.say('Bonus round? One more for your abs.');
+      $('#wBonusYes').onclick = function () {
+        gateEl.remove(); counting = false;
+        var at = blockTitles.indexOf(st[n - 1].block) + 1;
+        blockTitles.splice(at, 0, 'Bonus');
+        var segs = $('#wSegs'), seg = document.createElement('i'); seg.innerHTML = '<b></b>'; segs.insertBefore(seg, segs.children[at] || null);
+        Array.prototype.splice.apply(st, [n, 0].concat(bs));
+        enter(n);
+      };
+      $('#wBonusNo').onclick = function () { gateEl.remove(); counting = false; enter(n); };
+      $('#wBonusYes').focus();
+      return true;
+    }
     function enter(n) {
+      if (!bonusAsked && !race && (!noCount || window.__bonus) && n > 0 && !Program.isCool(st[n - 1].block) && (n >= st.length || Program.isCool(st[n].block))) {
+        bonusAsked = true;
+        if (askBonus(n)) return;
+      }
       i = n;
       if (i >= st.length) return finish();
       var s = st[i], e = ex(s.id), it = s.item;
       phase = 'work'; elapsed = 0; stepT = 0; pacerHit = false; autoAt = 0; lastHype = ''; timeUp = false;
+      side = s.kind === 'reps' && s.perSide && !race ? 'L' : null;
       el.classList.remove('time-up');
       var enterHype = lastWorkStep(n) && st.length > 3 ? hype('finalExercise') : n > 0 && s.sets > 1 && s.set === s.sets ? hype('lastSet') : s.set === 1 && s.sets > 1 ? hype('firstSet') : hype('start');
       lastMilestone = -1; setHype(enterHype, lastWorkStep(n), true);
@@ -1288,6 +1341,7 @@
       // easy half of an interval never wait.
       if (gateEl && gateEl.isConnected) gateEl.remove();
       if (needGate(n)) gate(n);
+      else if (n === 0 && !noCount && !race) startGate();
       else if (!race && !s.easy) { if (preCounted) goFlash(); else countIn(); }
       preCounted = false;
       var hk = hypeKey(enterHype), spokenHype = Coach.has(hk) ? hk : null;   // e.g. 'Last set, make it count.' instead of 'Set four.'
@@ -1295,13 +1349,12 @@
       if (Date.now() >= manualUntil) setView('form');
       showAnim(s.id, s.easy ? 0.7 : 1);
       if (!paused) pl.start();   // moves again after a still rest
-      pacerBase = pl.time;
+      pacerOff = 0;
       $('#wBlock').textContent = s.block + (s.tag ? ' · ' + s.tag : '');
       $('#wDots').innerHTML = s.sets > 1 ? Array.apply(null, Array(s.sets)).map(function (_, k) { return '<i' + (k < s.set - 1 ? ' class="done"' : k === s.set - 1 ? ' class="cur"' : '') + '></i>'; }).join('') : '';
       $('#wName').textContent = e.name;
       $('#wMus').innerHTML = musChips(e.anim.muscles);
-      var pp = photo(s.id), pip = $('#wPip'); pip.classList.remove('big');
-      pip.hidden = !pp; if (pp) pip.querySelector('img').src = pp;
+      pipFor(n);
       $('#wMinus').hidden = $('#wPlus').hidden = true;
       $('#wSkip').hidden = false;
       el.classList.toggle('hard', !!s.hard);
@@ -1320,6 +1373,7 @@
         if (e.unit === 'stopnja') lg += stepper('load', cur.load, 1, 'level');
         $('#wLog').innerHTML = lg; $('#wLog').hidden = false;
         $('#wDone').textContent = race ? '✓ Station done' : s.sets > 1 && s.set === s.sets ? '🏁 Last set done' : '✓ Done';
+        if (side === 'L') $('#wDone').textContent = '✓ Left done – switch sides';
         Voice.cue(e.name + '. ' + (s.set === 1 ? e.cues[0] : 'Set ' + s.set), ['ex_' + s.id, s.set === 1 ? 'cue_' + s.id : spokenHype || 'set_' + s.set]);
       } else if (s.kind === 'dist') {
         $('#wWhy').textContent = 'Target ' + s.dist + ' m – press OK when the monitor shows the distance';
@@ -1378,6 +1432,16 @@
     }
 
     function e0name(s) { return ex(s.id).name.split(' (')[0]; }
+    // bottom-right card: the real-form photo of this exercise – or, when a different exercise comes next (last set,
+    // supersets), that one with "Next" so you know what's coming
+    function pipFor(n) {
+      var s = st[n], nx = st[n + 1], pip = $('#wPip'), nextUp = nx && nx.id !== s.id;
+      var id = nextUp ? nx.id : s.id, pp = photo(id);
+      pip.classList.remove('big'); pip.classList.toggle('nx', !!nextUp); pip.classList.toggle('noimg', !pp);
+      pip.hidden = !pp && !nextUp;
+      if (pp) pip.querySelector('img').src = pp;
+      pip.querySelector('span').innerHTML = nextUp ? '<b>Next</b> <em>' + esc(ex(nx.id).name) + '</em>' : 'Real form';
+    }
     function startRest(sec) {
       phase = 'rest'; remain = sec; restTotal = sec; stepT = 0;
       timeUp = false; el.classList.remove('time-up'); preCounted = false; hideReady();
@@ -1389,7 +1453,8 @@
       var nxWhat = nx.kind === 'reps' ? (nx.sets > 1 ? 'set ' + nx.set + ' of ' + nx.sets + ', ' : '') + nxReps + ' reps' : nx.kind === 'dist' ? nx.dist + ' meters' : nx.sec + ' seconds';
       $('#wName').textContent = 'Rest';
       $('#wMus').innerHTML = musChips(ne.anim.muscles);
-      var np = photo(nx.id); $('#wPip').classList.remove('big'); $('#wPip').hidden = !np; if (np) $('#wPip img').src = np;
+      var np = photo(nx.id), pip = $('#wPip'); pip.classList.remove('big'); pip.classList.add('nx'); pip.classList.toggle('noimg', !np); pip.hidden = false; if (np) pip.querySelector('img').src = np;
+      pip.querySelector('span').innerHTML = '<b>Next</b> <em>' + esc(ne.name) + '</em>';
       $('#wWhy').textContent = 'Get ready: ' + ne.name + (nx.kind === 'reps' ? ' · set ' + nx.set + '/' + nx.sets + ' · ' + nxReps + ' reps' : '');
       lastHype = ''; setHype(Math.round((i + 1) / st.length * 100) + '% done · ' + hype('rest'), false, true);
       $('#wLog').hidden = true;
@@ -1427,7 +1492,7 @@
       if (s.kind === 'reps') {
         var tgt = s.item.reps[1], pr = Math.min(pacerReps(), tgt);
         // big: which set and how many reps to do; the ring fills with the pace guide (it counts the tempo, it does not see your reps)
-        top.textContent = 'SET ' + s.set + ' OF ' + s.sets;
+        top.textContent = 'SET ' + s.set + ' OF ' + s.sets + (side === 'L' ? ' · LEFT' : side === 'R' ? ' · RIGHT' : '');
         val.textContent = s.item.reps[0] === s.item.reps[1] ? s.item.reps[0] : s.item.reps[0] + '–' + s.item.reps[1];
         sub.textContent = 'reps';
         setRing('wRing', pr / tgt);
@@ -1466,16 +1531,20 @@
       autoView();
       if (phase === 'rest') {
         remain -= 0.25;
-        if (remain <= 3.01 && remain > 0 && Math.abs(remain - Math.round(remain)) < 0.01) { Audio.beep(880, 0.12); if (!needGate(i + 1)) softCount(Math.round(remain)); }
+        if (remain <= countSec() + 0.01 && remain > 0 && Math.abs(remain - Math.round(remain)) < 0.01) { Audio.beep(880, 0.12); if (!needGate(i + 1)) softCount(Math.round(remain)); }
         if (remain <= 0) { enter(i + 1); return; }
       } else {
         elapsed += 0.25;
         var s = st[i];
-        if (s.kind === 'reps' && autoAt && elapsed >= autoAt) { Audio.beep(1320, 0.3); completeWork(); return; }
+        if (s.kind === 'reps' && autoAt && elapsed >= autoAt) { Audio.beep(1320, 0.3); doneTap(); return; }
         if (s.kind === 'time') {
           remain -= 0.25;
           if (remain <= 3.01 && remain > 0 && Math.abs(remain - Math.round(remain)) < 0.01) { Audio.beep(880, 0.12); if (s.easy && st[i + 1] && !st[i + 1].easy) softCount(Math.round(remain)); }
-          if (s.sec >= 60 && Math.abs(remain - s.sec / 2) < 0.01) { Voice.cue('Halfway.', ['half']); setHype(hype('half')); }
+          var twoSides = !s.interval && !race && (s.item && (s.item.perSide || ex(s.id).perSide));
+          if (twoSides && Math.abs(remain - s.sec / 2) < 0.01) {
+            Audio.beep(1320, 0.25); Voice.say('Switch sides.');
+            var rs = readyEl(); rs.className = 'go-flash side'; rs.innerHTML = '<div><b>Switch sides</b></div>'; clearTimeout(countT); countT = setTimeout(hideReady, 1200);
+          } else if (s.sec >= 60 && Math.abs(remain - s.sec / 2) < 0.01) { Voice.cue('Halfway.', ['half']); setHype(hype('half')); }
           if (s.sec >= 30 && Math.abs(remain - 10) < 0.01) { var ht = hype('tenLeft'); setHype(ht, true); hypeVoice(ht); }
           if (remain <= 0 && (race || s.interval || autoNext())) { Audio.beep(1320, 0.3); completeWork(); return; }
           if (remain <= 0) {
@@ -1539,8 +1608,18 @@
 
     $('#wDone').onclick = function () {
       if (phase === 'rest') { enter(i + 1); return; }
-      completeWork();
+      doneTap();
     };
+    // per-side exercises: left first, then a clear switch to the right, then the set is done
+    function doneTap() { if (side === 'L') switchSide(); else completeWork(); }
+    function switchSide() {
+      side = 'R'; pacerOff = elapsed; pacerHit = false; autoAt = 0; lastMilestone = -1;
+      Audio.beep(1320, 0.25); Voice.say('Switch sides. Right side.');
+      var r = readyEl(); r.className = 'go-flash side'; r.innerHTML = '<div><b>Right side</b></div>';
+      clearTimeout(countT); countT = setTimeout(hideReady, 1200);
+      $('#wDone').textContent = st[i].sets > 1 && st[i].set === st[i].sets ? '🏁 Last set done' : '✓ Done';
+      draw();
+    }
     $('#wSkip').onclick = function () { enter(i + 1); };
     $('#wPip').onclick = function () { this.classList.toggle('big'); };
     $('#wMinus').onclick = function () { remain = Math.max(1, remain - 15); restTotal = Math.max(restTotal - 15, remain); draw(); };
@@ -1974,7 +2053,7 @@
         var e = ex(it.id), r = row++;
         var gl = Program.groupLetter(b.title, bi), tag = b.items.length > 1 && gl ? '<span class="lbl">' + gl + (ii + 1) + '</span>' : '';
         var sid = it.swappedFrom || it.id;
-        var canSwap = e.type !== 'mobility' && Program.alternatives(src, sid, o.owned).length;
+        var canSwap = true;   // any exercise the equipment allows (picker)
         html += '<div class="ex-row b-row"><div class="ex-thumb" data-thumb="' + it.id + '"></div><div><h4>' + tag + esc(e.name) + '</h4><div class="sub">' + esc(e.muscles) + '</div></div>' +
           '<div class="rx">' + rxHtml(it) + (it.sug ? '<small>' + esc(loadTxt(e, it.sug.load)) + '</small>' : '') + '</div>' +
           '<div class="row-actions">' + (canSwap ? '<button class="btn sm focusable" data-fid="sw-' + r + '" data-swap="' + sid + '">⇄ Swap</button>' : '') +
@@ -1982,8 +2061,51 @@
       });
       html += '</div>';
     });
+    if (o.type !== 'hyrox') html += '<button class="btn focusable b-add" id="bAdd" data-fid="b-add">＋ Add exercise</button>';
     root.innerHTML = html + '</div></div>';
     mountThumbs();
+
+    // every exercise the equipment allows, grouped by body part: tabs jump straight to the group
+    function picker(replaceId) {
+      var own = o.owned, inUse = {};
+      src.blocks.forEach(function (bl) { bl.items.forEach(function (it) { inUse[it.id] = 1; }); });
+      var cur = replaceId && ex(replaceId), order = ['noge', 'zadnjica', 'prsa', 'hrbet', 'rame', 'roke', 'trup', 'kardio', 'hyrox', 'mobilnost'];
+      var by = {};
+      Exercises.LIST.forEach(function (e) {
+        if (!Exercises.available(e.id, own)) return;
+        var g = e.type === 'mobility' ? 'mobilnost' : (e.groups[0] || 'trup');
+        (by[g] = by[g] || []).push(e);
+      });
+      var groups = order.filter(function (g) { return by[g] && by[g].length; });
+      var startG = cur ? (cur.type === 'mobility' ? 'mobilnost' : cur.groups[0]) : groups[0];
+      var el = document.createElement('div');
+      el.className = 'picker';
+      el.innerHTML = '<div class="pk-head"><h3>' + (cur ? '<span>Swap</span> · <span>' + esc(cur.name) + '</span>' : 'Add exercise') + '</h3><button class="btn sm ghost focusable" data-pk-close aria-label="Close">✕</button></div>' +
+        '<div class="pk-tabs">' + groups.map(function (g) { return '<button class="chip focusable' + (g === startG ? ' on' : '') + '" data-pk-tab="' + g + '">' + Exercises.FOCUS[g].icon + ' ' + Exercises.FOCUS[g].name + ' <small>' + by[g].length + '</small></button>'; }).join('') + '</div>' +
+        '<div class="pk-list">' + groups.map(function (g) {
+          return '<div class="pk-sec" data-pk-sec="' + g + '"><div class="label">' + Exercises.FOCUS[g].icon + ' ' + Exercises.FOCUS[g].name + '</div>' + by[g].map(function (e) {
+            var used = inUse[e.id], isCur = replaceId === e.id;
+            return '<button class="pk-item focusable' + (isCur ? ' cur' : '') + '"' + (used ? ' disabled' : '') + ' data-pick="' + e.id + '"><b>' + esc(e.name) + '</b><small>' + esc(e.muscles) + '</small>' + (used ? '<i>✓ in this workout</i>' : '<i>＋</i>') + '</button>';
+          }).join('') + '</div>';
+        }).join('') + '</div>';
+      document.body.appendChild(el);
+      var list = el.querySelector('.pk-list');
+      function jump(g, smooth) { var sec = el.querySelector('[data-pk-sec="' + g + '"]'); if (sec) list.scrollTo({ top: sec.offsetTop, behavior: smooth ? 'smooth' : 'auto' }); var t = el.querySelector('[data-pk-tab="' + g + '"]'); if (t) t.scrollIntoView({ inline: 'center', block: 'nearest' }); }
+      el.querySelectorAll('[data-pk-tab]').forEach(function (t) {
+        t.onclick = function () { el.querySelectorAll('[data-pk-tab]').forEach(function (x) { x.classList.toggle('on', x === t); }); jump(t.getAttribute('data-pk-tab'), true); };
+      });
+      el.querySelector('[data-pk-close]').onclick = function () { el.remove(); };
+      el.querySelectorAll('[data-pick]').forEach(function (b) {
+        b.onclick = function () {
+          var id = b.getAttribute('data-pick');
+          if (replaceId) Program.replaceItem(src, replaceId, id); else Program.addItem(src, id);
+          el.remove(); refresh();
+        };
+      });
+      cleanup.push(function () { if (el.isConnected) el.remove(); });
+      setTimeout(function () { jump(startG, false); var f = el.querySelector('.pk-item.cur') || el.querySelector('[data-pk-tab].on'); if (f) f.focus(); }, 0);
+    }
+    if ($('#bAdd')) $('#bAdd').onclick = function () { picker(null); };
 
     $$('[data-b]').forEach(function (b) {
       b.onclick = function () {
@@ -2002,14 +2124,7 @@
       };
     });
     $$('[data-swap]').forEach(function (b) {
-      b.onclick = function () {
-        var id = b.getAttribute('data-swap'), alts = Program.alternatives(src, id, o.owned);
-        if (!alts.length) return;
-        var fid = b.getAttribute('data-fid');
-        var n = bdraft.swap[fid] = (bdraft.swap[fid] || 0) + 1;
-        Program.replaceItem(src, id, alts[(n - 1) % alts.length]);
-        refresh();
-      };
+      b.onclick = function () { picker(b.getAttribute('data-swap')); };
     });
     $$('[data-rm]').forEach(function (b) {
       b.onclick = function () {

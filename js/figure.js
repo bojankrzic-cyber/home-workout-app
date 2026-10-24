@@ -591,8 +591,15 @@
     o += circ(h, 4.2, 'skin hand' + fc);
     return o;
   }
+  // figure style follows the profile: 'f' = ponytail, narrower shoulders, fuller hips
+  var STYLE = 'm';
   function drawHead(J) {
     var up = ang(J.neck, J.head), face = up - 90, back = up + 90, o = '';
+    if (STYLE === 'f') {
+      var tie = add(add(J.head, back, 9.5), up, 4.5);
+      o += circ(tie, 4.6, 'hair');
+      o += capsule(tie, add(add(tie, back, 6), up, -19), 5, 2.6, 'hair');
+    }
     o += circ(add(add(J.head, back, 1.6), up, 1.2), 11, 'hair');
     o += circ(add(J.head, face, 0.8), 9.8, 'skin face');
     var nb = add(J.head, face, 9.4);
@@ -601,8 +608,8 @@
     return o;
   }
   function drawTorso(J, mus) {
-    var o = '';
-    o += capsule(J.hip, J.sho, R.torso[0], R.torso[1], 'cloth top');
+    var o = '', f = STYLE === 'f';
+    o += capsule(J.hip, J.sho, R.torso[0] * (f ? 1.1 : 1), R.torso[1] * (f ? 0.88 : 1), 'cloth top');
     o += drawMuscles(J, 'N', 'torso', mus, false);
     return o;
   }
@@ -616,7 +623,7 @@
     o += drawLeg(J, 'F', mus);
     o += capsule(J.sho, J.neck, R.neck[0], R.neck[1], 'skin');
     o += drawHead(J);
-    o += circ(J.hip, 10.5, 'cloth');
+    o += circ(J.hip, STYLE === 'f' ? 11.6 : 10.5, 'cloth');
     o += drawMuscles(J, 'N', 'hip', mus, false);
     o += drawTorso(J, mus);
     o += drawLeg(J, 'N', mus);
@@ -926,6 +933,7 @@
 
   global.Figure = {
     L: L, solve: solve, sample: sample, totalDur: totalDur, viewBox: viewBox,
-    d: d, add: add, ik2: ik2, Player: Player, icon: icon, MUSCLE_NAME: MUSCLE_NAME, airGrip: airGrip
+    d: d, add: add, ik2: ik2, Player: Player, icon: icon, MUSCLE_NAME: MUSCLE_NAME, airGrip: airGrip,
+    setStyle: function (s) { STYLE = s === 'f' ? 'f' : 'm'; }
   };
 })(window);

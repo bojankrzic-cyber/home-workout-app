@@ -52,6 +52,7 @@ const path = require('path');
   log('after +prsa:', await p.$$eval('.b-row h4', els => els.map(e => e.textContent)));
   const before = await p.$eval('[data-fid="sw-2"]', e => e.getAttribute('data-swap'));
   await p.click('[data-fid="sw-2"]'); await p.waitForTimeout(300);
+  if (await p.$('.picker')) { await p.evaluate(() => document.querySelector('.picker [data-pick]:not([disabled]):not(.cur)').click()); await p.waitForTimeout(300); }   // swap opens the full exercise picker
   log('swap:', before, '->', await p.$eval('[data-fid="sw-2"]', e => e.getAttribute('data-swap')), '| focus kept:', await p.evaluate(() => document.activeElement.getAttribute('data-fid')));
   await p.click('[data-fid="b-type-kardio"]'); await p.waitForTimeout(300);
   log('kardio:', await p.$eval('.ov-head p', e => e.textContent), await p.$$eval('.b-row h4', els => els.map(e => e.textContent)));

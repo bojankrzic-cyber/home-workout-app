@@ -200,6 +200,12 @@
     var h = state.ex[item.id];
     var lo = item.reps ? item.reps[0] : 0, hi = item.reps ? item.reps[1] : 0;
     var load = h && h.load !== undefined ? h.load : (ex.load || 0);
+    // first time with no history: women start lighter – upper body ~55 %, legs and glutes ~70 % of the default
+    // (same movements and progression; only the starting estimate changes, the log takes over after set one)
+    if (!h && state.settings.sex === 'f' && ex.unit !== 'bw' && ex.unit !== 's') {
+      var lower = ['noge', 'zadnjica'].indexOf((ex.groups || [])[0]) >= 0;
+      load = ex.unit === 'stopnja' ? Math.max(1, load - (lower ? 1 : 3)) : load * (lower ? 0.7 : 0.55);
+    }
     if (state.settings.level === 'beg' && !h && ex.unit !== 'bw') load = ex.unit === 'stopnja' ? Math.max(1, load - 2) : Math.max(0, load * 0.75);
     var reps = lo, harder = null;
     var why = h ? '' : 'Starting estimate – adjust after the first set';
@@ -671,7 +677,7 @@
     src.blocks.forEach(function (b) {
       b.items = b.items.map(function (it) {
         if (it.id !== id) return it;
-        if (it.cardio) {
+        if (it.cardio && Exercises.BY_ID[newId].type === 'cardio') {
           var c = JSON.parse(JSON.stringify(it)); c.id = newId;
           if (c.cardio.rounds) {
             var iv = Exercises.BY_ID[newId].iv;
@@ -685,6 +691,29 @@
         return n;
       });
     });
+  }
+
+  // any exercise from the picker: added before the cooldown / stretch, prescribed like the library would
+  function itemFor(id) {
+    var e = Exercises.BY_ID[id];
+    var it = e.type === 'cardio' ? (e.iv ? I(id, 8, e.iv[0], e.iv[1]) : e.id.indexOf('hiit') > 0 ? I(id, 8, e.id === 'bike_hiit' ? 20 : 30, e.id === 'bike_hiit' ? 40 : 30) : C(id, 10)) : prescribe(id, 3);
+    if (!it.cardio) it.rest = it.time ? 30 : (e.compound ? 90 : 60);
+    return it;
+  }
+  function isCool(title) { return /Cool|Stretch|Ohlaj|Raztez/i.test(title || ''); }
+  function addItem(src, id) {
+    var at = src.blocks.length;
+    while (at > 0 && isCool(src.blocks[at - 1].title)) at--;
+    src.blocks.splice(at, 0, { title: 'Extra', items: [itemFor(id)] });
+  }
+  // "Cherry on top" finisher: 3 sets for the abs, something not already in the session, with the owned gear
+  var BONUS = ['hang_leg_raise', 'vkr_knee_raise', 'wb_leg_raise', 'k_crunch', 'abwheel_rollout', 'situp', 'hang_knee_raise', 'hollow_hold', 'dead_bug', 'k_pallof', 'side_plank', 'plank'];
+  function bonusFor(state, used) {
+    var own = owned(state), avoid = avoided(state);
+    var id = BONUS.filter(function (x) { return Exercises.available(x, own) && used.indexOf(x) < 0 && !avoid[x]; })[0];
+    if (!id) return null;
+    var it = prescribe(id, 3); it.rest = it.time ? 30 : 45; it.sets = 3;
+    return { name: 'Bonus', short: '', custom: true, blocks: [{ title: 'Bonus', items: [it] }] };
   }
 
   function removeItem(src, id) {
@@ -707,7 +736,7 @@
     HX_KEYS: ['HX1', 'HX2', 'HX3'],
     MACHINES: MACHINES, cardioMachines: cardioMachines, owned: owned,
     get: get, build: build, steps: steps, generate: generate, alternatives: alternatives,
-    replaceItem: replaceItem, removeItem: removeItem, single: single, nextSessionKey: nextSessionKey, blockWeek: blockWeek,
+    replaceItem: replaceItem, removeItem: removeItem, addItem: addItem, bonusFor: bonusFor, isCool: isCool, single: single, nextSessionKey: nextSessionKey, blockWeek: blockWeek,
     suggest: suggest, estimateMin: estimateMin, unitLabel: unitLabel, groupLetter: groupLetter
   };
 })(window);

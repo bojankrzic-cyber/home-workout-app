@@ -19,6 +19,8 @@ const path = require('path');
   await page.click('.hero-card .btn.primary'); await page.clock.runFor(100);   // first step: 6 min bike warm-up (timed)
   const v = () => page.evaluate(() => document.querySelector('.player').classList.contains('v-form') ? 'form' : 'timer');
   const at = async (t, want) => { const now = await page.evaluate(() => Date.now()); await page.clock.runFor(Math.max(0, t0 + t * 1000 - now)); const got = await v(); ok(got === want, `t=${t}s: ${got}, expected ${want}`); };
+  ok(await page.$('.gate #wGo'), 'start gate before the first exercise');
+  await page.evaluate(() => document.querySelector('#wGo').click()); await page.clock.runFor(50);
   ok(await page.$('.ready'), '"Get ready" 3-2-1 before the clock starts');
   await page.clock.runFor(3100);
   ok(!(await page.$('.ready')), 'countdown done');

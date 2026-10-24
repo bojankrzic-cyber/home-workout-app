@@ -1443,3 +1443,42 @@ a.btn { text-decoration: none; color: var(--text); }
 .td-main, .td-side { display: flex; flex-direction: column; gap: 1.6rem; min-width: 0; }
 .td-side .scan-hero { flex-direction: column; align-items: stretch; text-align: left; }
 .td-side .hp-card { order: 1; } .td-side .hp-check { order: 2; } .td-side .shelf-strip, .td-side .shelf-card { order: 3; } .td-side .t-week { order: 4; } .td-side .scan-hero { order: 5; }
+
+/* ===== exercise picker (Build workout): every exercise, grouped by body part ===== */
+.picker { position: fixed; inset: 0; z-index: 60; display: flex; flex-direction: column; background: var(--bg); padding: max(.8rem, env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px)) 0 max(1rem, env(safe-area-inset-left, 0px)); }
+.pk-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.pk-head h3 { margin: 0; font-size: 1.25rem; }
+.pk-tabs { display: flex; gap: .45rem; overflow-x: auto; scrollbar-width: none; padding: .7rem 0; margin: 0 -1rem; padding-left: 1rem; padding-right: 1rem; flex: none; }
+.pk-tabs::-webkit-scrollbar { display: none; }
+.pk-tabs .chip { flex: none; }
+.pk-tabs small { color: var(--muted); font-weight: 600; margin-left: .2rem; }
+.pk-list { flex: 1; overflow-y: auto; padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px)); position: relative; }
+.pk-sec { display: flex; flex-direction: column; gap: .45rem; padding-bottom: 1rem; }
+.pk-sec .label { position: sticky; top: 0; background: var(--bg); padding: .5rem 0 .3rem; z-index: 1; }
+.pk-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; column-gap: .8rem; text-align: left; font: inherit; color: var(--text); background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: .7rem .9rem; cursor: pointer; }
+.pk-item b { font-size: 1rem; }
+.pk-item small { color: var(--muted); grid-column: 1; }
+.pk-item i { grid-column: 2; grid-row: 1 / 3; align-self: center; font-style: normal; color: var(--accent); font-weight: 700; }
+.pk-item[disabled] { opacity: .5; cursor: default; }
+.pk-item[disabled] i { color: var(--muted); font-size: .8rem; font-weight: 600; }
+.pk-item.cur { border-color: var(--accent); }
+.b-add { margin: .4rem 0 1.2rem; width: 100%; justify-content: center; }
+
+/* start gate: countdown length for the whole workout */
+.gate-cd { display: flex; flex-direction: column; align-items: center; gap: .45rem; margin-top: .3rem; }
+.gate-cd small { color: var(--muted); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; font-size: .75rem; }
+.gate-cd > div { display: flex; gap: .5rem; }
+.gate-box.bonus > span { color: var(--accent); }
+.gate-box .btn.ghost { width: 100%; justify-content: center; }
+/* side switch flash */
+.go-flash.side b { font-size: clamp(2.6rem, 11vw, 5.5rem); }
+/* bottom-right card showing the NEXT exercise */
+.pip.nx { border-color: color-mix(in srgb, var(--accent) 60%, transparent); }
+.pip.nx span { display: flex; gap: .35rem; align-items: baseline; max-width: calc(100% - 1.2rem); text-transform: none; letter-spacing: 0; }
+.pip.nx span b { color: var(--accent); text-transform: uppercase; letter-spacing: .08em; font-size: .62rem; }
+.pip.nx span em { font-style: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: .72rem; }
+.pip.noimg { aspect-ratio: auto; min-height: 3.2rem; background: var(--card); }
+.pip.noimg img { display: none; }
+.pip.noimg span { position: static; margin: .8rem .6rem; }
+
+.stage .phase:empty { display: none; }
