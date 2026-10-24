@@ -1403,6 +1403,15 @@ a.btn { text-decoration: none; color: var(--text); }
 .ready div { display: flex; flex-direction: column; align-items: center; gap: .4rem; }
 .ready span { font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
 .ready b { font-family: var(--font-sport); font-style: italic; font-size: clamp(5rem, 18vw, 10rem); line-height: 1; color: var(--accent); }
+/* before a new exercise: the clock waits on one big button until the user is ready */
+.gate { position: absolute; inset: 0; z-index: 9; display: grid; place-items: center; padding: 1.2rem max(1.2rem, env(safe-area-inset-left, 0px)); background: rgba(var(--scrim), .78); backdrop-filter: blur(6px); }
+.gate-box { display: flex; flex-direction: column; align-items: center; gap: .7rem; text-align: center; width: min(100%, 30rem); }
+.gate-box > span { font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-size: .85rem; }
+.gate-box > b { font-size: clamp(1.7rem, 6vw, 2.6rem); line-height: 1.1; text-wrap: balance; }
+.gate-rx { display: flex; gap: .6rem; flex-wrap: wrap; justify-content: center; }
+.gate-rx em { font-style: normal; font-weight: 700; background: var(--card); border-radius: 999px; padding: .35rem .9rem; letter-spacing: .04em; }
+.gate-rx i { font-style: normal; color: var(--muted); font-weight: 600; text-transform: uppercase; font-size: .8em; }
+.gate-go { width: 100%; justify-content: center; font-size: 1.3rem; padding: 1.25rem 1rem; margin-top: .8rem; border-radius: 22px; }
 /* START flash after the count: no blur, does not block taps */
 .go-flash { background: none; backdrop-filter: none; pointer-events: none; }
 .go-flash b { font-family: var(--font-sport); font-style: italic; font-weight: 700; text-transform: uppercase; font-size: clamp(3.5rem, 14vw, 8rem); line-height: 1; color: var(--accent); animation: goPop .7s ease-out both; }

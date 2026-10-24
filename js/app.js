@@ -1149,6 +1149,22 @@
         countT = setTimeout(step, 1000);
       })();
     }
+    // Gate before every NEW exercise: the clock holds on a big "Start next exercise" button until the user is ready,
+    // then 3-2-1. Further sets of the same exercise, interval rounds, race stations and hands-free mode run on as before.
+    var gateEl = null;
+    function needGate(n) { var s = st[n]; return !noCount && !race && !autoNext() && n > 0 && s && !s.easy && st[n - 1].id !== s.id; }
+    function gate(n) {
+      clearTimeout(countT); counting = true; hideReady();
+      var s = st[n], e = ex(s.id);
+      var reps = s.kind === 'reps' ? (s.item.reps[0] === s.item.reps[1] ? s.item.reps[0] : s.item.reps[0] + '–' + s.item.reps[1]) : null;
+      if (!gateEl) { gateEl = document.createElement('div'); gateEl.className = 'gate'; }
+      gateEl.innerHTML = '<div class="gate-box"><span>Get ready</span><b>' + esc(e.name) + '</b>' +
+        '<div class="gate-rx"><em>SET ' + s.set + ' OF ' + s.sets + '</em>' + (reps ? '<em>' + reps + ' <i>reps</i></em>' : s.kind === 'time' ? '<em>' + fmt(s.sec) + '</em>' : s.kind === 'dist' ? '<em>' + s.dist + ' m</em>' : '') + '</div>' +
+        '<button class="btn primary focusable gate-go" id="wGo" data-autofocus>▶ Start next exercise</button></div>';
+      el.appendChild(gateEl);
+      $('#wGo').onclick = function () { gateEl.remove(); Sound.unlock(); countIn(); };
+      $('#wGo').focus();
+    }
     var itemsById = {};
     sess.blocks.forEach(function (b) { b.items.forEach(function (it) { itemsById[it.id] = it; }); });
     // block index per step for the segmented progress bar
@@ -1263,7 +1279,9 @@
       // 3-2-1 START before every exercise. Rest (and an easy interval) shows its last 3 s as the count, so the clock does not
       // stop twice; any other way in (workout start, a tap, skip) holds the clock for the count. Race stations and the
       // easy half of an interval never wait.
-      if (!race && !s.easy) { if (preCounted) goFlash(); else countIn(); }
+      if (gateEl && gateEl.isConnected) gateEl.remove();
+      if (needGate(n)) gate(n);
+      else if (!race && !s.easy) { if (preCounted) goFlash(); else countIn(); }
       preCounted = false;
       var hk = hypeKey(enterHype), spokenHype = Coach.has(hk) ? hk : null;   // e.g. 'Last set, make it count.' instead of 'Set four.'
       el.classList.remove('resting');
@@ -1441,7 +1459,7 @@
       autoView();
       if (phase === 'rest') {
         remain -= 0.25;
-        if (remain <= 3.01 && remain > 0 && Math.abs(remain - Math.round(remain)) < 0.01) { Audio.beep(880, 0.12); softCount(Math.round(remain)); }
+        if (remain <= 3.01 && remain > 0 && Math.abs(remain - Math.round(remain)) < 0.01) { Audio.beep(880, 0.12); if (!needGate(i + 1)) softCount(Math.round(remain)); }
         if (remain <= 0) { enter(i + 1); return; }
       } else {
         elapsed += 0.25;
@@ -1466,7 +1484,7 @@
     // partial = ended early with the end button: saved and labelled as such, never "workout complete"
     function finish(partial) {
       partial = partial === true;
-      clearInterval(iv); clearTimeout(countT); counting = false; hideReady();
+      clearInterval(iv); clearTimeout(countT); counting = false; hideReady(); if (gateEl && gateEl.isConnected) gateEl.remove();
       done = true; setView('form');
       var min = Math.max(1, Math.round(total / 60));
       if (logged.length || min >= 10) {
