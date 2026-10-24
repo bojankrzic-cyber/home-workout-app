@@ -291,6 +291,8 @@
     };
     var html = '<div class="screen"><div class="topbar"><h1>My supplement routine</h1></div>' +
       '<div class="hint">When and what you take – Today shows each one at the right time and on the right days.</div>' +
+      // scanning the pack is the fastest way in: right at the top, before the list
+      (window.Scan ? Scan.hero(s) : '') +
       '<div class="r-list">' + (list.map(function (r) {
         var c = r.pid && catalog(r.pid);
         return '<div class="panel r-item"><div class="r-head">' + (c && c.img ? '<img src="' + esc(c.img) + '" alt="">' : '<span class="r-ico">💊</span>') +
