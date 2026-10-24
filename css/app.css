@@ -1463,3 +1463,22 @@ a.btn { text-decoration: none; color: var(--text); }
 .pk-item[disabled] i { color: var(--muted); font-size: .8rem; font-weight: 600; }
 .pk-item.cur { border-color: var(--accent); }
 .b-add { margin: .4rem 0 1.2rem; width: 100%; justify-content: center; }
+
+/* start gate: countdown length for the whole workout */
+.gate-cd { display: flex; flex-direction: column; align-items: center; gap: .45rem; margin-top: .3rem; }
+.gate-cd small { color: var(--muted); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; font-size: .75rem; }
+.gate-cd > div { display: flex; gap: .5rem; }
+.gate-box.bonus > span { color: var(--accent); }
+.gate-box .btn.ghost { width: 100%; justify-content: center; }
+/* side switch flash */
+.go-flash.side b { font-size: clamp(2.6rem, 11vw, 5.5rem); }
+/* bottom-right card showing the NEXT exercise */
+.pip.nx { border-color: color-mix(in srgb, var(--accent) 60%, transparent); }
+.pip.nx span { display: flex; gap: .35rem; align-items: baseline; max-width: calc(100% - 1.2rem); text-transform: none; letter-spacing: 0; }
+.pip.nx span b { color: var(--accent); text-transform: uppercase; letter-spacing: .08em; font-size: .62rem; }
+.pip.nx span em { font-style: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: .72rem; }
+.pip.noimg { aspect-ratio: auto; min-height: 3.2rem; background: var(--card); }
+.pip.noimg img { display: none; }
+.pip.noimg span { position: static; margin: .8rem .6rem; }
+
+.stage .phase:empty { display: none; }
