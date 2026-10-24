@@ -1563,15 +1563,15 @@
       clearInterval(iv); clearTimeout(countT); counting = false; hideReady(); if (gateEl && gateEl.isConnected) gateEl.remove();
       done = true; setView('form');
       var min = Math.max(1, Math.round(total / 60));
+      var kg = state.settings.weight, met = race || sess.goal === 'hyrox' ? 8 : /cardio/i.test(sess.name) ? 7 : 5;
+      var kcal = kg ? Math.round(met * kg * total / 3600) : 0;
       if (logged.length || min >= 10) {
-        Store.recordSession(state, { date: new Date().toISOString(), session: sess.key, name: sess.name, min: min, sec: Math.round(total), splits: race ? splits : undefined, sets: logged, items: itemsById, partial: partial || undefined });
+        Store.recordSession(state, { date: new Date().toISOString(), session: sess.key, name: sess.name, min: min, sec: Math.round(total), kcal: kcal || undefined, splits: race ? splits : undefined, sets: logged, items: itemsById, partial: partial || undefined });
       }
       if (partial) Voice.say('Workout saved.'); else Voice.cue('Great job. Workout complete.', ['done']);
       pl.stop(); nextPl.stop();
       var vol = logged.reduce(function (a, l) { return a + (ex(l.id).unit === 'kg' ? l.reps * l.load : 0); }, 0);
       var reps = logged.reduce(function (a, l) { return a + l.reps; }, 0);
-      var kg = state.settings.weight, met = race || sess.goal === 'hyrox' ? 8 : /cardio/i.test(sess.name) ? 7 : 5;
-      var kcal = kg ? Math.round(met * kg * total / 3600) : 0;
       clearTimeout(cheer.t); $('#wCheer').hidden = true;   // the finish card takes over
       var f = $('#wFinish');
       f.hidden = false;
@@ -2162,7 +2162,7 @@
     cue: function (t, keys) { if (keys.every(function (k) { return Coach.has(k); })) Voice.cue(t, keys); else Voice.say(t); },
     session: function (o) { activeSession = o; }, onCleanup: function (f) { cleanup.push(f); }, isKey: isKey, TOUCH: TOUCH,
     logWeight: function (kg) { logWeight(state, kg); Store.save(); },
-    startCustom: startCustom,
+    startCustom: startCustom, me: Me,
     ui: { navBar: navBar, avatar: avatar, brandMark: brandMark, homeProducts: homeProducts, goalLine: goalLine, weeksStreak: weeksStreak, photo: photo, sessionPhoto: sessionPhoto, DAYN: DAYN, GOAL_BY: GOAL_BY }
   };
   (window.FS_MODULES || []).forEach(function (m) { try { m(App); } catch (e) { console.error(e); } });
