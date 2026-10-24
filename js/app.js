@@ -1974,7 +1974,7 @@
         var e = ex(it.id), r = row++;
         var gl = Program.groupLetter(b.title, bi), tag = b.items.length > 1 && gl ? '<span class="lbl">' + gl + (ii + 1) + '</span>' : '';
         var sid = it.swappedFrom || it.id;
-        var canSwap = e.type !== 'mobility' && Program.alternatives(src, sid, o.owned).length;
+        var canSwap = true;   // any exercise the equipment allows (picker)
         html += '<div class="ex-row b-row"><div class="ex-thumb" data-thumb="' + it.id + '"></div><div><h4>' + tag + esc(e.name) + '</h4><div class="sub">' + esc(e.muscles) + '</div></div>' +
           '<div class="rx">' + rxHtml(it) + (it.sug ? '<small>' + esc(loadTxt(e, it.sug.load)) + '</small>' : '') + '</div>' +
           '<div class="row-actions">' + (canSwap ? '<button class="btn sm focusable" data-fid="sw-' + r + '" data-swap="' + sid + '">⇄ Swap</button>' : '') +
@@ -1982,8 +1982,51 @@
       });
       html += '</div>';
     });
+    if (o.type !== 'hyrox') html += '<button class="btn focusable b-add" id="bAdd" data-fid="b-add">＋ Add exercise</button>';
     root.innerHTML = html + '</div></div>';
     mountThumbs();
+
+    // every exercise the equipment allows, grouped by body part: tabs jump straight to the group
+    function picker(replaceId) {
+      var own = o.owned, inUse = {};
+      src.blocks.forEach(function (bl) { bl.items.forEach(function (it) { inUse[it.id] = 1; }); });
+      var cur = replaceId && ex(replaceId), order = ['noge', 'zadnjica', 'prsa', 'hrbet', 'rame', 'roke', 'trup', 'kardio', 'hyrox', 'mobilnost'];
+      var by = {};
+      Exercises.LIST.forEach(function (e) {
+        if (!Exercises.available(e.id, own)) return;
+        var g = e.type === 'mobility' ? 'mobilnost' : (e.groups[0] || 'trup');
+        (by[g] = by[g] || []).push(e);
+      });
+      var groups = order.filter(function (g) { return by[g] && by[g].length; });
+      var startG = cur ? (cur.type === 'mobility' ? 'mobilnost' : cur.groups[0]) : groups[0];
+      var el = document.createElement('div');
+      el.className = 'picker';
+      el.innerHTML = '<div class="pk-head"><h3>' + (cur ? 'Swap: ' + esc(cur.name) : 'Add exercise') + '</h3><button class="btn sm ghost focusable" data-pk-close aria-label="Close">✕</button></div>' +
+        '<div class="pk-tabs">' + groups.map(function (g) { return '<button class="chip focusable' + (g === startG ? ' on' : '') + '" data-pk-tab="' + g + '">' + Exercises.FOCUS[g].icon + ' ' + Exercises.FOCUS[g].name + ' <small>' + by[g].length + '</small></button>'; }).join('') + '</div>' +
+        '<div class="pk-list">' + groups.map(function (g) {
+          return '<div class="pk-sec" data-pk-sec="' + g + '"><div class="label">' + Exercises.FOCUS[g].icon + ' ' + Exercises.FOCUS[g].name + '</div>' + by[g].map(function (e) {
+            var used = inUse[e.id], isCur = replaceId === e.id;
+            return '<button class="pk-item focusable' + (isCur ? ' cur' : '') + '"' + (used ? ' disabled' : '') + ' data-pick="' + e.id + '"><b>' + esc(e.name) + '</b><small>' + esc(e.muscles) + '</small>' + (used ? '<i>✓ in this workout</i>' : '<i>＋</i>') + '</button>';
+          }).join('') + '</div>';
+        }).join('') + '</div>';
+      document.body.appendChild(el);
+      var list = el.querySelector('.pk-list');
+      function jump(g, smooth) { var sec = el.querySelector('[data-pk-sec="' + g + '"]'); if (sec) list.scrollTo({ top: sec.offsetTop, behavior: smooth ? 'smooth' : 'auto' }); var t = el.querySelector('[data-pk-tab="' + g + '"]'); if (t) t.scrollIntoView({ inline: 'center', block: 'nearest' }); }
+      el.querySelectorAll('[data-pk-tab]').forEach(function (t) {
+        t.onclick = function () { el.querySelectorAll('[data-pk-tab]').forEach(function (x) { x.classList.toggle('on', x === t); }); jump(t.getAttribute('data-pk-tab'), true); };
+      });
+      el.querySelector('[data-pk-close]').onclick = function () { el.remove(); };
+      el.querySelectorAll('[data-pick]').forEach(function (b) {
+        b.onclick = function () {
+          var id = b.getAttribute('data-pick');
+          if (replaceId) Program.replaceItem(src, replaceId, id); else Program.addItem(src, id);
+          el.remove(); refresh();
+        };
+      });
+      cleanup.push(function () { if (el.isConnected) el.remove(); });
+      setTimeout(function () { jump(startG, false); var f = el.querySelector('.pk-item.cur') || el.querySelector('[data-pk-tab].on'); if (f) f.focus(); }, 0);
+    }
+    if ($('#bAdd')) $('#bAdd').onclick = function () { picker(null); };
 
     $$('[data-b]').forEach(function (b) {
       b.onclick = function () {
@@ -2002,14 +2045,7 @@
       };
     });
     $$('[data-swap]').forEach(function (b) {
-      b.onclick = function () {
-        var id = b.getAttribute('data-swap'), alts = Program.alternatives(src, id, o.owned);
-        if (!alts.length) return;
-        var fid = b.getAttribute('data-fid');
-        var n = bdraft.swap[fid] = (bdraft.swap[fid] || 0) + 1;
-        Program.replaceItem(src, id, alts[(n - 1) % alts.length]);
-        refresh();
-      };
+      b.onclick = function () { picker(b.getAttribute('data-swap')); };
     });
     $$('[data-rm]').forEach(function (b) {
       b.onclick = function () {
