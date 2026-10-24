@@ -12,8 +12,8 @@
   'use strict';
 
   var CONFIG = {
-    // false = pilot: tips are off by default, each profile can switch them on in Settings
-    live: false,
+    // true: tips are on by default (adults only); each profile can switch them off in Settings
+    live: true,
     market: 'si',
     shop: 'https://www.naturesfinest.si',
     utm: { utm_source: 'nf-app', utm_medium: 'app' },   // name-agnostic: survives app renames
