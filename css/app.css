@@ -1395,6 +1395,9 @@ a.btn { text-decoration: none; color: var(--text); }
 .fs-item > span:first-child { font-size: 1.5rem; }
 .fs-item div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .15rem; }
 .fs-item small { color: var(--muted); }
+.fs-item.done { border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+.fs-item.done b { text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--text) 40%, transparent); }
+.fs-item .fs-ok { color: var(--accent); font-weight: 700; font-size: 1.2rem; }
 .sh-line .sr-img { width: 2.6rem; height: 2.6rem; object-fit: contain; border-radius: 10px; background: #fff; flex: none; }
 .qr-pack { display: flex; flex-direction: column; gap: .4rem; margin: .2rem 0 .6rem; }
 .qr-pack .chips-row .chip { white-space: normal; }

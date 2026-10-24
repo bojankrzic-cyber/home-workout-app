@@ -883,7 +883,9 @@
       (spark || '<div class="hint">Log your weight a few times to see the trend.</div>') + '</div>';
     root.innerHTML = '<div class="screen"><div class="topbar"><h1>Progress</h1><div class="spacer"></div><button class="btn sm ghost focusable" data-autofocus data-go="settings">Backup</button></div>' +
       (fresh ? '<div class="panel first-steps"><h3>Your first steps</h3><p class="hint">Charts and records appear here as soon as there is something to show.</p><div class="fs-list">' +
-        '<button class="fs-item focusable" id="fsWeight"><span>⚖️</span><div><b>Log your first weight</b><small>the start of your trend line</small></div><span class="set-chev">›</span></button>' +
+        // a weight already logged counts as done (the step stays, ticked, so the list doesn't jump)
+        (bl.length ? '<button class="fs-item done focusable" id="fsWeight"><span>⚖️</span><div><b>Log your first weight</b><small>' + bl[bl.length - 1].kg + ' kg logged</small></div><span class="set-chev fs-ok">✓</span></button>'
+          : '<button class="fs-item focusable" id="fsWeight"><span>⚖️</span><div><b>Log your first weight</b><small>the start of your trend line</small></div><span class="set-chev">›</span></button>') +
         '<button class="fs-item focusable" data-go="train"><span>🏋️</span><div><b>Do your first workout</b><small>sets, weights and records start here</small></div><span class="set-chev">›</span></button>' +
         '<button class="fs-item focusable" data-go="record" data-p=\'{"type":"walk"}\'><span>🚶</span><div><b>Record your first walk or run</b><small>distance, time and running records</small></div><span class="set-chev">›</span></button>' +
         '</div></div>' : '') +
@@ -1846,7 +1848,8 @@
   function logWeight(pr, kg) {
     var s = pr.settings; s.weight = kg;
     if (kg == null) return;
-    var today = new Date().toISOString().slice(0, 10);
+    // local calendar day (not UTC) – Today's weigh-in check uses the same day
+    var d = new Date(), today = d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
     s.bodyLog = (s.bodyLog || []).filter(function (x) { return x.date !== today; });
     s.bodyLog.push({ date: today, kg: kg });
     s.bodyLog.sort(function (a, b) { return a.date < b.date ? -1 : 1; });
