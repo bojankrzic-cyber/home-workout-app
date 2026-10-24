@@ -2827,5 +2827,6 @@
 "<0/>: {0} days left": "<0/>: zostało {0} dni",
 "<0/>: {0} day left": "<0/>: został {0} dzień",
 "<0/>: running out today": "<0/>: kończy się dziś",
-"Reorder now so your routine ({0} check-ins) doesn’t pause.": "Zamów ponownie teraz, żeby Twoja rutyna (odhaczenia: {0}) się nie zatrzymała."
+"Reorder now so your routine ({0} check-ins) doesn’t pause.": "Zamów ponownie teraz, żeby Twoja rutyna (odhaczenia: {0}) się nie zatrzymała.",
+"{0} of {1} servings · lasts until <0/>": "{0} z {1} porcji · wystarczy do <0/>"
 }

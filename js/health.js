@@ -148,12 +148,19 @@
     return items(s).map(function (it) { return { it: it, sup: supply(s, it, now) }; })
       .filter(function (x) { return x.sup && x.sup.daysLeft <= 5 && !(p.supplySnooze[x.it.id] && p.supplySnooze[x.it.id] > today); });
   }
+  var GENERIC = /^(capsules?|caps|tablets?|softgels?|sachets?|sticks?|gummies|powder|drops|liquid|shots?|vegan)$/i;
+  function searchTerm(name) {
+    var w = String(name || '').replace(/[®™©]/g, '').replace(/\(.*?\)/g, ' ').split(/\s+/).filter(function (x) { return x && !GENERIC.test(x); });
+    return w.slice(0, 2).join(' ') || String(name || '');
+  }
   function reorderUrl(it, code, campaign) {
     var c = it.pid && catalog(it.pid), cfg = P() && P().CONFIG;
     if (!c || !cfg) return null;
     // catalog products: ids differ per market, so reorder searches the customer's own shop (until cartIds are mapped)
     var shop = c.url || c.cartId ? cfg.shop : (global.FS_MARKET && global.FS_MARKET.shop) || cfg.shop;
-    var u = shop + (c.cartId ? '/?add-to-cart=' + c.cartId + '&quantity=1' : c.url ? c.url + '?' : '/?s=' + encodeURIComponent(c.name) + '&post_type=product');
+    // shop search: the store's own search needs dgwt_wcas=1, and finds products by their core name in every language
+    // ("KSM-66 Ashwagandha® capsules" → "KSM-66 Ashwagandha", "Magnesium capsules" → "Magnesium")
+    var u = shop + (c.cartId ? '/?add-to-cart=' + c.cartId + '&quantity=1' : c.url ? c.url + '?' : '/?s=' + encodeURIComponent(searchTerm(c.name)) + '&post_type=product&dgwt_wcas=1');
     var q = ['utm_source=nf-app', 'utm_medium=app', 'utm_campaign=' + (campaign || 'reorder'), 'utm_content=' + c.id];
     if (code) q.push('coupon=' + encodeURIComponent(code));
     return u + (u.slice(-1) === '?' ? '' : '&') + q.join('&');
@@ -375,7 +382,7 @@
       }).join('');
       var supplies = list.map(function (it) {
         var sup = supply(s, it, now), c2 = it.pid && catalog(it.pid);
-        return '<div class="sup-row"><div><b>' + esc(it.name) + '</b><small>' + (sup ? sup.left + ' of ' + sup.servings + ' servings · lasts until ' + new Date(sup.runOut).toLocaleDateString((window.I18N && I18N.locale || 'en-GB'), { day: 'numeric', month: 'short' }) : 'Add your pack to get a run-out reminder') + '</small>' +
+        return '<div class="sup-row"><div><b>' + esc(it.name) + '</b><small>' + (sup ? sup.left + ' of ' + sup.servings + ' servings · lasts until <span translate="no">' + new Date(sup.runOut).toLocaleDateString((window.I18N && I18N.locale || 'en-GB'), { day: 'numeric', month: 'short' }) + '</span>' : 'Add your pack to get a run-out reminder') + '</small>' +
           (sup ? '<div class="sbar"><i style="width:' + Math.round(sup.left / sup.servings * 100) + '%"' + (sup.daysLeft <= 5 ? ' class="low"' : '') + '></i></div>' : '') + '</div>' +
           '<div class="hp-btns">' + (sup && c2 ? '<a class="btn sm' + (sup.daysLeft <= 5 ? ' primary' : '') + ' focusable" data-reorder="' + it.id + '" href="' + esc(H.reorderUrl(it, bestCode(s), 'program') || '#') + '" target="_blank" rel="noopener">🛒 ' + (sup.daysLeft <= 5 ? 'Reorder' : 'Order') + '</a>' : '') +
           '<button class="btn sm ghost focusable" data-pack="' + it.id + '">' + (sup ? 'New pack' : 'Add pack') + '</button></div></div>';

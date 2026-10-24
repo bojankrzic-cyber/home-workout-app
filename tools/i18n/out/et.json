@@ -2827,5 +2827,6 @@
 "<0/>: {0} days left": "<0/>: jäänud {0} päeva",
 "<0/>: {0} day left": "<0/>: jäänud {0} päev",
 "<0/>: running out today": "<0/>: saab täna otsa",
-"Reorder now so your routine ({0} check-ins) doesn’t pause.": "Telli kohe uuesti, et sinu rutiin ({0} märkimist) ei katkeks."
+"Reorder now so your routine ({0} check-ins) doesn’t pause.": "Telli kohe uuesti, et sinu rutiin ({0} märkimist) ei katkeks.",
+"{0} of {1} servings · lasts until <0/>": "{0}/{1} portsjonit · jätkub kuni <0/>"
 }

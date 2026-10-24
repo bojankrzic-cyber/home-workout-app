@@ -2827,5 +2827,6 @@
 "<0/>: {0} days left": "<0/>: απομένουν {0} μέρες",
 "<0/>: {0} day left": "<0/>: απομένει {0} μέρα",
 "<0/>: running out today": "<0/>: τελειώνει σήμερα",
-"Reorder now so your routine ({0} check-ins) doesn’t pause.": "Παράγγειλε ξανά τώρα για να μη σταματήσει η ρουτίνα σου ({0} check-in)."
+"Reorder now so your routine ({0} check-ins) doesn’t pause.": "Παράγγειλε ξανά τώρα για να μη σταματήσει η ρουτίνα σου ({0} check-in).",
+"{0} of {1} servings · lasts until <0/>": "{0} από {1} μερίδες · φτάνει μέχρι <0/>"
 }

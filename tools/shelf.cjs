@@ -35,6 +35,7 @@ const path = require('path');
   const low = await page.$('.shelf-item.low');
   ok(low && /Bio Detox/.test(await low.textContent()), 'Bio Detox flagged: 3 days left');
   const href = await page.getAttribute('.shelf-item.low [data-reorder]', 'href');
+  ok(/dgwt_wcas=1/.test(href) && /[?&]s=Bio%20Detox&/.test(href), 'reorder search uses the shop search (dgwt_wcas) with the core name: ' + href);
   ok(/naturesfinest\.hu\/\?s=Bio%20Detox/.test(href) && /utm_campaign=shelf/.test(href) && /coupon=FINESTME/.test(href), 'reorder: HU shop + reward code: ' + href);
   ok(await page.$('.shelf-item.low [data-sub]'), '"never run out" offered at the reorder moment');
   await page.click('.shelf-item.low [data-sub]'); await page.waitForTimeout(300);

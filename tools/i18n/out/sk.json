@@ -2827,5 +2827,6 @@
 "<0/>: {0} days left": "<0/>: zostáva {0} dní",
 "<0/>: {0} day left": "<0/>: zostáva {0} deň",
 "<0/>: running out today": "<0/>: dnes sa minie",
-"Reorder now so your routine ({0} check-ins) doesn’t pause.": "Objednaj teraz, aby sa tvoja rutina ({0} odškrtnutí) neprerušila."
+"Reorder now so your routine ({0} check-ins) doesn’t pause.": "Objednaj teraz, aby sa tvoja rutina ({0} odškrtnutí) neprerušila.",
+"{0} of {1} servings · lasts until <0/>": "{0} z {1} porcií · vydrží do <0/>"
 }

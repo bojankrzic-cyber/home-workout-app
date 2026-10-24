@@ -2827,5 +2827,6 @@
 "<0/>: {0} days left": "<0/>: nog {0} dagen",
 "<0/>: {0} day left": "<0/>: nog {0} dag",
 "<0/>: running out today": "<0/>: vandaag op",
-"Reorder now so your routine ({0} check-ins) doesn’t pause.": "Bestel nu na zodat je routine ({0} check-ins) niet stilvalt."
+"Reorder now so your routine ({0} check-ins) doesn’t pause.": "Bestel nu na zodat je routine ({0} check-ins) niet stilvalt.",
+"{0} of {1} servings · lasts until <0/>": "{0} van {1} porties · genoeg tot <0/>"
 }
