@@ -175,7 +175,7 @@
     var cols = document.createElement('div'); cols.className = 'td-cols';
     var main = document.createElement('div'); main.className = 'td-main';
     var side = document.createElement('div'); side.className = 'td-side';
-    var sideSel = '.t-week, .hp-card, .hp-check, .shelf-strip, .rem-card, .qr-home' + (hasRoutine ? ', .scan-hero' : '');
+    var sideSel = '.t-week, .hp-card, .hp-check, .shelf-strip, .shelf-card, .rem-card, .qr-home' + (hasRoutine ? ', .scan-hero' : '');
     var rest = []; for (var n = buddy.nextElementSibling; n; n = n.nextElementSibling) rest.push(n);
     rest.forEach(function (el) { (el.matches(sideSel) ? side : main).appendChild(el); });
     cols.appendChild(main); cols.appendChild(side); buddy.insertAdjacentElement('afterend', cols);

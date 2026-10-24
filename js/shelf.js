@@ -64,16 +64,21 @@
       if ($('#shNo')) $('#shNo').onclick = function () { var p = H.prog(st()); p.cross.last = new Date().toISOString(); p.cross.dismissed.push(cross.id); App.save(); App.toast('Got it – no more suggestions for a while'); App.refresh(); };
     };
 
-    // Today: a compact shelf strip right under the scan card (only with products in the routine)
+    // Today: one card for the shelf and scanning – packs with days left, and the scan button for a new pack or product
+    // (only with products in the routine; a first-time user keeps the big "Scan your product" card)
     var home = App.SCREENS.home;
     App.SCREENS.home = function (p) {
       home(p);
-      var s = st(); if (!s || !H || !H.active(s) || document.querySelector('.shelf-strip')) return;
+      var s = st(); if (!s || !H || !H.active(s) || document.querySelector('.shelf-card')) return;
       var now = new Date(), its = H.items(s).slice(0, 4);
-      var html = '<button class="shelf-strip focusable" data-go="shelf"><b>📦 My shelf</b><span class="shelf-pills">' + its.map(function (it) {
+      var html = '<div class="shelf-card"><button class="sc-head focusable" data-go="shelf"><b>📦 My shelf</b><span class="set-chev">›</span></button>' +
+        '<button class="shelf-pills focusable" data-go="shelf">' + its.map(function (it) {
         var sup = H.supply(s, it, now), d = sup ? sup.daysLeft : null;
         return '<span class="shelf-pill' + (d != null && d <= 5 ? ' low' : '') + '"><span translate="no">' + esc(it.name.length > 16 ? it.name.slice(0, 15) + '…' : it.name) + '</span>' + (d != null ? ' · <span class="ph">' + d + '</span> d' : '') + '</span>';
-      }).join('') + '</span><span class="set-chev">›</span></button>';
+      }).join('') + '</button>' +
+        '<button class="btn primary focusable sc-scan" data-go="scan">📷 Scan a pack</button></div>';
+      var hero = document.querySelector('.scan-hero:not(.first)');
+      if (hero) { hero.insertAdjacentHTML('afterend', html); hero.remove(); return; }
       var anchor = document.querySelector('.scan-hero') || document.querySelector('.buddy');
       if (anchor) anchor.insertAdjacentHTML('afterend', html);
     };
