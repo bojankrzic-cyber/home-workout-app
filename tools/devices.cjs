@@ -80,7 +80,7 @@ const fs = require('fs');
   ok(list.length === 2, 'watch run merged, treadmill added: ' + JSON.stringify(list));
   ok(list.some(a => a.n > 20), 'merged run carries the watch heart-rate series');
   await page.evaluate(() => window.__go('activities', {})); await page.waitForTimeout(400);
-  await page.click('.act-row'); await page.waitForTimeout(800);
+  await page.click('.feed-card[data-go="activity"]'); await page.waitForTimeout(800);
   ok(/Heart rate/.test(await page.textContent('.screen')) && (await page.$$('.hz')).length === 5, 'activity shows heart rate + zones: ' + JSON.stringify(await page.evaluate(() => [document.querySelector('.act-tt') && document.querySelector('.act-tt').textContent, document.querySelectorAll('.zone').length, (document.querySelector('.screen').textContent.match(/Heart rate.{0,80}/) || [''])[0], Store.active().activities.map(a => [a.title, (a.hrs||[]).length])])));
   await page.evaluate(() => document.querySelector('.screen').scrollTo(0, 900)); await page.waitForTimeout(300);
   await page.screenshot({ path: out + '/d3-hr-panel.png' });

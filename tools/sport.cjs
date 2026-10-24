@@ -110,7 +110,7 @@ const fs = require('fs');
   await page.click('#aSave'); await page.waitForTimeout(300);
 
   await page.evaluate(() => window.__go('activities', {})); await page.waitForTimeout(500);
-  ok((await page.$$('.act-row')).length === 3, 'three activities listed');
+  ok((await page.$$('.feed-card[data-go="activity"]')).length === 3, 'three activities listed');
   await page.screenshot({ path: out + '/s7-list.png' });
   await page.evaluate(() => window.__go('history', {})); await page.waitForTimeout(500);
   ok(/Running records/.test(await page.textContent('.screen')), 'progress shows running records');

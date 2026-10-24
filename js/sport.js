@@ -69,11 +69,11 @@
       '<circle class="r-start" cx="' + (a[1] * k) + '" cy="' + (-a[0]) + '" r="' + r + '"/><circle class="r-end" cx="' + (b[1] * k) + '" cy="' + (-b[0]) + '" r="' + r + '"/></svg>';
   }
   // interactive map; resolves to { map, line, dot } or null (then the SVG stays)
-  function mountMap(el, pts, live) {
+  function mountMap(el, pts, live, still) {
     return leaflet().then(function (L) {
       if (!el.isConnected) return null;
       el.innerHTML = '';
-      var map = L.map(el, { zoomControl: false, attributionControl: true, preferCanvas: false });
+      var map = L.map(el, { zoomControl: false, attributionControl: true, preferCanvas: false, dragging: !still, touchZoom: !still, scrollWheelZoom: !still, doubleClickZoom: !still, boxZoom: !still, keyboard: !still });
       L.tileLayer(TILES, { attribution: ATTR, maxZoom: 19 }).addTo(map);
       var lines = segments(pts).map(function (s) { return L.polyline(s, { color: '#3ec46d', weight: 5, opacity: 0.95 }).addTo(map); });
       var dot = live ? L.circleMarker([0, 0], { radius: 8, color: '#04140a', weight: 3, fillColor: '#5ad1b8', fillOpacity: 1 }) : null;
@@ -484,32 +484,154 @@
       (area ? '<span><i class="lg-ele"></i>elevation ' + Math.round(eLo) + '–' + Math.round(eHi) + ' m</span>' : '') + '<span class="sp"></span><span>' + T.km(total) + ' km</span></div>';
   }
 
-  // ---------------------------------------------------------------- activity list
-  function actRow(a) {
-    var sec = a.moving || a.elapsed;
-    return '<div class="act-row focusable" tabindex="0" data-go="activity" data-p=\'{"id":"' + a.id + '"}\'>' +
-      '<div class="act-thumb">' + (a.pts && a.pts.length > 1 ? routeSvg(a.pts, 'thumb') : '<span>' + typeOf(a.type).ico + '</span>') + '</div>' +
-      '<div class="act-info"><h4>' + esc(a.title) + '</h4><div class="sub">' + dateTxt(a.start) + '</div></div>' +
-      '<div class="act-nums">' + (a.dist ? '<b>' + T.km(a.dist) + '<small> km</small></b>' : '') + '<span>' + T.clock(sec) + (a.dist && sec ? ' · ' + paceTxt(a, sec, a.dist) + ' ' + paceUnit(a) : '') + '</span></div></div>';
+  // ---------------------------------------------------------------- activity feed (sessions as cards, like the big sport trackers)
+  // one list for everything: GPS / logged / imported activities + the gym workouts from the player
+  var GYM = { name: 'Gym workout', ico: '🏋️' };
+  function gymKcal(l, kg) { return l.kcal || Math.round(5 * (kg || 75) * (l.sec || (l.min || 0) * 60) / 3600); }
+  function feed(s) {
+    var kg = s.settings.weight;
+    var a = acts().map(function (x) {
+      var sec = x.moving || x.elapsed || 0;
+      return { k: 'act', id: x.id, type: x.type, start: x.start, title: x.title, sec: sec, dist: x.dist || 0, kcal: x.kcal || T.kcal(x.type, kg, sec, x.dist), pts: x.pts, hr: x.hr, a: x };
+    });
+    var g = (s.log || []).map(function (l, i) {
+      return { k: 'gym', id: 'g' + i, i: i, type: 'app_gym', start: l.date, title: l.name || 'Workout', sec: l.sec || (l.min || 0) * 60, dist: 0, kcal: gymKcal(l, kg), sets: (l.sets || []).length };
+    });
+    return a.concat(g).filter(function (x) { return x.start; }).sort(function (x, y) { return x.start < y.start ? 1 : -1; });
+  }
+  function meta(it) { return it.type === 'app_gym' ? GYM : typeOf(it.type); }
+  function hm(sec) {   // 1 h 05 min · 42 min
+    var m = Math.round((sec || 0) / 60), h = Math.floor(m / 60);
+    return h ? h + ' h ' + (m % 60 < 10 ? '0' : '') + (m % 60) + ' min' : m + ' min';
+  }
+  function cardStats(it) {
+    var st2 = [];
+    if (it.dist) {
+      st2.push(['Distance', T.km(it.dist) + ' km'], ['Duration', T.clock(it.sec)]);
+      st2.push(it.sec && it.a ? [isSpeed(it.a) ? 'Avg speed' : 'Avg pace', paceTxt(it.a, it.sec, it.dist) + ' ' + paceUnit(it.a)] : ['Calories', it.kcal + ' kcal']);
+    } else {
+      st2.push(['Duration', T.clock(it.sec)], ['Calories', it.kcal + ' kcal']);
+      if (it.k === 'gym') st2.push(['Sets', String(it.sets)]);
+      else if (it.hr) st2.push(['Avg heart rate', it.hr + ' bpm']);
+    }
+    return '<div class="fc-stats">' + st2.map(function (x) { return '<div><small>' + x[0] + '</small><b>' + x[1] + '</b></div>'; }).join('') + '</div>';
+  }
+  function card(it, who) {
+    var t = meta(it), p = it.k === 'act' ? { id: it.id } : { i: it.i };
+    return '<div class="feed-card focusable" tabindex="0" data-go="' + (it.k === 'act' ? 'activity' : 'gymLog') + '" data-p=\'' + JSON.stringify(p) + '\'>' +
+      '<div class="fc-head"><span class="fc-ico" style="background:' + T.color(it.type) + '">' + t.ico + '</span><div class="fc-tt"><b>' + esc(it.title) + '</b><small>' + dateTxt(it.start) + ' · <span translate="no">' + esc(who) + '</span></small></div></div>' +
+      (it.pts && it.pts.length > 1 ? '<div class="fc-map" data-fmap="' + esc(it.id) + '">' + routeSvg(it.pts, 'feed') + '</div>' : '') +
+      cardStats(it) + '</div>';
+  }
+  // real map tiles for the cards on screen (static maps: no dragging, the tap opens the activity)
+  function liveMaps(items) {
+    if (!('IntersectionObserver' in window) || navigator.webdriver || navigator.onLine === false) return;
+    var n = 0, io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (!e.isIntersecting || n >= 12) return;
+        io.unobserve(e.target); n++;
+        var it = items.filter(function (x) { return x.id === e.target.getAttribute('data-fmap'); })[0];
+        if (it) mountMap(e.target, it.pts, false, true);
+      });
+    }, { rootMargin: '200px' });
+    $$('[data-fmap]').forEach(function (el) { io.observe(el); });
+    App.onCleanup(function () { io.disconnect(); });
   }
   S.activities = function (p) {
-    var f = p.f || 'all', list = acts().filter(function (a) { return f === 'all' || a.type === f; });
-    var types = Object.keys(T.TYPES).filter(function (k) { return acts().some(function (a) { return a.type === k; }); });
-    var html = '<div class="screen"><div class="topbar"><h1>Activities</h1><span class="chip">' + list.length + '</span><div class="spacer"></div>' +
+    var s = st(), f = p.f || 'all', all = feed(s);
+    var list = all.filter(function (x) { return f === 'all' || x.type === f; });
+    var types = []; all.forEach(function (x) { if (types.indexOf(x.type) < 0) types.push(x.type); });
+    var html = '<div class="screen feed-screen"><div class="topbar"><h1>Activities</h1><span class="chip">' + list.length + '</span><div class="spacer"></div>' +
       '<button class="btn sm focusable" data-go="logSport">＋ Log / import</button><button class="btn sm primary focusable" data-go="record">● Record</button></div>' +
       (types.length > 1 ? '<div class="filters"><button class="chip focusable' + (f === 'all' ? ' on' : '') + '" data-af="all">All</button>' + types.map(function (k) {
-        return '<button class="chip focusable' + (f === k ? ' on' : '') + '" data-af="' + k + '">' + typeOf(k).ico + ' ' + typeOf(k).name + '</button>';
+        var t = meta({ type: k });
+        return '<button class="chip focusable' + (f === k ? ' on' : '') + '" data-af="' + k + '">' + t.ico + ' ' + t.name + '</button>';
       }).join('') + '</div>' : '');
     var month = '';
-    html += '<div class="act-list">' + (list.map(function (a) {
-      var m = new Date(a.start).toLocaleDateString((window.I18N && I18N.locale || 'en-GB'), { month: 'long', year: 'numeric' }), h = '';
-      if (m !== month) { month = m; h = '<div class="act-month">' + m + '</div>'; }
-      return h + actRow(a);
+    html += '<div class="feed">' + (list.map(function (it) {
+      var m = new Date(it.start).toLocaleDateString((window.I18N && I18N.locale || 'en-GB'), { month: 'long', year: 'numeric' }), h = '';
+      if (m !== month) { month = m; h = '<div class="act-month" translate="no">' + m + '</div>'; }
+      return h + card(it, s.name);
     }).join('') || '<div class="empty-state"><div class="big">🏃</div><h3>No activities yet</h3><p>Record a run, walk, hike or ride with GPS – or log any other sport in seconds.</p>' +
       '<button class="btn primary focusable" data-go="record">● Start recording</button></div>') + '</div></div>';
     App.$('#app').innerHTML = html;
     $$('[data-af]').forEach(function (b) { b.onclick = function () { App.refresh({ f: b.getAttribute('data-af') }); }; });
+    liveMaps(list);
   };
+
+  // ---------------------------------------------------------------- gym workout detail (from the feed)
+  S.gymLog = function (p) {
+    var s = st(), l = s.log[p.i];
+    if (!l) { App.back(); return; }
+    var sec = l.sec || (l.min || 0) * 60, by = {}, order = [];
+    (l.sets || []).forEach(function (x) { if (!by[x.id]) { by[x.id] = []; order.push(x.id); } by[x.id].push(x); });
+    var reps = (l.sets || []).reduce(function (a, x) { return a + (x.reps || 0); }, 0);
+    var vol = (l.sets || []).reduce(function (a, x) { var e = Exercises.BY_ID[x.id]; return a + (e && e.unit === 'kg' ? (x.reps || 0) * (x.load || 0) : 0); }, 0);
+    var stats = [[hm(sec), 'duration'], [gymKcal(l, s.settings.weight) + ' kcal', 'calories'], [String((l.sets || []).length), 'sets'], [String(reps), 'reps']];
+    if (vol) stats.push([Math.round(vol) + ' kg', 'volume']);
+    var rows = order.map(function (id) {
+      var e = Exercises.BY_ID[id] || { name: id }, sets = by[id];
+      var load = e.unit === 'kg' && sets[sets.length - 1].load ? sets[sets.length - 1].load + ' kg × ' : '';
+      return '<div class="gl-row"><b>' + esc(e.name) + '</b><span>' + load + sets.map(function (x) { return x.reps; }).join(' / ') + '</span></div>';
+    }).join('');
+    App.$('#app').innerHTML = '<div class="screen act-screen">' +
+      '<div class="act-head"><div class="act-ico" style="background:' + T.color('app_gym') + '">' + GYM.ico + '</div><div class="act-tt"><h1>' + esc(l.name || 'Workout') + '</h1>' +
+      '<div class="hint">' + GYM.name + ' · ' + dateTxt(l.date) + (l.partial ? ' · ended early' : '') + '</div></div></div>' +
+      '<div class="act-stats">' + stats.map(function (x) { return '<div><b>' + x[0] + '</b><span>' + x[1] + '</span></div>'; }).join('') + '</div>' +
+      (rows ? '<div class="panel"><h3>Exercises</h3><div class="gl-list">' + rows + '</div></div>' : '') +
+      '<div class="act-foot"><button class="btn sm focusable" data-go="activities">All activities →</button></div></div>';
+  };
+
+  // ---------------------------------------------------------------- today's calories (Home) + statistics (Me)
+  // resting = Mifflin-St Jeor BMR, counted up to now (like the trackers' day total); active = today's sessions
+  function bmr(s) {
+    var w = s.weight; if (!w) return 0;
+    var a = App.me ? App.me.age(s) : null;
+    if (!s.height || !a) return Math.round(w * 22 * (s.sex === 'f' ? 0.9 : 1));
+    return Math.round(10 * w + 6.25 * s.height - 5 * a + (s.sex === 'f' ? -161 : 5));
+  }
+  function today(s) {
+    var d0 = new Date(); d0.setHours(0, 0, 0, 0);
+    var items = feed(s).filter(function (x) { return new Date(x.start) >= d0; });
+    var active = items.reduce(function (a, x) { return a + (x.kcal || 0); }, 0);
+    var rest = Math.round(bmr(s.settings) * (Date.now() - d0) / 864e5);
+    return { active: active, rest: rest, total: active + rest, min: Math.round(items.reduce(function (a, x) { return a + x.sec; }, 0) / 60), n: items.length };
+  }
+  function todayCard(s) {
+    var t = today(s);
+    return '<div class="kc-card focusable" tabindex="0" data-go="activities"><div class="kc-main"><span class="kc-lab">🔥 Today’s calories</span>' +
+      '<b>' + t.total + '<small> kcal</small></b>' +
+      '<small>' + (t.rest ? 'active ' + t.active + ' · resting ' + t.rest : 'from your sessions today') + '</small></div>' +
+      '<div class="kc-side"><div><b>' + t.min + '</b><span>active min</span></div><div><b>' + t.n + '</b><span>' + (t.n === 1 ? 'session' : 'sessions') + '</span></div></div></div>';
+  }
+  var statP = 'year';
+  function statsCard() {
+    var s = st(), from = new Date(); from.setHours(0, 0, 0, 0);
+    if (statP === 'month') from.setDate(1); else if (statP === 'year') { from.setMonth(0, 1); } else from = new Date(0);
+    var items = feed(s).filter(function (x) { return new Date(x.start) >= from; });
+    if (!feed(s).length) return '';
+    var days = {}, km = 0, sec = 0, by = {};
+    items.forEach(function (x) {
+      days[x.start.slice(0, 10)] = 1; km += x.dist; sec += x.sec;
+      var b = by[x.type] = by[x.type] || { n: 0, sec: 0, dist: 0 }; b.n++; b.sec += x.sec; b.dist += x.dist;
+    });
+    var keys = Object.keys(by).sort(function (a, b) { return by[b].sec - by[a].sec; }), top = keys.length ? by[keys[0]].sec || 1 : 1;
+    function chip(k, lab) { return '<button class="chip focusable' + (statP === k ? ' on' : '') + '" data-stp="' + k + '">' + lab + '</button>'; }
+    return '<section class="set-group ps-group"><h2>Statistics</h2><div class="set-card ps-card">' +
+      '<div class="ps-per">' + chip('month', 'This month') + chip('year', 'This year') + chip('all', 'All time') + '</div>' +
+      '<div class="ps-tot"><div><b>' + items.length + '</b><span>activities</span></div><div><b>' + T.km(km) + '</b><span>km</span></div>' +
+      '<div><b>' + Object.keys(days).length + '</b><span>active days</span></div><div><b>' + Math.floor(sec / 3600) + '</b><span>hours</span></div></div>' +
+      (keys.length ? '<div class="ps-h"><b>Sports</b><span>' + keys.length + '</span></div><div class="ps-list">' + keys.map(function (k) {
+        var b = by[k], t = meta({ type: k });
+        return '<div class="ps-row"><span class="fc-ico" style="background:' + T.color(k) + '">' + t.ico + '</span><div class="ps-mid"><div class="ps-l"><b>' + esc(t.name) + '</b><span>' +
+          b.n + '× · ' + hm(b.sec) + (b.dist ? ' · ' + T.km(b.dist) + ' km' : '') + '</span></div><i style="width:' + Math.max(4, b.sec / top * 100).toFixed(0) + '%;background:' + T.color(k) + '"></i></div></div>';
+      }).join('') + '</div>' : '<div class="hint">Nothing in this period yet.</div>') + '</div></section>';
+  }
+  App.hooks.settings.unshift(statsCard);
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-stp]');
+    if (b) { statP = b.getAttribute('data-stp'); App.refresh(); }
+  });
 
   // ---------------------------------------------------------------- manual log + GPX import
   S.logSport = function (p) {
@@ -575,7 +697,7 @@
     var re = sessionStorage.getItem('fs.reopen');
     if (re) { sessionStorage.removeItem('fs.reopen'); setTimeout(function () { if (st()) App.go('record', JSON.parse(re)); }, 0); }
   } catch (e) {}
-  window.Sport = { routeSvg: routeSvg, dateTxt: dateTxt, paceTxt: paceTxt, paceUnit: paceUnit, recording: function () { return loadSnap(); } };
+  window.Sport = { routeSvg: routeSvg, dateTxt: dateTxt, feed: feed, today: today, todayCard: todayCard, paceTxt: paceTxt, paceUnit: paceUnit, recording: function () { return loadSnap(); } };
 
   // ---------------------------------------------------------------- progress panel (Today shows activity via js/today.js)
   App.hooks.progress.push(function () {

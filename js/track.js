@@ -35,10 +35,44 @@
     gym: { name: 'Gym session', ico: '🏋️', met: 5 },
     indoor_run: { name: 'Treadmill', ico: '🏃', met: 9, dist: true, unit: 'pace' },
     indoor_ride: { name: 'Indoor bike', ico: '🚲', met: 7, dist: true, unit: 'speed' },
-    other: { name: 'Other sport', ico: '✨', met: 5, dist: true }
+    other: { name: 'Other sport', ico: '✨', met: 5, dist: true },
+    // more GPS sports
+    trail_run: { name: 'Trail running', ico: '⛰️', gps: true, unit: 'pace', minSpeed: 0.6, maxSpeed: 7, met: 10 },
+    nordic_walk: { name: 'Nordic walking', ico: '🥢', gps: true, unit: 'pace', minSpeed: 0.4, maxSpeed: 4, met: 4.8 },
+    mtb: { name: 'Mountain biking', ico: '🚵', gps: true, unit: 'speed', minSpeed: 1, maxSpeed: 20, met: 8.5 },
+    ebike: { name: 'E-bike', ico: '🔋', gps: true, unit: 'speed', minSpeed: 1.5, maxSpeed: 15, met: 5 },
+    inline: { name: 'Inline skating', ico: '🛼', gps: true, unit: 'speed', minSpeed: 1, maxSpeed: 12, met: 7.5 },
+    xc_ski: { name: 'Cross-country skiing', ico: '🎿', gps: true, unit: 'speed', minSpeed: 0.8, maxSpeed: 12, met: 9 },
+    kayak: { name: 'Kayaking', ico: '🛶', gps: true, unit: 'speed', minSpeed: 0.4, maxSpeed: 5, met: 5 },
+    sup: { name: 'Stand-up paddling', ico: '🏄', gps: true, unit: 'speed', minSpeed: 0.3, maxSpeed: 4, met: 6 },
+    // more sports without GPS
+    hiit: { name: 'HIIT / functional', ico: '🔥', met: 8 },
+    crossfit: { name: 'CrossFit', ico: '🏋️‍♀️', met: 8 },
+    climbing: { name: 'Climbing', ico: '🧗', met: 7.5 },
+    dance: { name: 'Dance', ico: '💃', met: 5.5 },
+    boxing: { name: 'Boxing', ico: '🥊', met: 7.8 },
+    martial: { name: 'Martial arts', ico: '🥋', met: 7.5 },
+    badminton: { name: 'Badminton', ico: '🏸', met: 5.5 },
+    squash: { name: 'Squash', ico: '🟢', met: 7.3 },
+    table_tennis: { name: 'Table tennis', ico: '🏓', met: 4 },
+    volleyball: { name: 'Volleyball', ico: '🏐', met: 4 },
+    handball: { name: 'Handball', ico: '🤾', met: 8 },
+    hockey: { name: 'Hockey', ico: '🏒', met: 8 },
+    golf: { name: 'Golf', ico: '⛳', met: 4.8, dist: true },
+    snowboard: { name: 'Snowboarding', ico: '🏂', met: 5.3, dist: true },
+    skating: { name: 'Ice skating', ico: '⛸️', met: 7 },
+    rowing_water: { name: 'Rowing (boat)', ico: '🚣', met: 7, dist: true },
+    stretching: { name: 'Stretching / mobility', ico: '🧘‍♂️', met: 2.3 }
   };
-  var GPS_TYPES = ['run', 'walk', 'hike', 'ride'];
-  var MANUAL_TYPES = ['swim', 'football', 'tennis', 'padel', 'basketball', 'ski', 'yoga', 'pilates', 'gym', 'indoor_run', 'indoor_ride', 'other'];
+  var GPS_TYPES = ['run', 'walk', 'hike', 'ride', 'trail_run', 'nordic_walk', 'mtb', 'ebike', 'inline', 'xc_ski', 'kayak', 'sup'];
+  var MANUAL_TYPES = ['swim', 'football', 'tennis', 'padel', 'basketball', 'ski', 'yoga', 'pilates', 'gym', 'indoor_run', 'indoor_ride',
+    'hiit', 'crossfit', 'climbing', 'dance', 'boxing', 'martial', 'badminton', 'squash', 'table_tennis', 'volleyball', 'handball', 'hockey',
+    'golf', 'snowboard', 'skating', 'rowing_water', 'stretching', 'other'];
+  // sport colours for the feed / profile (same family = same colour, like the big sport trackers)
+  var COLOR = { run: '#f2b705', trail_run: '#f2b705', indoor_run: '#f2b705', walk: '#3ec46d', nordic_walk: '#3ec46d', hike: '#2fa45c',
+    ride: '#f07c3c', mtb: '#f07c3c', ebike: '#f07c3c', indoor_ride: '#f07c3c', swim: '#3aa0f0', kayak: '#3aa0f0', sup: '#3aa0f0', rowing_water: '#3aa0f0',
+    ski: '#5bc4e8', xc_ski: '#5bc4e8', snowboard: '#5bc4e8', skating: '#5bc4e8', gym: '#e5534b', app_gym: '#e5534b', hiit: '#e5534b', crossfit: '#e5534b',
+    yoga: '#5ad1b8', pilates: '#5ad1b8', stretching: '#5ad1b8', dance: '#b06ae0', boxing: '#b06ae0', martial: '#b06ae0', climbing: '#c98b4b' };
 
   var R = 6371008.8;
   function rad(d) { return d * Math.PI / 180; }
@@ -330,7 +364,7 @@
   }
 
   global.Track = {
-    TYPES: TYPES, GPS_TYPES: GPS_TYPES, MANUAL_TYPES: MANUAL_TYPES, EFFORTS: EFFORTS,
+    TYPES: TYPES, GPS_TYPES: GPS_TYPES, MANUAL_TYPES: MANUAL_TYPES, EFFORTS: EFFORTS, color: function (k) { return COLOR[k] || '#8a96a3'; },
     dist: dist, kcal: kcal, pace: pace, speed: speed, km: km, clock: clock,
     Recorder: Recorder, bestEfforts: bestEfforts, parseGPX: parseGPX, manual: manual, weeks: weeks, records: records
   };
