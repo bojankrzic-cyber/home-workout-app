@@ -111,9 +111,6 @@
       '<div class="rec-gps" id="rGps"><i></i><span>Searching for GPS…</span></div>' +
       '<button class="rec-hr focusable" id="rHr" hidden>❤ <b>–</b></button>' +
       '<div class="rec-panel">' +
-      '<div class="rec-pick" id="rPick">' + T.MAIN_GPS.concat(T.MAIN_GPS.indexOf(type) < 0 ? [type] : []).map(function (k) {
-        return '<button class="chip focusable' + (k === type ? ' on' : '') + '" data-rt="' + k + '">' + typeOf(k).ico + ' ' + typeOf(k).name + '</button>';
-      }).join('') + '<button class="chip focusable ghost" id="rOther">＋ Other sport / import</button></div>' +
       '<div class="rec-state" id="rState"></div>' +
       '<div class="rec-main"><b id="rTime">0:00</b><span id="rTimeL">moving time</span></div>' +
       '<div class="rec-grid">' +
@@ -138,8 +135,6 @@
       $('#rPaceL').textContent = sp ? 'speed km/h' : 'pace /km';
       $('#rAvgL').textContent = sp ? 'avg km/h' : 'avg /km';
     }
-    $$('[data-rt]', el).forEach(function (b) { b.onclick = function () { if (!rec) setType(b.getAttribute('data-rt')); }; });
-    $('#rOther').onclick = function () { App.go('logSport', {}, true); };
     // live heart rate from a Bluetooth strap / watch (js/devices.js); tap to connect, saved with the activity
     var HR = window.HeartRate;
     function paintHr(v) {
@@ -283,7 +278,6 @@
         $('#rResume').onclick = function () { rec.resume(); saveSnap(rec); if (s.trackVoice !== false) App.cue('Resumed. Let\'s go.', ['resumed']); controls(); paint(); };
         holdToFinish($('#rFinish'));
       }
-      $('#rPick').hidden = !!rec;
       $('#rHint').hidden = !!rec && (denied || rec.d > 100);
       if (rec && denied) gpsStatus('Time only – no location', 'weak');
     }
@@ -542,7 +536,7 @@
     var list = all.filter(function (x) { return f === 'all' || x.type === f; });
     var types = []; all.forEach(function (x) { if (types.indexOf(x.type) < 0) types.push(x.type); });
     var html = '<div class="screen feed-screen"><div class="topbar"><h1>Activities</h1><span class="chip">' + list.length + '</span><div class="spacer"></div>' +
-      '<button class="btn sm focusable" data-go="logSport">＋ Log / import</button><button class="btn sm primary focusable" data-go="record">● Record</button></div>' +
+      '<button class="btn sm focusable" data-go="logSport">＋ Log / import</button><button class="btn sm primary focusable" data-sheet="trail">● Record</button></div>' +
       (types.length > 1 ? '<div class="filters"><button class="chip focusable' + (f === 'all' ? ' on' : '') + '" data-af="all">All</button>' + types.map(function (k) {
         var t = meta({ type: k });
         return '<button class="chip focusable' + (f === k ? ' on' : '') + '" data-af="' + k + '">' + t.ico + ' ' + t.name + '</button>';
@@ -553,7 +547,7 @@
       if (m !== month) { month = m; h = '<div class="act-month" translate="no">' + m + '</div>'; }
       return h + card(it, s.name);
     }).join('') || '<div class="empty-state"><div class="big">🏃</div><h3>No activities yet</h3><p>Record a run, walk, hike or ride with GPS – or log any other sport in seconds.</p>' +
-      '<button class="btn primary focusable" data-go="record">● Start recording</button></div>') + '</div></div>';
+      '<button class="btn primary focusable" data-sheet="trail">● Start recording</button></div>') + '</div></div>';
     App.$('#app').innerHTML = html;
     $$('[data-af]').forEach(function (b) { b.onclick = function () { App.refresh({ f: b.getAttribute('data-af') }); }; });
     liveMaps(list);
