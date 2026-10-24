@@ -2814,5 +2814,18 @@
 "Extend one leg": "Natáhni jednu nohu",
 "Exhale, back flat": "Výdech, bedra u země",
 "Wall cable station (e.g. Technogym Kinesis Personal), levels {0}–{1}": "Nástěnný kladkový stroj (např. Technogym Kinesis Personal), úrovně {0}–{1}",
-"▶ Start next exercise": "▶ Začni další cvik"
+"▶ Start next exercise": "▶ Začni další cvik",
+"▶ Start next set": "▶ Začni další sérii",
+"of them Trail": "z nich Trail",
+"run, walk or ride outdoors – the rest are gym workouts": "běh, chůze nebo kolo venku – zbytek jsou tréninky v posilovně",
+"{0}× gym · {1}× Trail": "{0}× posilovna · {1}× Trail",
+"Trail day": "Den na Trail",
+"Run, walk or ride – {0} to {1} min": "Běh, chůze nebo kolo – {0} až {1} min",
+"outdoors at your own pace – counts as one of this week’s workouts": "venku vlastním tempem – počítá se jako jeden z tréninků tohoto týdne",
+"▶ Start Trail": "▶ Začít Trail",
+"{0}×": "{0}×",
+"<0/>: {0} days left": "<0/>: zbývá {0} dní",
+"<0/>: {0} day left": "<0/>: zbývá {0} den",
+"<0/>: running out today": "<0/>: dnes dojde",
+"Reorder now so your routine ({0} check-ins) doesn’t pause.": "Objednej teď, ať se tvoje rutina ({0} odškrtnutí) nepřeruší."
 }

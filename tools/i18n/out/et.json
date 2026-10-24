@@ -2814,5 +2814,18 @@
 "Extend one leg": "Siruta üks jalg",
 "Exhale, back flat": "Hinga välja, selg sirge",
 "Wall cable station (e.g. Technogym Kinesis Personal), levels {0}–{1}": "Seinale kinnitatud trossimasin (nt Technogym Kinesis Personal), tasemed {0}–{1}",
-"▶ Start next exercise": "▶ Alusta järgmist harjutust"
+"▶ Start next exercise": "▶ Alusta järgmist harjutust",
+"▶ Start next set": "▶ Alusta järgmist seeriat",
+"of them Trail": "neist Rada",
+"run, walk or ride outdoors – the rest are gym workouts": "jookse, kõnni või sõida väljas – ülejäänud on jõusaalitreeningud",
+"{0}× gym · {1}× Trail": "{0}× jõusaal · {1}× Rada",
+"Trail day": "Rajapäev",
+"Run, walk or ride – {0} to {1} min": "Jookse, kõnni või sõida – {0} kuni {1} min",
+"outdoors at your own pace – counts as one of this week’s workouts": "väljas omas tempos – loeb ühe selle nädala treeninguna",
+"▶ Start Trail": "▶ Alusta Rada",
+"{0}×": "{0}×",
+"<0/>: {0} days left": "<0/>: jäänud {0} päeva",
+"<0/>: {0} day left": "<0/>: jäänud {0} päev",
+"<0/>: running out today": "<0/>: saab täna otsa",
+"Reorder now so your routine ({0} check-ins) doesn’t pause.": "Telli kohe uuesti, et sinu rutiin ({0} märkimist) ei katkeks."
 }

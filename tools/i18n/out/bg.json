@@ -2814,5 +2814,18 @@
 "Extend one leg": "Изпъни един крак",
 "Exhale, back flat": "Издишай, кръстът долепен",
 "Wall cable station (e.g. Technogym Kinesis Personal), levels {0}–{1}": "Стенен скрипец (напр. Technogym Kinesis Personal), нива {0}–{1}",
-"▶ Start next exercise": "▶ Започни следващото упражнение"
+"▶ Start next exercise": "▶ Започни следващото упражнение",
+"▶ Start next set": "▶ Започни следващата серия",
+"of them Trail": "от тях Трейл",
+"run, walk or ride outdoors – the rest are gym workouts": "бягане, ходене или колоездене навън – останалите са тренировки във фитнеса",
+"{0}× gym · {1}× Trail": "{0}× фитнес · {1}× Трейл",
+"Trail day": "Трейл ден",
+"Run, walk or ride – {0} to {1} min": "Бягане, ходене или колоездене – {0} до {1} min",
+"outdoors at your own pace – counts as one of this week’s workouts": "навън, в твоето темпо – брои се за една от тренировките тази седмица",
+"▶ Start Trail": "▶ Започни Трейл",
+"{0}×": "{0}×",
+"<0/>: {0} days left": "<0/>: остават {0} дни",
+"<0/>: {0} day left": "<0/>: остава {0} ден",
+"<0/>: running out today": "<0/>: свършва днес",
+"Reorder now so your routine ({0} check-ins) doesn’t pause.": "Поръчай отново сега, за да не прекъсне рутината ти ({0} отметки)."
 }

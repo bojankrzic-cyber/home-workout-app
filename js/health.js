@@ -49,9 +49,9 @@
   function items(s) { return s.settings.routine || []; }
   function active(s) { return items(s).length > 0; }
   function plannedDay(s, d) {
-    var pref = s.settings.prefDays || [], plans = global.Program && Program.PLANS, plan = plans && (plans[s.settings.days] || plans[3]);
-    if (pref.length) return pref.indexOf(d.getDay()) >= 0;
-    return plan ? plan.days.indexOf(d.getDay()) >= 0 : true;
+    if (!global.Program || !Program.plan) return true;
+    var p = Program.plan(s);   // gym and Trail days are both training days
+    return p.days.indexOf(d.getDay()) >= 0 || p.trail.indexOf(d.getDay()) >= 0;
   }
   function trainedOn(s, ds) { return (s.log || []).some(function (l) { return ymd(new Date(l.date)) === ds; }); }
   function due(s, it, d) { return it.days !== 'training' || plannedDay(s, d) || trainedOn(s, ymd(d)); }
@@ -268,7 +268,8 @@
       var low = lowSupply(s, now)[0];
       if (low) {
         var code = bestCode(s);
-        html += '<div class="hp-card supply"><div><b>' + esc(low.it.name) + ': ' + (low.sup.daysLeft ? low.sup.daysLeft + (low.sup.daysLeft === 1 ? ' day' : ' days') + ' left' : 'running out today') + '</b>' +
+        // product name as a placeholder, so one translation fits every product
+        html += '<div class="hp-card supply"><div><b><span translate="no">' + esc(low.it.name) + '</span>: ' + (low.sup.daysLeft ? low.sup.daysLeft + (low.sup.daysLeft === 1 ? ' day' : ' days') + ' left' : 'running out today') + '</b>' +
           '<span>Reorder now so your routine (' + c + ' check-ins) doesn’t pause' + (code ? ' – your reward code is applied' : '') + '.</span></div>' +
           '<div class="hp-btns"><a class="btn sm primary focusable" data-reorder="' + low.it.id + '" href="' + esc(H.reorderUrl(low.it, code, 'supply_low') || '#') + '" target="_blank" rel="noopener">🛒 Reorder</a>' +
           '<button class="btn sm ghost focusable" data-supply-snooze="' + low.it.id + '">In 3 days</button></div></div>';

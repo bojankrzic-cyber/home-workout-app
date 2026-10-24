@@ -16,7 +16,8 @@
 
   function defaultSettings() {
     return {
-      days: 4, level: 'mid', voice: true, beeps: true, previewSec: 15, startDate: new Date().toISOString().slice(0, 10),
+      days: 5, trail: 1, level: 'mid',   // 5 workouts a week: 4 in the gym + 1 Trail
+      voice: true, beeps: true, previewSec: 15, startDate: new Date().toISOString().slice(0, 10),
       // personal profile: goal, body, heart rate, preferences (all optional – the app adapts when set)
       goal: 'general', why: '', targetWeight: null, targetDate: null,
       sex: null, birthYear: null, height: null, weight: null, bodyLog: [],   // bodyLog: [{ date, kg }]

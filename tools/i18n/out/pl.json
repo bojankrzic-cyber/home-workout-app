@@ -2814,5 +2814,18 @@
 "Extend one leg": "Wyprostuj nogę",
 "Exhale, back flat": "Wydech, plecy płasko",
 "Wall cable station (e.g. Technogym Kinesis Personal), levels {0}–{1}": "Wyciąg ścienny (np. Technogym Kinesis Personal), poziomy {0}–{1}",
-"▶ Start next exercise": "▶ Zacznij następne ćwiczenie"
+"▶ Start next exercise": "▶ Zacznij następne ćwiczenie",
+"▶ Start next set": "▶ Zacznij następną serię",
+"of them Trail": "z nich Trasa",
+"run, walk or ride outdoors – the rest are gym workouts": "bieg, spacer lub rower na zewnątrz – reszta to treningi na siłowni",
+"{0}× gym · {1}× Trail": "{0}× siłownia · {1}× Trasa",
+"Trail day": "Dzień Trasy",
+"Run, walk or ride – {0} to {1} min": "Bieg, spacer lub rower – {0} do {1} min",
+"outdoors at your own pace – counts as one of this week’s workouts": "na zewnątrz, we własnym tempie – liczy się jako jeden z treningów w tym tygodniu",
+"▶ Start Trail": "▶ Zacznij Trasę",
+"{0}×": "{0}×",
+"<0/>: {0} days left": "<0/>: zostało {0} dni",
+"<0/>: {0} day left": "<0/>: został {0} dzień",
+"<0/>: running out today": "<0/>: kończy się dziś",
+"Reorder now so your routine ({0} check-ins) doesn’t pause.": "Zamów ponownie teraz, żeby Twoja rutyna (odhaczenia: {0}) się nie zatrzymała."
 }

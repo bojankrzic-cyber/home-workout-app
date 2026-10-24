@@ -2814,5 +2814,18 @@
 "Extend one leg": "Nyújtsd ki az egyik lábad",
 "Exhale, back flat": "Kilégzés, a hát lapos",
 "Wall cable station (e.g. Technogym Kinesis Personal), levels {0}–{1}": "Fali kábelgép (pl. Technogym Kinesis Personal), {0}–{1}. szint",
-"▶ Start next exercise": "▶ Következő gyakorlat indítása"
+"▶ Start next exercise": "▶ Következő gyakorlat indítása",
+"▶ Start next set": "▶ Következő sorozat indítása",
+"of them Trail": "ebből Terep",
+"run, walk or ride outdoors – the rest are gym workouts": "futás, séta vagy bringa a szabadban – a többi termi edzés",
+"{0}× gym · {1}× Trail": "{0}× terem · {1}× Terep",
+"Trail day": "Terepnap",
+"Run, walk or ride – {0} to {1} min": "Futás, séta vagy bringa – {0}–{1} min",
+"outdoors at your own pace – counts as one of this week’s workouts": "a szabadban, a saját tempódban – a hét egyik edzésének számít",
+"▶ Start Trail": "▶ Terep indítása",
+"{0}×": "{0}×",
+"<0/>: {0} days left": "<0/>: még {0} nap",
+"<0/>: {0} day left": "<0/>: még {0} nap",
+"<0/>: running out today": "<0/>: ma elfogy",
+"Reorder now so your routine ({0} check-ins) doesn’t pause.": "Rendelj újra most, hogy a rutinod ({0} pipa) ne szakadjon meg."
 }

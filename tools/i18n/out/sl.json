@@ -2814,5 +2814,18 @@
 "Extend one leg": "Iztegni eno nogo",
 "Exhale, back flat": "Izdihni, hrbet raven",
 "Wall cable station (e.g. Technogym Kinesis Personal), levels {0}–{1}": "Stenska kabelska postaja (npr. Technogym Kinesis Personal), stopnje {0}–{1}",
-"▶ Start next exercise": "▶ Začni naslednjo vajo"
+"▶ Start next exercise": "▶ Začni naslednjo vajo",
+"▶ Start next set": "▶ Začni naslednjo serijo",
+"of them Trail": "od tega Trail",
+"run, walk or ride outdoors – the rest are gym workouts": "tek, hoja ali kolo zunaj – ostalo so vadbe v fitnesu",
+"{0}× gym · {1}× Trail": "{0}× fitnes · {1}× Trail",
+"Trail day": "Dan za Trail",
+"Run, walk or ride – {0} to {1} min": "Tek, hoja ali kolo – {0} do {1} min",
+"outdoors at your own pace – counts as one of this week’s workouts": "zunaj, v svojem tempu – šteje kot ena od vadb ta teden",
+"▶ Start Trail": "▶ Začni Trail",
+"{0}×": "{0}×",
+"<0/>: {0} days left": "<0/>: še {0} dni",
+"<0/>: {0} day left": "<0/>: še {0} dan",
+"<0/>: running out today": "<0/>: danes zmanjka",
+"Reorder now so your routine ({0} check-ins) doesn’t pause.": "Naroči zdaj, da se tvoja rutina (kljukice: {0}) ne prekine."
 }

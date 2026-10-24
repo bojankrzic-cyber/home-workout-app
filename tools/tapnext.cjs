@@ -1,4 +1,4 @@
-// Every exercise and set ends on the user's tap (default); a new exercise starts on the user's tap too: a timed step stops at 0:00 and waits, a rep set waits after the
+// Every exercise and set ends on the user's tap (default); every new exercise and set starts on the user's tap too: a timed step stops at 0:00 and waits, a rep set waits after the
 // pace guide hits the target; rest still counts down by itself; Hands-free on restores auto-advance.   NODE_PATH=$(npm root -g) node tools/tapnext.cjs
 const { chromium } = require('playwright');
 const { spawn } = require('child_process');
@@ -84,15 +84,17 @@ const path = require('path');
   ok(!(await has('.gate')) && await has('.ready'), 'tap starts the 3-2-1');
   await page.clock.runFor(3300);
   ok(!(await has('.ready')), 'count-in ends');
-  // next set of the SAME exercise after rest: no button, the rest's last 3 s are the count
+  // next set of the SAME exercise: after the rest it waits on "Start next set" too (no soft count during the rest)
   const ex1 = await name(page);
+  ok(await page.evaluate(() => /exercise/.test(document.querySelector('#wGo') ? '' : 'exercise')), 'button gone after start');
   await page.evaluate(() => document.querySelector('#wDone').click()); await page.clock.runFor(200);
-  if (await resting(page)) {
-    let sawCount = false;
-    for (let k = 0; k < 400 && await resting(page); k++) { await page.clock.runFor(500); if (await has('.ready')) sawCount = true; if (await has('.gate')) break; }
-    ok(await name(page) === ex1, 'same exercise next set');
-    ok(sawCount && !(await has('.gate')), 'same exercise: no start button, rest counts 3-2-1');
-  }
+  let sawCount = false;
+  for (let k = 0; k < 400 && await resting(page); k++) { await page.clock.runFor(500); if (await has('.ready')) sawCount = true; }
+  ok(await name(page) === ex1, 'same exercise next set');
+  ok(await has('.gate #wGo') && !sawCount, 'same exercise: waits on the button, no count during the rest');
+  ok(/set/i.test(await page.evaluate(() => document.querySelector('#wGo').textContent)), 'button says next set');
+  await page.evaluate(() => document.querySelector('#wGo').click()); await page.clock.runFor(200);
+  ok(await has('.ready'), 'tap starts the 3-2-1 for the set');
   await browser.close(); srv.kill();
   console.log(errs.length ? 'ERRORS:\n' + errs.join('\n') : 'no errors');
   process.exit(errs.length ? 1 : 0);

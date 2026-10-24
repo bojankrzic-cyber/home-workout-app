@@ -2814,5 +2814,18 @@
 "Extend one leg": "Sträck ut ett ben",
 "Exhale, back flat": "Andas ut, platt rygg",
 "Wall cable station (e.g. Technogym Kinesis Personal), levels {0}–{1}": "Väggmonterad kabelstation (t.ex. Technogym Kinesis Personal), nivåer {0}–{1}",
-"▶ Start next exercise": "▶ Starta nästa övning"
+"▶ Start next exercise": "▶ Starta nästa övning",
+"▶ Start next set": "▶ Starta nästa set",
+"of them Trail": "av dem Trail",
+"run, walk or ride outdoors – the rest are gym workouts": "spring, gå eller cykla ute – resten är gympass",
+"{0}× gym · {1}× Trail": "{0}× gym · {1}× Trail",
+"Trail day": "Trail-dag",
+"Run, walk or ride – {0} to {1} min": "Spring, gå eller cykla – {0} till {1} min",
+"outdoors at your own pace – counts as one of this week’s workouts": "ute i din egen takt – räknas som ett av veckans pass",
+"▶ Start Trail": "▶ Starta Trail",
+"{0}×": "{0}×",
+"<0/>: {0} days left": "<0/>: {0} dagar kvar",
+"<0/>: {0} day left": "<0/>: {0} dag kvar",
+"<0/>: running out today": "<0/>: tar slut idag",
+"Reorder now so your routine ({0} check-ins) doesn’t pause.": "Beställ nu så att din rutin ({0} check-ins) inte pausas."
 }

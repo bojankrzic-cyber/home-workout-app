@@ -26,10 +26,8 @@
   var SLOT = {}; SLOTS.forEach(function (x, i) { SLOT[x.k] = Object.assign({ i: i }, x); });
 
   function ymd(d) { d = d || new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
-  function plannedDay(s, d) {
-    var pref = s.settings.prefDays || [], plan = Program.PLANS[s.settings.days] || Program.PLANS[3];
-    return pref.length ? pref.indexOf(d.getDay()) >= 0 : plan.days.indexOf(d.getDay()) >= 0;
-  }
+  function plannedDay(s, d) { return Program.plan(s).days.indexOf(d.getDay()) >= 0; }
+  function trailDay(s, d) { return Program.plan(s).trail.indexOf(d.getDay()) >= 0; }
   function workedOut(s, ds) { return s.log.some(function (l) { return ymd(new Date(l.date)) === ds; }); }
   function moved(s, ds) { return (s.activities || []).some(function (a) { return ymd(new Date(a.start)) === ds; }); }
   function routine(s) { return s.settings.routine || []; }
@@ -52,6 +50,9 @@
     if (training) {
       items.push({ key: 'w', kind: 'workout', order: 25, ico: '🏋️', when: 'Workout', title: sess.name, sub: '~' + Program.estimateMin(sess) + ' min · ' + ex + ' exercises',
         done: workedOut(s, ds), go: 'player', p: { key: key }, cta: '▶ Start' });
+    } else if (trailDay(s, now)) {
+      items.push({ key: 'm', kind: 'move', order: 25, ico: '🏃', when: 'Trail', title: 'Run, walk or ride – 30 to 60 min', sub: 'outdoors at your own pace – counts as one of this week’s workouts',
+        done: moved(s, ds) || workedOut(s, ds), go: 'record', p: { type: 'run' }, cta: '▶ Start Trail' });
     } else {
       items.push({ key: 'm', kind: 'move', order: 15, ico: '🚶', when: 'Rest day', title: 'Easy movement – 20 to 30 min', sub: 'a walk, an easy ride or mobility – recovery that counts',
         done: moved(s, ds) || workedOut(s, ds), go: 'record', p: { type: 'walk' }, cta: '▶ Start walk' });
@@ -117,7 +118,7 @@
       var d = new Date(monday); d.setDate(monday.getDate() + i);
       var ds = ymd(d), w = workedOut(s, ds), m = moved(s, ds);
       if (w || m) active++;
-      days += '<div class="tw-day' + (ds === ymd() ? ' today' : '') + (w ? ' gym' : m ? ' trail' : '') + (plannedDay(s, d) ? ' planned' : '') + '"><span>' + U.DAYN[d.getDay()].slice(0, 1) + '</span><i></i></div>';
+      days += '<div class="tw-day' + (ds === ymd() ? ' today' : '') + (w ? ' gym' : m ? ' trail' : '') + (plannedDay(s, d) || trailDay(s, d) ? ' planned' : '') + '"><span>' + U.DAYN[d.getDay()].slice(0, 1) + '</span><i></i></div>';
     }
     var html = '<div class="screen today-screen">' +
       '<div class="topbar">' + U.brandMark() + '<div class="spacer"></div>' + U.navBar() +
@@ -128,7 +129,7 @@
       (window.Scan && Scan.hero ? Scan.hero(s, 'home') : '') +
       (rec ? '<div class="t-banner focusable" tabindex="0" data-go="record">● Your ' + esc(T.TYPES[rec.type].name.toLowerCase()) + ' is paused at ' + T.km(rec.d) + ' km – tap to resume</div>' : '') +
       (window.Health && Health.todayCard ? Health.todayCard(s) : '') + (window.FinestQR && FinestQR.homeCard ? FinestQR.homeCard(s) : '') +
-      '<div class="section-title"><h2>Today’s plan</h2><span><span>' + (plan.training ? 'Training day' : 'Rest day') + '</span> · <span translate="no">' + new Date().toLocaleDateString((window.I18N && I18N.locale || 'en-GB'), { weekday: 'long', day: 'numeric', month: 'long' }) + '</span></span></div>' +
+      '<div class="section-title"><h2>Today’s plan</h2><span><span>' + (plan.training ? 'Training day' : trailDay(s, new Date()) ? 'Trail day' : 'Rest day') + '</span> · <span translate="no">' + new Date().toLocaleDateString((window.I18N && I18N.locale || 'en-GB'), { weekday: 'long', day: 'numeric', month: 'long' }) + '</span></span></div>' +
       '<div class="t-list">' + plan.items.map(row).join('') +
       (routine(s).length ? '<button class="t-edit btn sm ghost focusable" data-go="routine">✎ Edit my supplement routine</button>'
         : '<div class="t-item k-setup"><span class="t-check plain">💊</span><div class="t-body"><div class="t-when">Health</div><b>Add your supplements</b><span>pick from Nature’s Finest or add your own – I’ll remind you when to take them</span></div><button class="btn sm primary focusable" data-go="routine">Set up</button></div>') +
@@ -174,7 +175,7 @@
     var cols = document.createElement('div'); cols.className = 'td-cols';
     var main = document.createElement('div'); main.className = 'td-main';
     var side = document.createElement('div'); side.className = 'td-side';
-    var sideSel = '.t-week, .hp-card, .hp-check, .shelf-strip, .rem-card, .qr-home' + (hasRoutine ? ', .scan-hero' : '');
+    var sideSel = '.t-week, .hp-card, .hp-check, .shelf-strip, .shelf-card, .rem-card, .qr-home' + (hasRoutine ? ', .scan-hero' : '');
     var rest = []; for (var n = buddy.nextElementSibling; n; n = n.nextElementSibling) rest.push(n);
     rest.forEach(function (el) { (el.matches(sideSel) ? side : main).appendChild(el); });
     cols.appendChild(main); cols.appendChild(side); buddy.insertAdjacentElement('afterend', cols);
@@ -291,6 +292,8 @@
     };
     var html = '<div class="screen"><div class="topbar"><h1>My supplement routine</h1></div>' +
       '<div class="hint">When and what you take – Today shows each one at the right time and on the right days.</div>' +
+      // scanning the pack is the fastest way in: right at the top, before the list
+      (window.Scan ? Scan.hero(s) : '') +
       '<div class="r-list">' + (list.map(function (r) {
         var c = r.pid && catalog(r.pid);
         return '<div class="panel r-item"><div class="r-head">' + (c && c.img ? '<img src="' + esc(c.img) + '" alt="">' : '<span class="r-ico">💊</span>') +
