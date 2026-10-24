@@ -123,7 +123,8 @@
   var Coach = {
     el: null, queue: [],
     has: function (k) { return (window.VOICE_CLIPS || []).indexOf(k) >= 0; },
-    on: function () { return state && state.settings.voice && state.settings.coachVoice !== 'device' && (window.VOICE_CLIPS || []).length > 0; },
+    // no setting any more: the recorded (English) coach speaks in English, every other language uses the device voice in that language
+    on: function () { return state && state.settings.voice && (!window.I18N || I18N.lang === 'en') && (window.VOICE_CLIPS || []).length > 0; },
     element: function () {
       if (!this.el) {
         this.el = document.createElement('audio'); this.el.setAttribute('playsinline', ''); this.el.preload = 'auto';
@@ -959,8 +960,7 @@
         row('🗓️', '4-week block', 'started ' + esc(s.startDate), '<button class="btn sm focusable" id="newBlock">Start new block today</button>')) +
       group('Sound & voice',
         row('🔊', 'Voice coaching', esc(voiceInfo) + ' On iPhone, silent mode can mute sound outside workouts.', opt('voice', true, 'On') + opt('voice', false, 'Off') + '<button class="btn sm focusable" id="vTest">▶ Test</button>') +
-        ((window.VOICE_CLIPS || []).length ? row('🎙️', 'Coach', 'Recorded studio voice for exercise names, sets, rest and countdowns – English in every language', opt('coachVoice', 'recorded', '★ Premium recorded coach') + opt('coachVoice', 'device', 'Device voice')) : '') +
-        (s.coachVoice === 'device' ? voiceRow() : '') +
+        voiceRow() +
         row('🔔', 'Beeps', '', opt('beeps', true, 'On') + opt('beeps', false, 'Off')) +
         row('📺', 'TV preview – seconds per exercise', '', opt('previewSec', 10, '10 s') + opt('previewSec', 15, '15 s') + opt('previewSec', 25, '25 s'))) +
       group('Data & privacy',
