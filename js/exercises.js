@@ -28,7 +28,7 @@
     tria: { name: 'Ab & back-extension bench', group: 'klopi', desc: 'Sit-ups and back extensions', icon: { vb: [-56, -92, 176, 104], scene: [{ type: 'tria_abs', x: -40 }] } },
     wall: { name: 'Wall station: pull-up bar + leg raise', group: 'klopi', desc: 'Pull-ups, leg raises, hangs', icon: { vb: [-92, -252, 160, 264], scene: [{ type: 'wall', x: -48, y: -226, bx: 46 }] } },
     box: { name: 'Plyo box', group: 'klopi', desc: 'Box jumps, step-ups', icon: { vb: [-60, -74, 120, 86], scene: [{ type: 'box', x: -32, w: 64, h: 54 }] } },
-    kinesis: { name: 'Cable station', group: 'kabli', desc: 'Cable exercises, resistance 0–20', icon: { vb: [-62, -222, 124, 234], scene: [{ type: 'kinesis', x: 0, pulleys: [[-24, -186], [-24, -112], [-24, -36]] }] } },
+    kinesis: { name: 'Cable station', group: 'kabli', desc: 'Wall cable station (e.g. Technogym Kinesis Personal), levels 0–20', icon: { vb: [-62, -222, 124, 234], scene: [{ type: 'kinesis', x: 0, pulleys: [[-24, -186], [-24, -112], [-24, -36]] }] } },
     bands: { name: 'Resistance bands', group: 'kabli', desc: 'Rows, triceps, warm-ups', icon: { vb: [-62, -76, 124, 88], noFloor: true, props: [{ t: 'band', x: 0, y: -34 }] } },
     sled: { name: 'Sled', group: 'hyrox', desc: 'Race sled push and pull', icon: { vb: [-60, -124, 150, 136], scene: [{ type: 'sled', x: -24 }] } },
     rope: { name: 'Jump rope', group: 'hyrox', desc: 'Conditioning, warm-ups', icon: { vb: [-62, -110, 124, 122], noFloor: true, props: [{ t: 'rope', x: 0, y: -56 }] } },
@@ -152,7 +152,12 @@
   var K_PUSH = { type: 'kinesis', x: 70, pulleys: [[52, -200]] };
   var K_LOW_BEHIND = { type: 'kinesis', x: -110, pulleys: [[-92, -20]] };
   var K_HIGH_BEHIND = { type: 'kinesis', x: -80, pulleys: [[-62, -205]] };
+  var K_LOW_FRONT = { type: 'kinesis', x: 110, pulleys: [[92, -20]] };
+  var K_LOW_FRONT_SQ = { type: 'kinesis', x: 130, pulleys: [[112, -60]] };
+  var K_HIGH_FRONT_KNEEL = { type: 'kinesis', x: 90, pulleys: [[72, -205]] };
   function cab(k) { return [{ from: k.pulleys[0], to: ['hN', 'hF'] }]; }
+  function cab1(k) { return [{ from: k.pulleys[0], to: ['hN'] }]; }   // one hand on the cable (single-arm / anti-rotation work)
+  var K_HEAD_LOW = { type: 'kinesis', x: -118, pulleys: [[-100, -20]] };
 
   function split(x) { return m({ t: 174, lN: [12, -4], lF: [-16, -16, 62], aN: [0, 0], pin: ['fN', 16, -6] }, x); }
   function kneel(x) {
@@ -820,6 +825,161 @@
           { d: 0.3, l: 'Bottom', p: stand({ t: 160, lN: [28, -16], aN: [42, 42], hd: 10 }) },
           { d: 1.5, l: 'Controlled return', p: stand({ t: 160, lN: [28, -16], aN: [42, 42], hd: 10 }) },
           { d: 0.2, l: '', p: stand({ t: 188, aN: [-140, -140], hd: -10 }) }
+        ]
+      }
+    },
+
+    {
+      id: 'k_fly', name: 'Cable – standing chest fly', equip: ['kinesis'], type: 'strength', unit: 'stopnja', load: 5, inc: 1,
+      muscles: 'Chest, front delts', tempo: '1-1-2',
+      cues: ['Back to the machine, split stance, handles at chest height', 'Arms almost straight – hug a big tree', 'Hands meet in front of the chest, slow way back'],
+      mistakes: ['Bending the elbows into a press', 'Letting the cables pull the arms too far back'],
+      anim: {
+        scene: [K_BEHIND], cables: cab(K_BEHIND), hold: { N: 'handle', F: 'handle' }, focus: ['torso', 'upper'],
+        frames: [
+          { d: 0.9, l: 'Hug forward', p: split({ aN: [-78, -70] }) },
+          { d: 0.4, l: 'Squeeze', p: split({ aN: [86, 96] }) },
+          { d: 1.6, l: 'Open slowly', p: split({ aN: [86, 96] }) },
+          { d: 0.2, l: '', p: split({ aN: [-78, -70] }) }
+        ]
+      }
+    },
+    {
+      id: 'k_shoulder_press', name: 'Cable – standing overhead press', equip: ['kinesis'], type: 'strength', unit: 'stopnja', load: 6, inc: 1,
+      muscles: 'Shoulders, triceps, core', tempo: '1-1-2',
+      cues: ['Back to the machine, low pulleys, split stance', 'Handles at shoulder height, ribs down', 'Press up and slightly forward, biceps by the ears'],
+      mistakes: ['Arching the lower back', 'Pressing too far forward'],
+      anim: {
+        scene: [K_LOW_BEHIND], cables: cab(K_LOW_BEHIND), hold: { N: 'handle', F: 'handle' }, focus: ['upper'],
+        frames: [
+          { d: 0.9, l: 'Press up', p: split({ aN: [24, 170] }) },
+          { d: 0.4, l: 'Top', p: split({ t: 182, aN: [172, 176] }) },
+          { d: 1.6, l: 'Controlled down', p: split({ t: 182, aN: [172, 176] }) },
+          { d: 0.3, l: '', p: split({ aN: [24, 170] }) }
+        ]
+      }
+    },
+    {
+      id: 'k_curl', name: 'Cable – biceps curl', equip: ['kinesis'], type: 'strength', unit: 'stopnja', load: 5, inc: 1,
+      muscles: 'Biceps, forearms', tempo: '1-1-2',
+      cues: ['Facing the machine, low pulleys, one step back', 'Elbows pinned to your sides', 'Curl up, lower for 2 s to full extension'],
+      mistakes: ['Elbows drifting forward', 'Leaning back to swing the weight'],
+      anim: {
+        scene: [K_LOW_FRONT], cables: cab(K_LOW_FRONT), hold: { N: 'handle', F: 'handle' }, focus: ['upper', 'fore'],
+        frames: [
+          { d: 0.9, l: 'Curl', p: stand({ aN: [8, 24] }) },
+          { d: 0.5, l: 'Squeeze', p: stand({ aN: [12, 150] }) },
+          { d: 1.8, l: 'Slowly down', p: stand({ aN: [12, 150] }) },
+          { d: 0.2, l: '', p: stand({ aN: [8, 24] }) }
+        ]
+      }
+    },
+    {
+      id: 'k_squat', name: 'Cable – counterbalance squat', equip: ['kinesis'], type: 'strength', unit: 'stopnja', load: 8, inc: 1,
+      muscles: 'Quads, glutes, core', tempo: '3-1-1',
+      cues: ['Facing the machine, handles from the low pulleys, arms long', 'Sit back between the heels – the cables let you stay upright', 'Drive up through the whole foot'],
+      mistakes: ['Pulling with the arms', 'Heels lifting'],
+      anim: {
+        scene: [K_LOW_FRONT_SQ], cables: cab(K_LOW_FRONT_SQ), hold: { N: 'handle', F: 'handle' }, focus: ['thigh', 'glute'],
+        frames: [
+          { d: 2.2, l: 'Lower for 3 s', p: stand({ aN: [70, 72] }) },
+          { d: 0.5, l: 'Pause at bottom', p: stand({ t: 152, lN: [100, -35], aN: [88, 90], hd: 10 }) },
+          { d: 1.0, l: 'Drive up', p: stand({ t: 152, lN: [100, -35], aN: [88, 90], hd: 10 }) },
+          { d: 0.6, l: 'Stand tall', p: stand({ aN: [70, 72] }) }
+        ]
+      }
+    },
+    {
+      id: 'k_crunch', name: 'Cable – kneeling crunch', equip: ['kinesis'], type: 'core', unit: 'stopnja', load: 7, inc: 1,
+      muscles: 'Abs', tempo: '1-1-2',
+      cues: ['Kneel facing the machine, handles by your forehead', 'Curl the ribs toward the hips – hips stay still', 'Slow return, keep the abs on'],
+      mistakes: ['Sitting back onto the heels', 'Pulling with the arms'],
+      anim: {
+        scene: [K_HIGH_FRONT_KNEEL], cables: cab(K_HIGH_FRONT_KNEEL), hold: { N: 'handle', F: 'handle' }, focus: ['torso'],
+        frames: [
+          { d: 0.9, l: 'Crunch down', p: kneel({ aN: [135, 255] }) },
+          { d: 0.5, l: 'Squeeze', p: kneel({ t: 138, aN: [92, 212], hd: 25 }) },
+          { d: 1.6, l: 'Slowly up', p: kneel({ t: 138, aN: [92, 212], hd: 25 }) },
+          { d: 0.2, l: '', p: kneel({ aN: [135, 255] }) }
+        ]
+      }
+    },
+
+    // stability: the cable pulls you off line, the job is not to move
+    {
+      id: 'k_pallof', name: 'Cable – Pallof press', equip: ['kinesis'], type: 'core', unit: 'stopnja', load: 5, inc: 1, perSide: true,
+      muscles: 'Deep core, obliques', tempo: '1-2-1',
+      cues: ['Side-on to the machine, handle at the chest, feet hip-width', 'Press straight out and hold 2 s – the cable tries to turn you, don\'t let it', 'Hips and shoulders stay square, breathe out on the press'],
+      mistakes: ['Rotating toward the machine', 'Standing too close – no tension'],
+      anim: {
+        scene: [K_BEHIND], cables: cab(K_BEHIND), hold: { N: 'handle', F: 'handle' }, focus: ['torso'],
+        frames: [
+          { d: 0.8, l: 'Press out', p: stand({ lN: [18, -16], aN: [14, 160] }) },
+          { d: 1.6, l: 'Hold – don\'t rotate', p: stand({ lN: [18, -16], aN: [88, 92] }) },
+          { d: 0.8, l: 'Back to chest', p: stand({ lN: [18, -16], aN: [88, 92] }) },
+          { d: 0.3, l: '', p: stand({ lN: [18, -16], aN: [14, 160] }) }
+        ]
+      }
+    },
+    {
+      id: 'k_lift', name: 'Cable – low-to-high lift', equip: ['kinesis'], type: 'core', unit: 'stopnja', load: 5, inc: 1, perSide: true,
+      muscles: 'Obliques, core, shoulders', tempo: '1-0-2',
+      cues: ['Side-on, low pulley, both hands on the handle by the hip', 'Push through the legs and rotate up diagonally across the body', 'Slow return – control the rotation all the way down'],
+      mistakes: ['Lifting with the arms only', 'Arching the lower back at the top'],
+      anim: {
+        scene: [K_LOW_BEHIND], cables: cab(K_LOW_BEHIND), hold: { N: 'handle', F: 'handle' }, focus: ['torso'],
+        frames: [
+          { d: 0.8, l: 'Lift diagonally', p: stand({ t: 160, lN: [28, -16], aN: [-28, -28], hd: 10 }) },
+          { d: 0.3, l: 'Top', p: stand({ t: 184, aN: [150, 150], hd: -10 }) },
+          { d: 1.5, l: 'Controlled return', p: stand({ t: 184, aN: [150, 150], hd: -10 }) },
+          { d: 0.2, l: '', p: stand({ t: 160, lN: [28, -16], aN: [-28, -28], hd: 10 }) }
+        ]
+      }
+    },
+    {
+      id: 'k_row_1arm', name: 'Cable – single-arm row (split stance)', equip: ['kinesis'], type: 'strength', unit: 'stopnja', load: 6, inc: 1, perSide: true,
+      muscles: 'Back, biceps, anti-rotation core', tempo: '1-1-2',
+      cues: ['Facing the machine, split stance, one handle', 'Row to the ribs without twisting – hips and shoulders face the machine', 'Long reach forward, then pull again'],
+      mistakes: ['Rotating the torso to cheat the weight', 'Shrugging the shoulder'],
+      anim: {
+        scene: [K_FRONT_MID], cables: cab1(K_FRONT_MID), hold: { N: 'handle' }, focus: ['torso', 'upper'],
+        frames: [
+          { d: 0.9, l: 'Pull', p: split({ t: 172, aN: [80, 82], aF: [4, 20] }) },
+          { d: 0.5, l: 'Squeeze', p: split({ t: 178, aN: [-62, 86], aF: [4, 20] }) },
+          { d: 1.6, l: 'Reach forward slowly', p: split({ t: 178, aN: [-62, 86], aF: [4, 20] }) },
+          { d: 0.2, l: '', p: split({ t: 172, aN: [80, 82], aF: [4, 20] }) }
+        ]
+      }
+    },
+    {
+      id: 'k_press_1arm', name: 'Cable – single-arm chest press', equip: ['kinesis'], type: 'strength', unit: 'stopnja', load: 6, inc: 1, perSide: true,
+      muscles: 'Chest, triceps, anti-rotation core', tempo: '1-1-2',
+      cues: ['Back to the machine, split stance, one handle at chest height', 'Press forward without letting the shoulder or hips turn', 'Brace the abs – the core does as much as the chest'],
+      mistakes: ['Torso rotating with the press', 'Elbow flaring to 90°'],
+      anim: {
+        scene: [K_BEHIND], cables: cab1(K_BEHIND), hold: { N: 'handle' }, focus: ['torso', 'upper'],
+        frames: [
+          { d: 0.9, l: 'Press', p: split({ aN: [-68, 90], aF: [4, 20] }) },
+          { d: 0.4, l: 'Hold square', p: split({ aN: [86, 88], aF: [4, 20] }) },
+          { d: 1.6, l: 'Controlled return', p: split({ aN: [86, 88], aF: [4, 20] }) },
+          { d: 0.2, l: '', p: split({ aN: [-68, 90], aF: [4, 20] }) }
+        ]
+      }
+    },
+    {
+      id: 'k_deadbug', name: 'Cable – dead bug', equip: ['kinesis'], type: 'core', unit: 'stopnja', load: 3, inc: 1,
+      muscles: 'Deep core', tempo: '2-1-2',
+      cues: ['Lie with the head toward the machine, low pulley, both hands on the handle above the chest', 'Lower back pressed into the floor – the cable pulls the arms back, don\'t let it arch you', 'Extend one leg at a time, slowly, then switch'],
+      mistakes: ['Lower back lifting off the floor', 'Letting the arms drift back over the head'],
+      anim: {
+        scene: [K_HEAD_LOW], cables: cab(K_HEAD_LOW), hold: { N: 'handle', F: 'handle' }, focus: ['torso'],
+        frames: [
+          { d: 1.4, l: 'Extend one leg', p: deadBug([168, 168], [168, 168], DB_REST_LEG, DB_REST_LEG) },
+          { d: 0.6, l: 'Exhale, back flat', p: deadBug([168, 168], [168, 168], DB_REST_LEG, [94, 94, 160]) },
+          { d: 1.4, l: 'Return', p: deadBug([168, 168], [168, 168], DB_REST_LEG, [94, 94, 160]) },
+          { d: 1.4, l: 'Other leg', p: deadBug([168, 168], [168, 168], DB_REST_LEG, DB_REST_LEG) },
+          { d: 0.6, l: 'Exhale, back flat', p: deadBug([168, 168], [168, 168], [94, 94, 160], DB_REST_LEG) },
+          { d: 1.4, l: 'Return', p: deadBug([168, 168], [168, 168], [94, 94, 160], DB_REST_LEG) }
         ]
       }
     },
@@ -1801,6 +1961,8 @@
     db_bulgarian: ['noge', 'zadnjica'], db_shoulder_press: ['rame', 'roke'], db_curl: ['roke'], db_hip_thrust: ['zadnjica', 'noge'], db_stepup: ['noge', 'zadnjica'],
     k_chest_press: ['prsa', 'roke', 'trup'], k_row: ['hrbet', 'roke'], k_pulldown: ['hrbet', 'roke'], k_face_pull: ['rame', 'hrbet'],
     k_pushdown: ['roke'], k_pullthrough: ['zadnjica', 'noge'], k_woodchop: ['trup'],
+    k_fly: ['prsa', 'rame'], k_shoulder_press: ['rame', 'roke', 'trup'], k_curl: ['roke'], k_squat: ['noge', 'zadnjica', 'trup'], k_crunch: ['trup'],
+    k_pallof: ['trup'], k_lift: ['trup', 'rame'], k_row_1arm: ['hrbet', 'roke', 'trup'], k_press_1arm: ['prsa', 'roke', 'trup'], k_deadbug: ['trup'],
     pullup: ['hrbet', 'roke', 'trup'], hang_knee_raise: ['trup'], hang_leg_raise: ['trup'], dead_hang: ['mobilnost', 'hrbet'],
     back_ext: ['hrbet', 'zadnjica'], situp: ['trup'], pushup: ['prsa', 'roke', 'trup'], plank: ['trup'], dead_bug: ['trup'], bird_dog: ['trup', 'hrbet'],
     hip_flexor: ['mobilnost', 'noge'], hamstring_bench: ['mobilnost', 'noge'],
@@ -1821,31 +1983,32 @@
     hollow_hold: ['trup'], sl_glute_bridge: ['zadnjica', 'noge'], hamstring_floor: ['mobilnost', 'noge']
   };
   // Multi-joint lifts go first in a generated session
-  var COMPOUND = ['bb_squat', 'bb_deadlift', 'bb_bench', 'kb_goblet_squat', 'kb_deadlift', 'db_rdl', 'db_bulgarian', 'db_hip_thrust', 'kb_swing', 'db_bench', 'db_incline', 'pullup',
+  var COMPOUND = ['bb_squat', 'k_squat', 'k_shoulder_press', 'bb_deadlift', 'bb_bench', 'kb_goblet_squat', 'kb_deadlift', 'db_rdl', 'db_bulgarian', 'db_hip_thrust', 'kb_swing', 'db_bench', 'db_incline', 'pullup',
     'db_row', 'k_pulldown', 'db_shoulder_press', 'kb_press', 'k_chest_press', 'k_row', 'db_stepup', 'pushup', 'k_pullthrough', 'back_ext',
     'landmine_row', 'landmine_press', 'dips', 'susp_row', 'susp_pushup', 'susp_squat', 'pike_pushup'];
 
   // Movement patterns, each list in preference order. Used to substitute exercises
   // when a profile lacks equipment, and to upgrade hybrid race substitutes to the real station.
   var PATTERNS = {
-    squat: ['bb_squat', 'kb_goblet_squat', 'bw_squat', 'jump_squat', 'wall_sit', 'susp_squat'],
+    squat: ['bb_squat', 'kb_goblet_squat', 'k_squat', 'bw_squat', 'jump_squat', 'wall_sit', 'susp_squat'],
     hinge: ['bb_deadlift', 'kb_deadlift', 'db_rdl', 'glute_bridge', 'sl_glute_bridge'],
     swing: ['kb_swing', 'k_pullthrough', 'db_rdl', 'jump_squat', 'glute_bridge', 'sl_glute_bridge'],
     bridge: ['db_hip_thrust', 'glute_bridge', 'sl_glute_bridge'],
     lunge: ['db_bulgarian', 'db_stepup', 'kb_lunge', 'sandbag_lunge', 'bw_lunge', 'jump_squat', 'wall_sit'],
     stepup: ['db_stepup', 'box_jump', 'db_bulgarian', 'bw_lunge', 'jump_squat', 'wall_sit'],
     backext: ['back_ext', 'superman', 'k_pullthrough', 'glute_bridge', 'bird_dog'],
-    hpush: ['db_bench', 'bb_bench', 'k_chest_press', 'pushup', 'susp_pushup', 'dips', 'knee_pushup'],
+    hpush: ['db_bench', 'bb_bench', 'k_chest_press', 'k_press_1arm', 'pushup', 'susp_pushup', 'dips', 'knee_pushup'],
     incline: ['db_incline', 'k_chest_press', 'bb_bench', 'pushup', 'landmine_press', 'susp_pushup', 'knee_pushup'],
-    vpush: ['db_shoulder_press', 'kb_press', 'pike_pushup', 'pushup', 'landmine_press', 'knee_pushup'],
-    hpull: ['db_row', 'k_row', 'band_row', 'pullup', 'landmine_row', 'susp_row', 'superman', 'prone_y_raise'],
+    vpush: ['db_shoulder_press', 'kb_press', 'k_shoulder_press', 'pike_pushup', 'pushup', 'landmine_press', 'knee_pushup'],
+    hpull: ['db_row', 'k_row', 'k_row_1arm', 'band_row', 'pullup', 'landmine_row', 'susp_row', 'superman', 'prone_y_raise'],
     vpull: ['pullup', 'k_pulldown', 'band_row', 'db_row', 'susp_row', 'landmine_row', 'superman', 'prone_y_raise'],
     rear: ['k_face_pull', 'band_row', 'db_row', 'susp_row', 'prone_y_raise', 'superman'],
-    curl: ['db_curl', 'band_row'],
+    curl: ['db_curl', 'k_curl', 'band_row'],
+    fly: ['k_fly', 'db_bench', 'k_chest_press', 'pushup', 'knee_pushup'],
     triceps: ['k_pushdown', 'band_pushdown', 'pushup', 'dips', 'knee_pushup'],
     corehang: ['hang_knee_raise', 'hang_leg_raise', 'situp', 'dead_bug', 'lsit', 'abwheel_rollout', 'hollow_hold'],
-    coreflex: ['situp', 'hang_knee_raise', 'dead_bug', 'abwheel_rollout', 'susp_fallout', 'hollow_hold'],
-    corerot: ['k_woodchop', 'side_plank', 'bird_dog', 'plank', 'ball_rot_slam'],
+    coreflex: ['situp', 'k_crunch', 'hang_knee_raise', 'dead_bug', 'abwheel_rollout', 'susp_fallout', 'hollow_hold'],
+    corerot: ['k_woodchop', 'k_pallof', 'k_lift', 'side_plank', 'bird_dog', 'plank', 'ball_rot_slam'],
     hang: ['dead_hang', 'hip_flexor', 'roll_tspine'],
     stretch: ['hamstring_bench', 'hamstring_floor', 'hip_flexor'],
     thruster: ['db_thruster', 'wall_ball', 'kb_goblet_squat', 'bw_squat'],
@@ -1863,7 +2026,7 @@
     hxcarry: ['kb_farmers', 'db_farmers'],
     hxrow: ['row_steady', 'skierg', 'bike_z2', 'airbike_z2'],
     burpee: ['burpee_bj', 'burpee', 'mountain_climber', 'ball_slam'],
-    plank: ['plank', 'dead_bug', 'abwheel_rollout', 'susp_fallout', 'side_plank', 'hollow_hold'], deadbug: ['dead_bug', 'plank', 'hollow_hold'], birddog: ['bird_dog', 'dead_bug', 'side_plank'], pushup: ['pushup', 'k_chest_press', 'susp_pushup', 'knee_pushup'], hipflex: ['hip_flexor', 'roll_quads'],
+    plank: ['plank', 'dead_bug', 'abwheel_rollout', 'susp_fallout', 'side_plank', 'hollow_hold'], deadbug: ['dead_bug', 'k_deadbug', 'plank', 'hollow_hold'], birddog: ['bird_dog', 'dead_bug', 'side_plank'], pushup: ['pushup', 'k_chest_press', 'susp_pushup', 'knee_pushup'], hipflex: ['hip_flexor', 'roll_quads'],
     // patterns introduced with the extra equipment
     rollout: ['abwheel_rollout', 'susp_fallout', 'plank', 'dead_bug'], lsit: ['lsit', 'hang_leg_raise', 'hang_knee_raise', 'plank'],
     dip: ['dips', 'db_bench', 'k_chest_press', 'pushup', 'k_pushdown', 'knee_pushup'], landmine: ['landmine_press', 'db_shoulder_press', 'kb_press', 'pike_pushup', 'pushup'],
@@ -1880,7 +2043,9 @@
     db_hip_thrust: 'bridge', glute_bridge: 'bridge', db_bulgarian: 'lunge', kb_lunge: 'hxlunge', bw_lunge: 'lunge', db_stepup: 'stepup', box_jump: 'stepup', back_ext: 'backext',
     db_bench: 'hpush', bb_bench: 'hpush', k_chest_press: 'hpush', db_incline: 'incline', db_shoulder_press: 'vpush', kb_press: 'vpush',
     db_row: 'hpull', k_row: 'hpull', band_row: 'hpull', pullup: 'vpull', k_pulldown: 'vpull', k_face_pull: 'rear', db_curl: 'curl', k_pushdown: 'triceps', band_pushdown: 'triceps',
-    hang_knee_raise: 'corehang', hang_leg_raise: 'corehang', situp: 'coreflex', k_woodchop: 'corerot', dead_hang: 'hang', hamstring_bench: 'stretch', hip_flexor: 'hipflex',
+    hang_knee_raise: 'corehang', hang_leg_raise: 'corehang', situp: 'coreflex',
+    k_fly: 'fly', k_shoulder_press: 'vpush', k_curl: 'curl', k_squat: 'squat', k_crunch: 'coreflex',
+    k_pallof: 'corerot', k_lift: 'corerot', k_row_1arm: 'hpull', k_press_1arm: 'hpush', k_deadbug: 'deadbug', k_woodchop: 'corerot', dead_hang: 'hang', hamstring_bench: 'stretch', hip_flexor: 'hipflex',
     db_thruster: 'hxwb', kb_farmers: 'carry', db_farmers: 'carry', bike_z2: 'steady', row_steady: 'steadyRow', bike_hiit: 'intervals', row_hiit: 'intervalsRow',
     hx_bike_run: 'hxrun', treadmill_run: 'hxrun', k_ski: 'hxski', skierg: 'hxski', bike_sled: 'hxpush', sled_push: 'hxpush', k_sled_pull: 'hxpull', sled_pull: 'hxpull',
     wall_ball: 'hxwb', sandbag_lunge: 'hxlunge', burpee_bj: 'burpee', plank: 'plank', dead_bug: 'deadbug', bird_dog: 'birddog', pushup: 'pushup',
@@ -1905,7 +2070,11 @@
     db_curl: [['biceps'], ['forearms']], db_hip_thrust: [['glutes'], ['hams', 'quads']], db_stepup: [['quads', 'glutes'], ['calves', 'hams']],
     k_chest_press: [['chest', 'triceps'], ['delts', 'abs']], k_row: [['lats', 'traps'], ['biceps', 'delts']], k_pulldown: [['lats'], ['biceps', 'traps']],
     k_face_pull: [['delts', 'traps'], ['biceps']], k_pushdown: [['triceps'], ['forearms']], k_pullthrough: [['glutes', 'hams'], ['lowback']],
-    k_woodchop: [['obliques', 'abs'], ['delts', 'glutes']], pullup: [['lats', 'biceps'], ['traps', 'forearms', 'abs']],
+    k_woodchop: [['obliques', 'abs'], ['delts', 'glutes']],
+    k_fly: [['chest'], ['delts']], k_shoulder_press: [['delts', 'triceps'], ['traps', 'abs']], k_curl: [['biceps'], ['forearms']],
+    k_squat: [['quads', 'glutes'], ['abs', 'hams']], k_crunch: [['abs'], ['obliques']],
+    k_pallof: [['abs', 'obliques'], ['glutes', 'delts']], k_lift: [['obliques', 'abs'], ['delts', 'glutes']], k_row_1arm: [['lats', 'obliques'], ['biceps', 'traps', 'abs']],
+    k_press_1arm: [['chest', 'obliques'], ['triceps', 'delts', 'abs']], k_deadbug: [['abs'], ['obliques', 'hipflex']], pullup: [['lats', 'biceps'], ['traps', 'forearms', 'abs']],
     hang_knee_raise: [['abs', 'hipflex'], ['obliques', 'forearms']], hang_leg_raise: [['abs', 'hipflex'], ['obliques', 'forearms']], dead_hang: [['forearms', 'lats'], ['delts']],
     back_ext: [['lowback', 'glutes'], ['hams']], situp: [['abs'], ['hipflex', 'obliques']], pushup: [['chest', 'triceps'], ['delts', 'abs']],
     plank: [['abs'], ['obliques', 'delts', 'glutes']], dead_bug: [['abs'], ['obliques', 'hipflex']], bird_dog: [['lowback', 'glutes'], ['abs', 'delts']],
