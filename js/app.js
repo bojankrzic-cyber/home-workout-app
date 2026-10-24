@@ -626,7 +626,7 @@
 
   // Gym: the training hub (program, quick workouts, hybrid race, saved). Home = Today (js/today.js).
   SCREENS.train = function () {
-    var plan = Program.PLANS[state.settings.days];
+    var plan = Program.plan(state);
     var nextKey = Program.nextSessionKey(state);
     var sess = Program.build(state, nextKey);
     var mins = Program.estimateMin(sess);
@@ -643,8 +643,7 @@
       var ds = d.toISOString().slice(0, 10);
       var done = state.log.some(function (l) { return l.date.slice(0, 10) === ds; }) || (state.activities || []).some(function (a) { return a.start.slice(0, 10) === ds; });
       if (done) weekDone++;
-      var pref = state.settings.prefDays || [];
-      var planned = pref.length ? pref.indexOf(d.getDay()) >= 0 : plan.days.indexOf((i + 1) % 7) >= 0;
+      var planned = plan.days.indexOf(d.getDay()) >= 0 || plan.trail.indexOf(d.getDay()) >= 0;
       daysHtml += '<div class="day' + (done ? ' done' : '') + (d.toDateString() === now.toDateString() ? ' today' : '') + '">' +
         DAYN[d.getDay()] + '<b>' + d.getDate() + '</b>' + (done ? '✓' : planned ? '•' : '&nbsp;') + '</div>';
     }
@@ -728,7 +727,7 @@
       var end = new Date(now); end.setDate(now.getDate() - w * 7);
       var start = new Date(end); start.setDate(end.getDate() - 7);
       var c = state.log.filter(function (l) { var d = new Date(l.date); return d > start && d <= end; }).length;
-      if (c >= Math.min(3, state.settings.days)) n++; else if (w > 0) break;
+      if (c >= Math.min(3, Program.plan(state).gym)) n++; else if (w > 0) break;
       wk++;
     }
     return n;
@@ -908,6 +907,7 @@
 
   SCREENS.settings = function () {
     var s = state.settings;
+    if (s.trail == null) s.trail = 0;   // profiles from before Trail days: all gym
     function opt(key, val, label) {
       return '<button class="chip focusable' + (s[key] === val ? ' on' : '') + '" data-set="' + key + '" data-val=\'' + JSON.stringify(val) + '\'>' + label + '</button>';
     }
@@ -956,7 +956,8 @@
         row('💡', 'Nature’s Finest product tips', Products.eligible(state) ? 'Goal-based tips on Today and after workouts – matched on this device only' : 'Shown only to adults – add your age in your profile', tipChip(true, 'On') + tipChip(false, 'Off'))) +
       group('Training',
         link('🏋️', 'My equipment', pl(nEq, NAP) + ' · ' + pl(unlocked(s.equipment || []), VAJ), 'equipment') +
-        row('📅', 'Workouts per week', '', opt('days', 3, '3× – full body') + opt('days', 4, '4× – upper / lower')) +
+        row('📅', 'Workouts per week', weekSplit(s), [1, 2, 3, 4, 5, 6, 7].map(function (n) { return opt('days', n, n + '×'); }).join('')) +
+        row('🏃', 'of them Trail', 'run, walk or ride outdoors – the rest are gym workouts', weekRange(s.days).map(function (n) { return opt('trail', n, n + '×'); }).join('')) +
         row('📈', 'Level', '', opt('level', 'beg', 'Beginner') + opt('level', 'mid', 'Intermediate') + opt('level', 'adv', 'Advanced')) +
         row('🙌', 'Hands-free sets', 'The set completes itself 6 s after the rep pacer reaches the target', opt('handsFree', true, 'On') + opt('handsFree', false, 'Off')) +
         row('🗓️', '4-week block', 'started ' + esc(s.startDate), '<button class="btn sm focusable" id="newBlock">Start new block today</button>')) +
@@ -973,6 +974,7 @@
     $$('[data-set]').forEach(function (b) {
       b.onclick = function () {
         s[b.getAttribute('data-set')] = JSON.parse(b.getAttribute('data-val'));
+        if (s.trail != null && s.trail >= s.days) s.trail = s.days - 1;   // at least one gym workout stays
         Store.save();
         refresh();
       };
@@ -1502,7 +1504,7 @@
       var f = $('#wFinish');
       f.hidden = false;
       var weekN = state.log.filter(function (l) { return (Date.now() - new Date(l.date)) < 7 * 864e5; }).length;
-      var plan = Program.PLANS[state.settings.days], wk = Me.weeksTo(state.settings);
+      var plan = Program.plan(state), wk = Me.weeksTo(state.settings);
       var proud = [weekN + ' of ' + plan.order.length + ' workouts this week' + (weekN >= plan.order.length ? ' – weekly goal hit 🎯' : '')];
       if (prs.length) proud.unshift('🏆 ' + prs.length + (prs.length === 1 ? ' personal best: ' : ' personal bests: ') + prs.map(function (id) { return ex(id).name.split(' (')[0]; }).join(', '));
       if (wk != null && wk >= 0) proud.push(wk + (wk === 1 ? ' week' : ' weeks') + ' to your target date');
@@ -1685,7 +1687,7 @@
         for: p.id || 'new',
         name: existing ? existing.name : '',
         color: existing ? existing.color : Store.COLORS[Store.list().length % Store.COLORS.length],
-        level: es.level || 'mid', days: es.days || 3,
+        level: es.level || 'mid', days: es.days || 5, trail: es.trail != null ? es.trail : (existing ? 0 : 1),
         goal: es.goal || 'general', why: es.why || '', targetWeight: es.targetWeight || null, targetDate: es.targetDate || null,
         sex: es.sex || null, birthYear: es.birthYear || null, height: es.height || null, weight: es.weight || null,
         maxHr: es.maxHr || null, restHr: es.restHr || null,
@@ -1747,7 +1749,8 @@
       '<div class="pgrid">' + num('age', 'Age', 'years', 1) + num('height', 'Height', 'cm', 1) + num('weight', 'Body weight', 'kg', 0.5) + '</div></div>' +
 
       '<div class="panel"><h3>Training</h3>' +
-      '<div class="opt-row"><div class="k">Workouts per week</div>' + chip('days', 3, '3× – full body') + chip('days', 4, '4× – upper / lower') + '</div>' +
+      '<div class="opt-row"><div class="k">Workouts per week</div>' + [1, 2, 3, 4, 5, 6, 7].map(function (n) { return chip('days', n, n + '×'); }).join('') + '</div>' +
+      '<div class="opt-row"><div class="k">of them Trail</div>' + weekRange(d.days).map(function (n) { return chip('trail', n, n + '×'); }).join('') + '<span class="hint">' + weekSplit(d) + '</span></div>' +
       '<div class="opt-row"><div class="k">Preferred days</div>' + [1, 2, 3, 4, 5, 6, 0].map(function (n) { return multi('prefDays', n, DAYN[n]); }).join('') + '</div>' +
       '<div class="opt-row"><div class="k">Session length</div>' + chip('sessionMin', 30, '30 min') + chip('sessionMin', 45, '45 min') + chip('sessionMin', 60, '60 min') + chip('sessionMin', 75, '75 min') + chip('sessionMin', null, 'No limit') + '</div>' +
       '<div class="opt-row"><div class="k">Equipment</div><div class="eq-strip">' + d.equipment.slice(0, 9).map(function (k) { return '<span class="eq-mini" title="' + esc(Exercises.EQUIP[k].name) + '">' + equipIcon(k) + '</span>'; }).join('') +
@@ -1790,7 +1793,7 @@
     $$('[data-pi]').forEach(function (inp) { inp.onchange = function () { readInputs(); refresh(); }; });
     if ($('#pMore')) $('#pMore').onclick = function () { readInputs(); d.more = true; refresh(); };
     $$('[data-pe]').forEach(function (b) {
-      b.onclick = function () { readInputs(); d[b.getAttribute('data-pe')] = JSON.parse(b.getAttribute('data-val')); refresh(); };
+      b.onclick = function () { readInputs(); d[b.getAttribute('data-pe')] = JSON.parse(b.getAttribute('data-val')); if (d.trail >= d.days) d.trail = d.days - 1; refresh(); };
     });
     $$('[data-pm]').forEach(function (b) {
       b.onclick = function () {
@@ -1824,7 +1827,7 @@
       var pr = existing || Store.addProfile(Store.newProfile());
       var ps = pr.settings;
       pr.name = d.name; pr.color = d.color;
-      ['level', 'days', 'goal', 'why', 'targetWeight', 'targetDate', 'sex', 'birthYear', 'height', 'maxHr', 'restHr', 'sessionMin'].forEach(function (k) { ps[k] = d[k]; });
+      ['level', 'days', 'trail', 'goal', 'why', 'targetWeight', 'targetDate', 'sex', 'birthYear', 'height', 'maxHr', 'restHr', 'sessionMin'].forEach(function (k) { ps[k] = d[k]; });
       ps.limits = d.limits.slice(); ps.prefDays = d.prefDays.slice();
       ps.equipment = d.eqMode === 'bw' || d.eqMode === 'pick' ? [] : d.eqMode === 'same' && state ? (state.settings.equipment || []).slice() : d.equipment.slice();
       if (d.weight !== ps.weight) logWeight(pr, d.weight);
@@ -1844,6 +1847,9 @@
       });
     };
   };
+  // workouts per week: how many of them can be Trail (at least one gym workout stays), and the split as a line
+  function weekRange(days) { var o = []; for (var k = 0; k < Math.max(1, Math.min(7, days || 5)); k++) o.push(k); return o; }
+  function weekSplit(s) { var c = Program.counts(s); return c.gym + '× gym · ' + c.trail + '× Trail'; }
   // one body-weight entry per day; the latest entry is the current weight
   function logWeight(pr, kg) {
     var s = pr.settings; s.weight = kg;

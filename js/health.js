@@ -49,9 +49,9 @@
   function items(s) { return s.settings.routine || []; }
   function active(s) { return items(s).length > 0; }
   function plannedDay(s, d) {
-    var pref = s.settings.prefDays || [], plans = global.Program && Program.PLANS, plan = plans && (plans[s.settings.days] || plans[3]);
-    if (pref.length) return pref.indexOf(d.getDay()) >= 0;
-    return plan ? plan.days.indexOf(d.getDay()) >= 0 : true;
+    if (!global.Program || !Program.plan) return true;
+    var p = Program.plan(s);   // gym and Trail days are both training days
+    return p.days.indexOf(d.getDay()) >= 0 || p.trail.indexOf(d.getDay()) >= 0;
   }
   function trainedOn(s, ds) { return (s.log || []).some(function (l) { return ymd(new Date(l.date)) === ds; }); }
   function due(s, it, d) { return it.days !== 'training' || plannedDay(s, d) || trainedOn(s, ymd(d)); }

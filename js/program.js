@@ -148,6 +148,28 @@
     4: { name: '4×/week – Upper / Lower', order: ['L1', 'U1', 'L2', 'U2'], days: [1, 2, 4, 5] },
     3: { name: '3×/week – Full body', order: ['F1', 'F2', 'F3'], days: [1, 3, 5] }
   };
+  // Week = settings.days workouts (1–7), settings.trail of them outdoors (Trail: run, walk, ride), the rest in the gym.
+  // Gym rotation by count: up to 3 full body, 4 upper/lower, 5+ upper/lower with full-body days added.
+  var GYM_ORDER = { 1: ['F1'], 2: ['F1', 'F2'], 3: ['F1', 'F2', 'F3'], 4: ['L1', 'U1', 'L2', 'U2'], 5: ['L1', 'U1', 'F1', 'L2', 'U2'],
+    6: ['L1', 'U1', 'F1', 'L2', 'U2', 'F2'], 7: ['L1', 'U1', 'F1', 'L2', 'U2', 'F2', 'F3'] };
+  var GYM_DAYS = { 1: [3], 2: [2, 5], 3: [1, 3, 5], 4: [1, 2, 4, 5], 5: [1, 2, 3, 4, 5], 6: [1, 2, 3, 4, 5, 6], 7: [0, 1, 2, 3, 4, 5, 6] };
+  var TRAIL_PREF = [6, 0, 3, 2, 4, 1, 5];   // outdoors: weekend first
+  function counts(s) {
+    var total = Math.max(1, Math.min(7, s.days || 5)), trail = Math.max(0, Math.min(total - 1, s.trail == null ? 0 : s.trail));
+    return { total: total, trail: trail, gym: total - trail };
+  }
+  function plan_(state) {
+    var s = state.settings, c = counts(s), pref = (s.prefDays || []).slice(), gymDays, trailDays;
+    if (pref.length) {
+      // picked weekdays: Trail takes the weekend-most ones, the gym the rest
+      trailDays = TRAIL_PREF.filter(function (d) { return pref.indexOf(d) >= 0; }).slice(0, c.trail);
+      gymDays = pref.filter(function (d) { return trailDays.indexOf(d) < 0; });
+    } else {
+      gymDays = GYM_DAYS[c.gym].slice();
+      trailDays = TRAIL_PREF.filter(function (d) { return gymDays.indexOf(d) < 0; }).slice(0, c.trail);
+    }
+    return { order: GYM_ORDER[c.gym], days: gymDays, trail: trailDays, gym: c.gym, trailN: c.trail, total: c.total };
+  }
 
   var WEEK_INFO = {
     1: { label: 'Week 1 – Intro', rir: 3, note: 'Stop each set when you could still do about 3 more reps. Technique before load.' },
@@ -163,7 +185,7 @@
   }
 
   function nextSessionKey(state) {
-    var plan = PLANS[state.settings.days];
+    var plan = plan_(state);
     var done = state.log.filter(function (l) { return plan.order.indexOf(l.session) >= 0; });
     if (!done.length) return plan.order[0];
     var last = done[done.length - 1].session;
@@ -678,7 +700,7 @@
   }
 
   global.Program = {
-    SESSIONS: SESSIONS, PLANS: PLANS, WEEK_INFO: WEEK_INFO,
+    SESSIONS: SESSIONS, PLANS: PLANS, plan: plan_, counts: counts, WEEK_INFO: WEEK_INFO,
     HX_KEYS: ['HX1', 'HX2', 'HX3'],
     MACHINES: MACHINES, cardioMachines: cardioMachines, owned: owned,
     get: get, build: build, steps: steps, generate: generate, alternatives: alternatives,
