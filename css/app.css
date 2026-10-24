@@ -1532,3 +1532,13 @@ a.btn { text-decoration: none; color: var(--text); }
   .ps-l { flex-direction: column; gap: 0; }
   .kc-main b { font-size: 1.7rem; }
 }
+/* phone How-to view: the set card and the real-form photo share the row and never overlap
+   (also with larger iOS text sizes) – the photo takes up to 44 %, the set card the rest; "reps" wraps under the number */
+@media (max-width: 900px) {
+  .p2 .pip:not(.big) { width: min(11.5rem, 44%); }
+  .p2 .mini-time { right: calc(min(11.5rem, 44%) + 1.6rem); display: flex; flex-flow: row wrap; align-items: baseline; column-gap: .5rem; }
+  .p2 .mini-time:has(span:not(:empty)) { padding-right: 1rem; }
+  .p2 .mini-time small { flex: 1 1 100%; line-height: 1.25; }
+  .p2 .mini-time b { font-size: min(3rem, 12vw); }
+  .p2 .mini-time span { position: static; }
+}
