@@ -887,6 +887,9 @@
           : '<button class="fs-item focusable" id="fsWeight"><span>⚖️</span><div><b>Log your first weight</b><small>the start of your trend line</small></div><span class="set-chev">›</span></button>') +
         '<button class="fs-item focusable" data-go="train"><span>🏋️</span><div><b>Do your first workout</b><small>sets, weights and records start here</small></div><span class="set-chev">›</span></button>' +
         '<button class="fs-item focusable" data-go="record" data-p=\'{"type":"walk"}\'><span>🚶</span><div><b>Record your first walk or run</b><small>distance, time and running records</small></div><span class="set-chev">›</span></button>' +
+        // supplements: the routine lives on Today; ticked once something is in it
+        ((bs.routine || []).length ? '<button class="fs-item done focusable" data-go="routine"><span>💊</span><div><b>Add your supplements</b><small>' + bs.routine.length + ' in your routine</small></div><span class="set-chev fs-ok">✓</span></button>'
+          : '<button class="fs-item focusable" data-go="routine"><span>💊</span><div><b>Add your supplements</b><small>pick from Nature’s Finest or add your own – I’ll remind you when to take them</small></div><span class="set-chev">›</span></button>') +
         '</div></div>' : '') +
       (fresh ? '' : '<div class="hero"><div class="panel"><h3>Workouts per week (12 weeks)</h3><div class="bars">' + bars + '</div><div class="hint">Goal: ' + state.settings.days + ' per week</div></div>' +
       '<div class="panel"><h3>Recent workouts</h3><div class="hist">' + (log.slice(0, 6).map(function (l) {

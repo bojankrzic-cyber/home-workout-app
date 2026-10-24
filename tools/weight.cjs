@@ -16,6 +16,7 @@ const path = require('path');
   await page.click('#qrStart'); await page.click('[data-anchor="breakfast"]'); await page.clock.runFor(300);
   await page.evaluate(() => window.__go('history')); await page.clock.runFor(500);
   ok(!(await page.$('#fsWeight.done')), 'first weight not ticked before logging');
+  ok(await page.$('.fs-item.done[data-go="routine"]'), 'first steps: supplements step, ticked (the QR start put one in the routine)');
   await page.click('#wlSave'); await page.clock.runFor(800);
   ok(await page.$('#fsWeight.done'), 'first weight ticked after logging');
   await page.evaluate(() => window.__go('home')); await page.clock.runFor(800);
