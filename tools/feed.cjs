@@ -15,13 +15,14 @@ const path = require('path');
   await page.evaluate(() => {
     const s = Store.active(); Object.assign(s.settings, { weight: 62, height: 168, birthYear: 1990, sex: 'f' });
     const now = new Date(), iso = (dh) => new Date(now.getTime() - dh * 36e5).toISOString();
+    const m0 = new Date(now); m0.setHours(0, 0, 0, 0); const today = (f) => new Date(m0.getTime() + (now - m0) * f).toISOString();   // inside today whatever the clock says
     const pts = []; for (let i = 0; i < 60; i++) pts.push([46.05 + i * 0.0004, 14.5 + Math.sin(i / 8) * 0.002, 290, 0, 0]);
     s.activities = [
-      { id: 'a1', type: 'run', start: iso(0.5), title: 'Morning run', dist: 5230, moving: 1710, elapsed: 1760, kcal: 340, pts },
+      { id: 'a1', type: 'run', start: today(0.3), title: 'Morning run', dist: 5230, moving: 1710, elapsed: 1760, kcal: 340, pts },
       { id: 'a2', type: 'football', start: iso(50), title: 'Football', dist: 0, moving: 3600, elapsed: 3600, kcal: 450, hr: 148 },
       { id: 'a3', type: 'mtb', start: iso(400), title: 'Trail ride', dist: 23100, moving: 4200, elapsed: 4500, kcal: 610, pts: pts.map(p => [p[0], p[1] + 0.01, 300, 0, 0]) }
     ];
-    s.log.push({ date: iso(0.2), session: 'A', name: 'Full body A', min: 42, sec: 2520, kcal: 220, sets: [{ id: 'kb_goblet_squat', reps: 10, load: 16 }, { id: 'kb_goblet_squat', reps: 10, load: 16 }, { id: 'pushup', reps: 12, load: 0 }], items: {} });
+    s.log.push({ date: today(0.6), session: 'A', name: 'Full body A', min: 42, sec: 2520, kcal: 220, sets: [{ id: 'kb_goblet_squat', reps: 10, load: 16 }, { id: 'kb_goblet_squat', reps: 10, load: 16 }, { id: 'pushup', reps: 12, load: 0 }], items: {} });
     Store.save();
   });
   await page.evaluate(() => window.__go('home')); await page.waitForTimeout(400);
