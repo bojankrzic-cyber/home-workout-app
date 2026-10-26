@@ -1,7 +1,7 @@
 # Coach voice re-record: progress
 
 Voice: Magnific `audio_tts`, `model: "eleven_v3"`, `voiceId: 270` (Henry Arthur), `stability: 0.5`, no delivery tags, phrases joined by ` [pause 1s] `.
-Status: **NOT swapped**. audio/voice still holds the old clips. audio/voice_new is the staging dir.
+Status: **STOPPED by the owner (2026-10-25)** – the coach keeps the current clips in audio/voice; no further re-record attempts. audio/voice_new is unused.
 
 2026-10-19: the first call was refused with "Today's free limit for voiceover-generator (mode: eleven_v3) is used up" (0 credits charged). simulate_cost reported isFree:true, but it does not see the daily cap. The limit resets at 00:00 UTC.
 

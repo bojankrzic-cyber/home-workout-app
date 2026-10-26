@@ -83,7 +83,7 @@ ok(g.splits.length === 2, 'GPX splits');
 ok(g.start === '2026-10-18T06:00:00.000Z', 'GPX start time');
 
 // manual entry + weekly totals + records
-const m = T.manual({ type: 'tennis', sec: 3600, rpe: 7 }, 80);
+const m = T.manual({ type: 'tennis', sec: 3600, rpe: 7, start: '2026-10-20T10:00:00.000Z' }, 80);
 ok(m.kcal === 584 && m.title === 'Morning tennis' || m.kcal === 584, 'manual tennis kcal ' + m.kcal);
 const wk = T.weeks([a, g, m], 4, new Date('2026-10-21T12:00:00Z'));
 ok(wk.length === 4 && wk[3].n === 2 && wk[2].n === 1, 'weekly buckets ' + JSON.stringify(wk.map(w => w.n)));

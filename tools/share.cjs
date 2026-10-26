@@ -21,7 +21,7 @@ const path = require('path');
   await page.fill('#pName', 'Ana'); await page.click('#pSave'); await page.waitForTimeout(500);
   // an activity with a route (a 3 km loop)
   await page.evaluate(() => {
-    const pts = [], M = 1 / 111195, t0 = Date.now() - 3 * 3600e3;
+    const pts = [], M = 1 / 111195, m0 = new Date().setHours(0, 0, 0, 0), t0 = Date.now() - Math.min(3 * 3600e3, (Date.now() - m0) / 2);   // earlier today, whatever the clock says
     for (let i = 0; i <= 1000; i++) { const a = i / 1000 * 2 * Math.PI; pts.push([46.05 + Math.sin(a) * 480 * M, 14.5 + (1 - Math.cos(a)) * 480 * M * 1.44, i, 300, 0]); }
     const act = Track.manual({ type: 'run', sec: 1000, dist: 3000, start: new Date(t0).toISOString() }, 75);
     act.pts = pts; act.best = Track.bestEfforts(pts); act.splits = [333, 334, 333]; act.hr = 151; act.title = 'Lake loop';
