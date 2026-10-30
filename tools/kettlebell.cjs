@@ -33,6 +33,13 @@ const path = require('path');
   ok(/^KB1,KB2,KB3,KB4/.test(order), 'program rotation is kettlebell: ' + order);
   ok(/Kettlebell A/.test(await page.textContent('.hero-card h1')), 'hero shows Kettlebell A: ' + await page.textContent('.hero-card h1'));
   await page.screenshot({ path: out + '/kb2-program.png' });
+  // both: gym and kettlebell take turns
+  await page.evaluate(() => document.querySelector('[data-kbstyle="mix"]').click()); await page.waitForTimeout(500);
+  const mix = await page.evaluate(() => Program.plan(Store.active()).order.join(','));
+  ok(/KB/.test(mix) && /^(L1|F1)/.test(mix) && !/^KB/.test(mix), 'mix rotation alternates gym and kettlebell: ' + mix);
+  ok(await page.$('[data-kbstyle="mix"].on'), 'mix chip selected');
+  await page.screenshot({ path: out + '/kb2b-mix.png' });
+  await page.evaluate(() => document.querySelector('[data-kbstyle="kb"]').click()); await page.waitForTimeout(500);
   // play KB1: the swing set shows per side
   await page.evaluate(() => { window.__go('player', { key: 'KB1' }); }); await page.waitForTimeout(800);
   ok(/halo/i.test(await page.textContent('#wName')), 'KB1 starts with halos: ' + await page.textContent('#wName'));
