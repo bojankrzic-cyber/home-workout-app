@@ -3071,5 +3071,13 @@
 "Back around": "Atgal aplink",
 "{0}-{1}-{2}": "{0}-{1}-{2}",
 "Pull to the hip": "Trauk prie klubo",
-"Arm long": "Ranka ilga"
+"Arm long": "Ranka ilga",
+"Your weekly workouts": "Tavo savaitės treniruotės",
+"gym only – upper/lower and full-body workouts": "tik sporto salė – viršus/apačia ir viso kūno treniruotės",
+"kettlebell only – your workout days rotate kettlebell A, B, C …": "tik giria – tavo treniruočių dienomis keičiasi girios A, B, C …",
+"both – gym and kettlebell workouts take turns": "abu – sporto salės ir girios treniruotės pakaitomis",
+"🔀 Both": "🔀 Abu",
+"Your week now mixes gym and kettlebell": "Tavo savaitė dabar derina sporto salę ir girią",
+"Weekly workouts": "Savaitės treniruotės",
+"gym only, kettlebell only, or both taking turns": "tik sporto salė, tik giria arba abu pakaitomis"
 }
