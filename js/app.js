@@ -693,6 +693,7 @@
         }
         return '<div class="session-card focusable quick' + (qp ? ' photo-card' : '') + '" tabindex="0" data-quick="' + i + '"' + cardBg(qp) + '><div class="tag" style="color:' + q.color + '">' + q.tag + '</div><h3>' + esc(qn) + '</h3><p>' + esc(q.sub) + '</p></div>';
       }).join('') + '<div class="session-card focusable quick" tabindex="0" data-go="builder"><div class="tag">CUSTOM</div><h3>＋ Build your own</h3><p>strength / cardio / mixed · focus · duration</p></div></div>' +
+      kbSection() +
       '<div class="section-title"><h2>🏁 Hybrid race</h2><span>race simulation on your equipment – for time, with splits</span></div>' +
       '<div class="row">' + Program.HX_KEYS.map(function (k) {
         var hs = Program.SESSIONS[k];
@@ -704,6 +705,13 @@
       }).join('') + '</div>' : '') +
       '</div>';
     if ($('#heroFig')) mountFigure($('#heroFig'), heroEx, { aspect: 1 });
+    $$('[data-kbstyle]').forEach(function (b) {
+      b.onclick = function () {
+        state.settings.style = b.getAttribute('data-kbstyle'); Store.save();
+        toast(state.settings.style === 'kb' ? 'Kettlebell is now your weekly program' : 'Back to the gym program');
+        refresh();
+      };
+    });
     $$('[data-quick]').forEach(function (el) {
       el.onclick = function () {
         var o = Object.assign({ level: state.settings.level, owned: Program.owned(state) }, QUICK[+el.getAttribute('data-quick')].opts);
@@ -711,6 +719,23 @@
       };
     });
   };
+
+  // Kettlebell: the six sessions, and the switch that makes them the weekly rotation
+  function kbSection() {
+    var own = Program.owned(state), has = own.indexOf('kb') >= 0, on = state.settings.style === 'kb';
+    var head = '<div class="section-title kb-title"><h2>🔔 Kettlebell</h2><span>swings, get-ups, cleans, snatches – one or two bells, any room</span></div>';
+    if (!has) return head + '<div class="row"><div class="session-card focusable" tabindex="0" data-go="equipment"><div class="tag">KETTLEBELL</div><h3>Add kettlebells to your equipment</h3><p>unlocks 6 kettlebell workouts and a kettlebell program</p></div></div>';
+    var cards = Program.KB_KEYS.map(function (k) {
+      var ks = Program.SESSIONS[k], cp = sessionPhoto(ks);
+      return '<div class="session-card kbc focusable' + (cp ? ' photo-card' : '') + '" tabindex="0" data-go="overview" data-p=\'{"key":"' + k + '"}\'' + cardBg(cp) + '><div class="tag" style="color:' + ks.color + '">' + (k === 'KB6' ? '10 MIN' : 'KETTLEBELL') + '</div><h3>' + esc(ks.name) + '</h3><p>' + esc(ks.short) + '</p></div>';
+    }).join('');
+    return head +
+      '<div class="kb-switch' + (on ? ' on' : '') + '"><div><b>' + (on ? '✓ Kettlebell is your weekly program' : 'Make kettlebell your weekly program') + '</b>' +
+      '<small>' + (on ? 'your ' + Program.plan(state).gym + ' gym days rotate through the kettlebell workouts' : 'same days and progression – the rotation becomes kettlebell A, B, C …') + '</small></div>' +
+      '<button class="btn sm focusable' + (on ? ' ghost' : ' primary') + '" data-kbstyle="' + (on ? 'gym' : 'kb') + '">' + (on ? 'Back to gym program' : 'Use kettlebell') + '</button></div>' +
+      '<div class="row">' + cards + '</div>' +
+      '<div class="hint kb-hint">Which bell? Most women start at 8–12 kg, most men at 12–16 kg; swings take a heavier bell than presses and get-ups. The app moves you up a bell (4 kg) when every set hits the top of the range.</div>';
+  }
 
   var QUICK = [
     { tag: 'STRENGTH', name: 'Full body', photo: 'kb_goblet_squat', sub: '45 min · all major muscle groups', color: '#3ec46d', opts: { type: 'moc', focus: ['noge', 'prsa', 'hrbet', 'zadnjica', 'rame', 'trup'], min: 45 } },
@@ -911,7 +936,8 @@
 
   SCREENS.settings = function () {
     var s = state.settings;
-    if (s.trail == null) s.trail = 0;   // profiles from before Trail days: all gym
+    if (s.trail == null) s.trail = 0;
+    if (!s.style) s.style = 'gym';   // profiles from before Trail days: all gym
     function opt(key, val, label) {
       return '<button class="chip focusable' + (s[key] === val ? ' on' : '') + '" data-set="' + key + '" data-val=\'' + JSON.stringify(val) + '\'>' + label + '</button>';
     }
@@ -961,6 +987,7 @@
       group('Training',
         link('🏋️', 'My equipment', pl(nEq, NAP) + ' · ' + pl(unlocked(s.equipment || []), VAJ), 'equipment') +
         row('📅', 'Workouts per week', weekSplit(s), [1, 2, 3, 4, 5, 6, 7].map(function (n) { return opt('days', n, n + '×'); }).join('')) +
+        row('🔔', 'Program style', 'Kettlebell: your gym days rotate through 6 kettlebell workouts', opt('style', 'gym', 'Gym mix') + opt('style', 'kb', 'Kettlebell')) +
         row('🏃', 'of them Trail', 'run, walk or ride outdoors – the rest are gym workouts', weekRange(s.days).map(function (n) { return opt('trail', n, n + '×'); }).join('')) +
         row('📈', 'Level', '', opt('level', 'beg', 'Beginner') + opt('level', 'mid', 'Intermediate') + opt('level', 'adv', 'Advanced')) +
         row('⏱️', 'Countdown before each set', 'also chosen at the start of a workout', opt('countSec', 3, '3 s') + opt('countSec', 5, '5 s') + opt('countSec', 7, '7 s')) +
