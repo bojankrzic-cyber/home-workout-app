@@ -708,7 +708,7 @@
     $$('[data-kbstyle]').forEach(function (b) {
       b.onclick = function () {
         state.settings.style = b.getAttribute('data-kbstyle'); Store.save();
-        toast(state.settings.style === 'kb' ? 'Kettlebell is now your weekly program' : 'Back to the gym program');
+        toast({ kb: 'Kettlebell is now your weekly program', mix: 'Your week now mixes gym and kettlebell', gym: 'Back to the gym program' }[state.settings.style]);
         refresh();
       };
     });
@@ -722,7 +722,7 @@
 
   // Kettlebell: the six sessions, and the switch that makes them the weekly rotation
   function kbSection() {
-    var own = Program.owned(state), has = own.indexOf('kb') >= 0, on = state.settings.style === 'kb';
+    var own = Program.owned(state), has = own.indexOf('kb') >= 0, style = Program.plan(state).style;
     var head = '<div class="section-title kb-title"><h2>🔔 Kettlebell</h2><span>swings, get-ups, cleans, snatches – one or two bells, any room</span></div>';
     if (!has) return head + '<div class="row"><div class="session-card focusable" tabindex="0" data-go="equipment"><div class="tag">KETTLEBELL</div><h3>Add kettlebells to your equipment</h3><p>unlocks 6 kettlebell workouts and a kettlebell program</p></div></div>';
     var cards = Program.KB_KEYS.map(function (k) {
@@ -730,9 +730,11 @@
       return '<div class="session-card kbc focusable' + (cp ? ' photo-card' : '') + '" tabindex="0" data-go="overview" data-p=\'{"key":"' + k + '"}\'' + cardBg(cp) + '><div class="tag" style="color:' + ks.color + '">' + (k === 'KB6' ? '10 MIN' : 'KETTLEBELL') + '</div><h3>' + esc(ks.name) + '</h3><p>' + esc(ks.short) + '</p></div>';
     }).join('');
     return head +
-      '<div class="kb-switch' + (on ? ' on' : '') + '"><div><b>' + (on ? '✓ Kettlebell is your weekly program' : 'Make kettlebell your weekly program') + '</b>' +
-      '<small>' + (on ? 'your ' + Program.plan(state).gym + ' gym days rotate through the kettlebell workouts' : 'same days and progression – the rotation becomes kettlebell A, B, C …') + '</small></div>' +
-      '<button class="btn sm focusable' + (on ? ' ghost' : ' primary') + '" data-kbstyle="' + (on ? 'gym' : 'kb') + '">' + (on ? 'Back to gym program' : 'Use kettlebell') + '</button></div>' +
+      '<div class="kb-switch' + (style !== 'gym' ? ' on' : '') + '"><div><b>Your weekly workouts</b>' +
+      '<small>' + { gym: 'gym only – upper/lower and full-body workouts', kb: 'kettlebell only – your workout days rotate kettlebell A, B, C …', mix: 'both – gym and kettlebell workouts take turns' }[style] + '</small></div>' +
+      '<div class="kb-seg">' + [['gym', '🏋️ Gym'], ['kb', '🔔 Kettlebell'], ['mix', '🔀 Both']].map(function (o) {
+        return '<button class="chip focusable' + (style === o[0] ? ' on' : '') + '" data-kbstyle="' + o[0] + '">' + o[1] + '</button>';
+      }).join('') + '</div></div>' +
       '<div class="row">' + cards + '</div>' +
       '<div class="hint kb-hint">Which bell? Most women start at 8–12 kg, most men at 12–16 kg; swings take a heavier bell than presses and get-ups. The app moves you up a bell (4 kg) when every set hits the top of the range.</div>';
   }
@@ -987,7 +989,7 @@
       group('Training',
         link('🏋️', 'My equipment', pl(nEq, NAP) + ' · ' + pl(unlocked(s.equipment || []), VAJ), 'equipment') +
         row('📅', 'Workouts per week', weekSplit(s), [1, 2, 3, 4, 5, 6, 7].map(function (n) { return opt('days', n, n + '×'); }).join('')) +
-        row('🔔', 'Program style', 'Kettlebell: your gym days rotate through 6 kettlebell workouts', opt('style', 'gym', 'Gym mix') + opt('style', 'kb', 'Kettlebell')) +
+        row('🔔', 'Weekly workouts', 'gym only, kettlebell only, or both taking turns', opt('style', 'gym', '🏋️ Gym') + opt('style', 'kb', '🔔 Kettlebell') + opt('style', 'mix', '🔀 Both')) +
         row('🏃', 'of them Trail', 'run, walk or ride outdoors – the rest are gym workouts', weekRange(s.days).map(function (n) { return opt('trail', n, n + '×'); }).join('')) +
         row('📈', 'Level', '', opt('level', 'beg', 'Beginner') + opt('level', 'mid', 'Intermediate') + opt('level', 'adv', 'Advanced')) +
         row('⏱️', 'Countdown before each set', 'also chosen at the start of a workout', opt('countSec', 3, '3 s') + opt('countSec', 5, '5 s') + opt('countSec', 7, '7 s')) +

@@ -205,6 +205,9 @@
   };
   var KB_KEYS = ['KB1', 'KB2', 'KB3', 'KB4', 'KB5', 'KB6'];
   // kettlebell as the main program: same weekly count, kettlebell rotation (EMOM day only from 6×/week)
+  // gym + kettlebell mix: alternate, gym first (the gym days keep the upper/lower or full-body balance)
+  var MIX_ORDER = { 1: ['F1'], 2: ['F1', 'KB1'], 3: ['F1', 'KB1', 'F2'], 4: ['L1', 'KB1', 'U1', 'KB2'], 5: ['L1', 'KB1', 'U1', 'KB3', 'F1'],
+    6: ['L1', 'KB1', 'U1', 'KB2', 'L2', 'KB3'], 7: ['L1', 'KB1', 'U1', 'KB2', 'L2', 'KB3', 'U2'] };
   var KB_ORDER = { 1: ['KB1'], 2: ['KB1', 'KB2'], 3: ['KB1', 'KB2', 'KB3'], 4: ['KB1', 'KB2', 'KB3', 'KB4'], 5: ['KB1', 'KB2', 'KB3', 'KB4', 'KB5'],
     6: ['KB1', 'KB2', 'KB3', 'KB4', 'KB5', 'KB6'], 7: ['KB1', 'KB2', 'KB3', 'KB4', 'KB5', 'KB6'] };
 
@@ -236,7 +239,8 @@
       trailDays = TRAIL_PREF.filter(function (d) { return gymDays.indexOf(d) < 0; }).slice(0, c.trail);
     }
     var kbOwned = !s.equipment || s.equipment.indexOf('kb') >= 0;
-    return { order: (s.style === 'kb' && kbOwned ? KB_ORDER : GYM_ORDER)[c.gym], kb: s.style === 'kb' && kbOwned, days: gymDays, trail: trailDays, gym: c.gym, trailN: c.trail, total: c.total };
+    var style = kbOwned && (s.style === 'kb' || s.style === 'mix') ? s.style : 'gym';
+    return { order: { gym: GYM_ORDER, kb: KB_ORDER, mix: MIX_ORDER }[style][c.gym], kb: style === 'kb', style: style, days: gymDays, trail: trailDays, gym: c.gym, trailN: c.trail, total: c.total };
   }
 
   var WEEK_INFO = {
