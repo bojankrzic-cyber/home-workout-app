@@ -1542,3 +1542,12 @@ a.btn { text-decoration: none; color: var(--text); }
   .p2 .mini-time b { font-size: min(3rem, 12vw); }
   .p2 .mini-time span { position: static; }
 }
+
+/* ---------- kettlebell section: program switch + bell guide */
+.kb-switch { display: flex; align-items: center; gap: 1rem; background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: .9rem 1.1rem; margin-bottom: .8rem; }
+.kb-switch > div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .15rem; }
+.kb-switch small { color: var(--muted); font-size: .82rem; }
+.kb-switch.on { border-color: color-mix(in srgb, #e9a23b 60%, transparent); }
+.kb-switch.on b { color: #e9a23b; }
+.kb-hint { margin-top: .6rem; max-width: 60rem; }
+@media (max-width: 520px) { .kb-switch { flex-direction: column; align-items: stretch; } }

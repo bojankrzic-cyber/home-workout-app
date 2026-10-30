@@ -106,6 +106,28 @@
   var pressRack = stand({ aN: [22, 172], aF: [8, 30], kb: 210 });
   var pressTop = stand({ t: 182, aN: [178, 178], aF: [8, 30], kb: 200 });
 
+  // one-arm swing: the free hand follows, slightly away from the body
+  var swing1Top = stand({ t: 184, aN: [86, 86], aF: [40, 60], kb: 90, hd: -4 });
+  var swing1Bot = stand({ t: 112, lN: [26, -8], aN: [-22, -22], aF: [10, 30], kb: -22, hd: 22 });
+  // clean: hike back, the bell travels close to the body and lands softly in the rack
+  var cleanPull = stand({ t: 170, lN: [8, -4], aN: [12, 150], aF: [20, 40], kb: 170, hd: 4 });
+  // snatch: one smooth arc from the hike to a locked-out arm overhead
+  var snatchHigh = stand({ t: 176, aN: [120, 150], aF: [20, 40], kb: 170 });
+  // halo: both hands on the horns, the bell circles the head
+  function halo(hx, hy, kb) { return stand({ aN: [0, 0], ik: { hN: [hx, hy], hF: [hx - 2, hy + 1] }, kb: kb }); }
+  // single-arm bent-over row: free hand on the knee, flat back
+  function kbRow(pull) { return stand({ t: 112, lN: [34, -6], hd: 20, aN: pull ? [-48, 10] : [2, 2], aF: [40, 70], kb: 0 }); }
+  // double rack front squat
+  var rackTop = stand({ aN: [22, 172], aF: [20, 170], kb: 210 });
+  var rackBot = stand({ t: 158, lN: [100, -35], aN: [24, 172], aF: [22, 170], kb: 210, hd: 10 });
+  // Turkish get-up: floor → elbow → hand → high bridge → lunge → stand, bell locked out overhead all the way
+  var tguLie = { r: [0, -13], t: -90, hd: 0, aN: [180, 180], aF: [-130, -110], lN: [150, 20], lF: [90, 90, 170], kb: 180 };
+  var tguElbow = { r: [0, -13], t: -130, hd: -10, aN: [180, 180], ik: { hF: [-50, -5] }, lN: [150, 20], lF: [90, 90, 170], kb: 180 };
+  var tguHand = { r: [0, -14], t: -158, hd: -12, aN: [180, 180], ik: { hF: [-38, -5] }, lN: [150, 20], lF: [90, 90, 170], kb: 180 };
+  var tguBridge = { r: [8, -50], t: -150, hd: -14, aN: [180, 180], ik: { hF: [-36, -5], fN: [40, -6] }, lF: [90, 90, 170], kb: 180 };
+  var tguKneel = kneel({ aN: [180, 180], aF: [0, 0], kb: 180, hd: 0 });
+  var tguStand = stand({ aN: [180, 180], aF: [0, 0], kb: 180 });
+
   // ------------------------------------------------------------ dumbbells
   var BENCH_FLAT = { type: 'bench', x: -62, len: 118 };
   function benchPose(arms) {
@@ -588,6 +610,114 @@
           { d: 0.5, l: 'Lock out', p: pressTop },
           { d: 1.6, l: 'Controlled down', p: pressTop },
           { d: 0.4, l: 'Rack', p: pressRack }
+        ]
+      }
+    },
+
+    {
+      id: 'kb_swing1', name: 'One-arm kettlebell swing', equip: ['kb'], type: 'strength', unit: 'kg', load: 16, inc: 4, perSide: true, secPerRep: 2,
+      muscles: 'Glutes, hamstrings, grip, core', tempo: 'Explosive',
+      cues: ['Hike the bell back high between the thighs', 'Snap the hips, the bell floats to chest height', 'Shoulder packed – don\'t let the bell pull it forward', 'Switch hands at the bottom of the back-swing or after each set'],
+      mistakes: ['Twisting the torso with the bell', 'Squatting instead of hinging', 'Shrugging the working shoulder'],
+      anim: {
+        hold: { N: 'kb' }, focus: ['glute', 'thigh', 'fore'],
+        frames: [
+          { d: 0.55, l: 'Hike back', p: swing1Top },
+          { d: 0.12, l: 'Bottom', p: swing1Bot },
+          { d: 0.5, l: 'HIP SNAP', p: swing1Bot },
+          { d: 0.15, l: 'Float – plank standing', p: swing1Top }
+        ]
+      }
+    },
+    {
+      id: 'kb_clean', name: 'Kettlebell clean', equip: ['kb'], type: 'strength', unit: 'kg', load: 12, inc: 4, perSide: true, secPerRep: 3,
+      muscles: 'Glutes, hamstrings, upper back, grip', tempo: 'Explosive',
+      cues: ['Hike the bell back like a swing', 'Hips snap, elbow stays close – zip up the jacket', 'Bell rolls around the hand into the rack, no banging the forearm', 'Rack: wrist straight, elbow on the ribs, glutes tight'],
+      mistakes: ['Swinging the bell out wide (it flips onto the forearm)', 'Curling with the arm', 'Loose wrist in the rack'],
+      anim: {
+        hold: { N: 'kb' }, focus: ['glute', 'thigh', 'upper'],
+        frames: [
+          { d: 0.5, l: 'Hike back', p: swing1Bot },
+          { d: 0.3, l: 'Hip snap, elbow close', p: cleanPull },
+          { d: 0.8, l: 'Rack – stand tall', p: pressRack },
+          { d: 0.5, l: 'Drop into the next hike', p: cleanPull }
+        ]
+      }
+    },
+    {
+      id: 'kb_snatch', name: 'Kettlebell snatch', equip: ['kb'], type: 'strength', unit: 'kg', load: 12, inc: 4, perSide: true, secPerRep: 3,
+      muscles: 'Glutes, hamstrings, shoulders, grip', tempo: 'Explosive',
+      cues: ['Hike the bell back, snap the hips hard', 'Pull the elbow high and punch the hand through at the top', 'Lock out overhead – biceps by the ear, bell resting on the forearm', 'Drop it back down into the hike, keep the hips back'],
+      mistakes: ['Pressing it up with the arm', 'Bell slamming the forearm at the top', 'Leaning back at lockout'],
+      anim: {
+        hold: { N: 'kb' }, focus: ['glute', 'upper', 'fore'],
+        frames: [
+          { d: 0.5, l: 'Hike back', p: swing1Bot },
+          { d: 0.25, l: 'Hip snap, high pull', p: snatchHigh },
+          { d: 0.8, l: 'Lock out overhead', p: pressTop },
+          { d: 0.5, l: 'Drop back into the hike', p: snatchHigh }
+        ]
+      }
+    },
+    {
+      id: 'kb_tgu', name: 'Turkish get-up', equip: ['kb'], type: 'strength', unit: 'kg', load: 8, inc: 4, perSide: true, secPerRep: 30,
+      muscles: 'Shoulders, core, glutes – whole body', tempo: 'Slow, step by step',
+      cues: ['Eyes on the bell the whole way up, arm locked', 'Roll to the elbow, then to the hand – press the floor away', 'High bridge, sweep the leg through to a kneel', 'Stand up from the lunge; reverse every step on the way down'],
+      mistakes: ['Bent elbow under the bell', 'Rushing the steps', 'Losing sight of the bell'],
+      anim: {
+        hold: { N: 'kb' }, focus: ['upper', 'torso', 'glute'],
+        frames: [
+          { d: 1.2, l: 'Lie down – bell locked out', p: tguLie },
+          { d: 1.2, l: 'Roll to the elbow', p: tguElbow },
+          { d: 1.0, l: 'Up to the hand', p: tguHand },
+          { d: 1.2, l: 'High bridge', p: tguBridge },
+          { d: 1.4, l: 'Sweep to a kneel', p: tguKneel },
+          { d: 1.6, l: 'Stand – then reverse', p: tguStand }
+        ]
+      }
+    },
+    {
+      id: 'kb_halo', name: 'Kettlebell halo', equip: ['kb'], type: 'strength', unit: 'kg', load: 8, inc: 4, perSide: true,
+      muscles: 'Shoulders, upper back, core', tempo: 'Slow circles',
+      cues: ['Hold the bell by the horns, bottom up', 'Circle it close around the head – nose, ear, back of the neck, ear', 'Ribs down, glutes tight – only the arms move', 'Same number of circles in each direction'],
+      mistakes: ['Big arcs away from the head', 'Arching the lower back'],
+      anim: {
+        hold: { N: 'kb' }, focus: ['upper', 'torso'],
+        frames: [
+          { d: 0.7, l: 'In front of the face', p: halo(22, -168, 180) },
+          { d: 0.7, l: 'Past the ear', p: halo(4, -192, 200) },
+          { d: 0.7, l: 'Behind the neck', p: halo(-16, -170, 220) },
+          { d: 0.7, l: 'Back around', p: halo(4, -192, 200) }
+        ]
+      }
+    },
+    {
+      id: 'kb_row', name: 'Single-arm kettlebell row', equip: ['kb'], type: 'strength', unit: 'kg', load: 16, inc: 4, perSide: true,
+      muscles: 'Lats, upper back, biceps', tempo: '1-1-2',
+      cues: ['Hinge with a flat back, free hand on the knee', 'Pull the elbow to the hip – row to the pocket', 'Pause, then lower for 2 s'],
+      mistakes: ['Twisting the torso open', 'Shrugging the shoulder to the ear'],
+      anim: {
+        hold: { N: 'kb' }, focus: ['upper', 'fore'],
+        frames: [
+          { d: 0.8, l: 'Pull to the hip', p: kbRow(false) },
+          { d: 0.5, l: 'Squeeze', p: kbRow(true) },
+          { d: 1.4, l: 'Lower for 2 s', p: kbRow(true) },
+          { d: 0.3, l: 'Arm long', p: kbRow(false) }
+        ]
+      }
+    },
+    {
+      id: 'kb_rack_squat', name: 'Double kettlebell front squat', equip: ['kb'], type: 'strength', unit: 'kg', load: 12, inc: 4,
+      muscles: 'Quads, glutes, core, upper back', tempo: '3-1-1',
+      cues: ['Two bells in the rack, elbows tucked, wrists straight', 'Sit down between the heels, chest proud', 'Knees out over the toes, drive up through the whole foot'],
+      mistakes: ['Elbows flaring and bells dropping forward', 'Heels lifting', 'Rounding the upper back'],
+      anim: {
+        hold: { N: 'kb', F: 'kb' }, focus: ['thigh', 'glute', 'torso'],
+        frames: [
+          { d: 2.2, l: 'Lower for 3 s', p: rackTop },
+          { d: 0.5, l: 'Pause at bottom', p: rackBot },
+          { d: 1.0, l: 'Drive up', p: rackBot },
+          { d: 0.6, l: 'Stand tall', p: rackTop }
         ]
       }
     },
@@ -2025,6 +2155,8 @@
   };
   var GROUPS = {
     bike_z2: ['kardio', 'noge'], bike_hiit: ['kardio', 'noge'], row_hiit: ['kardio', 'hrbet'],
+    kb_swing1: ['zadnjica', 'kardio', 'trup'], kb_clean: ['zadnjica', 'hrbet', 'noge'], kb_snatch: ['zadnjica', 'rame', 'kardio'], kb_tgu: ['trup', 'rame', 'zadnjica'],
+    kb_halo: ['rame', 'trup', 'mobilnost'], kb_row: ['hrbet', 'roke'], kb_rack_squat: ['noge', 'zadnjica', 'trup'],
     kb_swing: ['zadnjica', 'kardio', 'trup'], kb_goblet_squat: ['noge', 'zadnjica', 'trup'], kb_deadlift: ['zadnjica', 'noge', 'hrbet'], kb_press: ['rame', 'roke', 'trup'],
     db_bench: ['prsa', 'roke', 'rame'], db_incline: ['prsa', 'rame', 'roke'], db_row: ['hrbet', 'roke'], db_rdl: ['zadnjica', 'noge', 'hrbet'],
     db_bulgarian: ['noge', 'zadnjica'], db_shoulder_press: ['rame', 'roke'], db_curl: ['roke'], db_hip_thrust: ['zadnjica', 'noge'], db_stepup: ['noge', 'zadnjica'],
@@ -2053,16 +2185,16 @@
     hollow_hold: ['trup'], sl_glute_bridge: ['zadnjica', 'noge'], hamstring_floor: ['mobilnost', 'noge']
   };
   // Multi-joint lifts go first in a generated session
-  var COMPOUND = ['bb_squat', 'k_squat', 'k_shoulder_press', 'bb_deadlift', 'bb_bench', 'kb_goblet_squat', 'kb_deadlift', 'db_rdl', 'db_bulgarian', 'db_hip_thrust', 'kb_swing', 'db_bench', 'db_incline', 'pullup', 'chinup_neutral', 'wb_decline_pushup',
+  var COMPOUND = ['bb_squat', 'k_squat', 'k_shoulder_press', 'bb_deadlift', 'bb_bench', 'kb_goblet_squat', 'kb_deadlift', 'db_rdl', 'db_bulgarian', 'db_hip_thrust', 'kb_swing', 'kb_swing1', 'kb_clean', 'kb_snatch', 'kb_tgu', 'kb_rack_squat', 'kb_row', 'db_bench', 'db_incline', 'pullup', 'chinup_neutral', 'wb_decline_pushup',
     'db_row', 'k_pulldown', 'db_shoulder_press', 'kb_press', 'k_chest_press', 'k_row', 'db_stepup', 'pushup', 'k_pullthrough', 'back_ext',
     'landmine_row', 'landmine_press', 'dips', 'susp_row', 'susp_pushup', 'susp_squat', 'pike_pushup'];
 
   // Movement patterns, each list in preference order. Used to substitute exercises
   // when a profile lacks equipment, and to upgrade hybrid race substitutes to the real station.
   var PATTERNS = {
-    squat: ['bb_squat', 'kb_goblet_squat', 'k_squat', 'bw_squat', 'jump_squat', 'wall_sit', 'susp_squat'],
+    squat: ['bb_squat', 'kb_goblet_squat', 'kb_rack_squat', 'k_squat', 'bw_squat', 'jump_squat', 'wall_sit', 'susp_squat'],
     hinge: ['bb_deadlift', 'kb_deadlift', 'db_rdl', 'glute_bridge', 'sl_glute_bridge'],
-    swing: ['kb_swing', 'k_pullthrough', 'db_rdl', 'jump_squat', 'glute_bridge', 'sl_glute_bridge'],
+    swing: ['kb_swing', 'kb_swing1', 'k_pullthrough', 'db_rdl', 'jump_squat', 'glute_bridge', 'sl_glute_bridge'],
     bridge: ['db_hip_thrust', 'glute_bridge', 'sl_glute_bridge'],
     lunge: ['db_bulgarian', 'db_stepup', 'kb_lunge', 'sandbag_lunge', 'bw_lunge', 'jump_squat', 'wall_sit'],
     stepup: ['db_stepup', 'box_jump', 'db_bulgarian', 'bw_lunge', 'jump_squat', 'wall_sit'],
@@ -2070,7 +2202,7 @@
     hpush: ['db_bench', 'bb_bench', 'k_chest_press', 'k_press_1arm', 'pushup', 'susp_pushup', 'dips', 'knee_pushup'],
     incline: ['db_incline', 'k_chest_press', 'bb_bench', 'wb_decline_pushup', 'pushup', 'landmine_press', 'susp_pushup', 'knee_pushup'],
     vpush: ['db_shoulder_press', 'kb_press', 'k_shoulder_press', 'pike_pushup', 'pushup', 'landmine_press', 'knee_pushup'],
-    hpull: ['db_row', 'k_row', 'k_row_1arm', 'band_row', 'pullup', 'landmine_row', 'susp_row', 'superman', 'prone_y_raise'],
+    hpull: ['db_row', 'kb_row', 'k_row', 'k_row_1arm', 'band_row', 'pullup', 'landmine_row', 'susp_row', 'superman', 'prone_y_raise'],
     vpull: ['pullup', 'chinup_neutral', 'k_pulldown', 'band_row', 'db_row', 'susp_row', 'landmine_row', 'superman', 'prone_y_raise'],
     rear: ['k_face_pull', 'band_row', 'db_row', 'susp_row', 'prone_y_raise', 'superman'],
     curl: ['db_curl', 'k_curl', 'band_row'],
@@ -2105,11 +2237,17 @@
     airhiit: ['airbike_sprint', 'bike_hiit', 'row_hiit', 'skierg', 'mountain_climber'], airz2: ['airbike_z2', 'bike_z2', 'row_steady', 'high_knees'],
     susprow: ['susp_row', 'db_row', 'k_row', 'band_row'], susppush: ['susp_pushup', 'pushup', 'k_chest_press'], suspsquat: ['susp_squat', 'kb_goblet_squat', 'bw_squat'],
     lmrow: ['landmine_row', 'db_row', 'k_row', 'band_row', 'superman', 'prone_y_raise'],
+    // kettlebell ballistics and get-ups
+    kbclean: ['kb_clean', 'kb_swing1', 'kb_swing', 'db_rdl', 'k_pullthrough', 'glute_bridge'],
+    kbsnatch: ['kb_snatch', 'kb_swing1', 'kb_swing', 'db_rdl', 'jump_squat', 'glute_bridge'],
+    tgu: ['kb_tgu', 'side_plank', 'dead_bug', 'plank'],
+    halo: ['kb_halo', 'prone_y_raise', 'k_face_pull', 'bird_dog'],
     // bodyweight-only additions
     superman: ['superman', 'prone_y_raise', 'bird_dog']
   };
   var PATTERN_OF = {
-    kb_goblet_squat: 'squat', bb_squat: 'squat', bw_squat: 'squat', kb_deadlift: 'hinge', bb_deadlift: 'hinge', db_rdl: 'hinge', kb_swing: 'swing', k_pullthrough: 'swing',
+    kb_goblet_squat: 'squat', kb_rack_squat: 'squat', kb_swing1: 'swing', kb_clean: 'kbclean', kb_snatch: 'kbsnatch', kb_tgu: 'tgu', kb_halo: 'halo', kb_row: 'hpull',
+    bb_squat: 'squat', bw_squat: 'squat', kb_deadlift: 'hinge', bb_deadlift: 'hinge', db_rdl: 'hinge', kb_swing: 'swing', k_pullthrough: 'swing',
     db_hip_thrust: 'bridge', glute_bridge: 'bridge', db_bulgarian: 'lunge', kb_lunge: 'hxlunge', bw_lunge: 'lunge', db_stepup: 'stepup', box_jump: 'stepup', back_ext: 'backext',
     db_bench: 'hpush', bb_bench: 'hpush', k_chest_press: 'hpush', db_incline: 'incline', db_shoulder_press: 'vpush', kb_press: 'vpush',
     db_row: 'hpull', k_row: 'hpull', band_row: 'hpull', pullup: 'vpull', k_pulldown: 'vpull', k_face_pull: 'rear', db_curl: 'curl', k_pushdown: 'triceps', band_pushdown: 'triceps',
@@ -2134,6 +2272,9 @@
     bike_z2: [['quads'], ['glutes', 'calves', 'hams']], bike_hiit: [['quads', 'glutes'], ['calves', 'hams']], hx_bike_run: [['quads'], ['glutes', 'calves']],
     bike_sled: [['quads', 'glutes'], ['calves', 'hams']],
     row_steady: [['lats', 'quads'], ['glutes', 'hams', 'biceps', 'traps']], row_hiit: [['lats', 'quads', 'glutes'], ['hams', 'biceps', 'traps']],
+    kb_swing1: [['glutes', 'hams'], ['forearms', 'abs', 'obliques']], kb_clean: [['glutes', 'hams', 'traps'], ['forearms', 'delts', 'lowback']],
+    kb_snatch: [['glutes', 'hams', 'delts'], ['traps', 'forearms', 'triceps']], kb_tgu: [['delts', 'abs', 'obliques'], ['glutes', 'triceps', 'quads']],
+    kb_halo: [['delts', 'traps'], ['abs', 'triceps']], kb_row: [['lats', 'traps'], ['biceps', 'forearms']], kb_rack_squat: [['quads', 'glutes'], ['abs', 'traps', 'lowback']],
     kb_swing: [['glutes', 'hams'], ['lowback', 'abs', 'forearms']], kb_goblet_squat: [['quads', 'glutes'], ['abs', 'lowback']],
     kb_deadlift: [['glutes', 'hams'], ['lowback', 'quads', 'forearms']], kb_press: [['delts', 'triceps'], ['abs', 'traps']],
     db_bench: [['chest', 'triceps'], ['delts']], db_incline: [['chest', 'delts'], ['triceps']], db_row: [['lats', 'traps'], ['biceps', 'forearms']],

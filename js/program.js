@@ -141,6 +141,73 @@
       { title: 'Stretch', items: [T('hamstring_bench', 1, 40, 10)] }
     ]
   };
+  // ---------------------------------------------------------------- kettlebell programs
+  // Built from what the best kettlebell coaching uses: a daily swing + get-up standard (100 one-arm swings,
+  // 10 get-ups), a clean-press-squat complex, snatches, EMOM swing conditioning, and a heavier hinge/pull day.
+  // fixed: the prescription is the standard itself – goal tweaks never add reps to it (10 get-ups stay 10).
+  var F = { fixed: true }, FS = { fixed: true, perSide: true };
+  var KB_WARM = { title: 'Warm-up', items: [S('kb_halo', 2, [5, 5], 0, { perSide: true }), S('kb_goblet_squat', 2, [5, 5], 0), S('glute_bridge', 2, [10, 10], 30)] };
+  SESSIONS.KB1 = {
+    name: 'Kettlebell A – Swings & Get-ups', short: 'The daily standard: 100 swings + 10 get-ups', color: '#e9a23b', kb: true,
+    blocks: [
+      KB_WARM,
+      { title: 'Swings · 10 sets of 10 (5 per hand)', items: [S('kb_swing1', 5, [10, 10], 45, FS)] },
+      { title: 'Get-ups · 1 per side each set', items: [S('kb_tgu', 5, [1, 1], 45, FS)] },
+      { title: 'Cooldown', items: [T('hip_flexor', 1, 40, 10), T('hamstring_floor', 1, 40, 10)] }
+    ]
+  };
+  SESSIONS.KB2 = {
+    name: 'Kettlebell B – Clean, Press, Squat', short: 'Complex: 2 cleans · 1 press · 3 squats', color: '#e9a23b', kb: true,
+    blocks: [
+      { title: 'Warm-up', items: [S('kb_halo', 2, [5, 5], 0, { perSide: true }), S('kb_deadlift', 2, [8, 8], 30)] },
+      { title: 'Complex · 5 rounds', items: [S('kb_clean', 5, [2, 2], 0, FS), S('kb_press', 5, [1, 1], 0, FS), S('kb_rack_squat', 5, [3, 3], 90, F)] },
+      { title: 'Pull', items: [S('kb_row', 3, [8, 10], 60, { perSide: true })] },
+      { title: 'Core', items: [T('plank', 2, 40, 30)] },
+      { title: 'Cooldown', items: [T('hip_flexor', 1, 40, 10)] }
+    ]
+  };
+  SESSIONS.KB3 = {
+    name: 'Kettlebell C – Snatch & Swing EMOM', short: 'Power, then 10 min of swings on the minute', color: '#e9a23b', kb: true,
+    blocks: [
+      { title: 'Warm-up', items: [S('kb_halo', 2, [5, 5], 0, { perSide: true }), S('kb_deadlift', 2, [8, 8], 30)] },
+      { title: 'Snatch', items: [S('kb_snatch', 5, [5, 5], 60, FS)] },
+      { title: 'Superset', items: [S('kb_goblet_squat', 3, [10, 12], 0), S('pushup', 3, [8, 15], 60)] },
+      { title: 'EMOM 10 min · 15 swings at the top of every minute', items: [S('kb_swing', 10, [15, 15], 35, F)] },
+      { title: 'Cooldown', items: [T('hamstring_floor', 1, 40, 10)] }
+    ]
+  };
+  SESSIONS.KB4 = {
+    name: 'Kettlebell D – Hinge & Pull Strength', short: 'Heavier bell, slower reps, carries', color: '#e9a23b', kb: true,
+    blocks: [
+      { title: 'Warm-up', items: [S('kb_halo', 2, [5, 5], 0, { perSide: true }), S('glute_bridge', 2, [10, 10], 30)] },
+      { title: 'Main Lift', items: [S('kb_deadlift', 4, [8, 10], 90)] },
+      { title: 'Superset B', items: [S('kb_row', 4, [8, 10], 0, { perSide: true }), S('kb_press', 4, [5, 8], 75, { perSide: true })] },
+      { title: 'Power', items: [S('kb_swing', 4, [15, 20], 45)] },
+      { title: 'Carry', items: [T('kb_farmers', 3, 40, 45)] },
+      { title: 'Core', items: [S('dead_bug', 2, [6, 8], 30, { perSide: true })] }
+    ]
+  };
+  SESSIONS.KB5 = {
+    name: 'Kettlebell E – 20-min Flow', short: 'Circuit: swing · squat · clean · push-up · row', color: '#e9a23b', kb: true,
+    blocks: [
+      { title: 'Warm-up', items: [S('kb_halo', 1, [5, 5], 15, { perSide: true })] },
+      { title: 'Circuit · 4 rounds', items: [S('kb_swing', 4, [15, 15], 0, F), S('kb_goblet_squat', 4, [10, 10], 0, F), S('kb_clean', 4, [5, 5], 0, FS), S('pushup', 4, [8, 12], 0), S('kb_row', 4, [8, 8], 60, FS)] },
+      { title: 'Cooldown', items: [T('hip_flexor', 1, 40, 10)] }
+    ]
+  };
+  SESSIONS.KB6 = {
+    name: 'Swing EMOM – 10 min', short: 'Busy day: 150 swings in 10 minutes', color: '#e9a23b', kb: true,
+    blocks: [
+      { title: 'Warm-up', items: [S('kb_halo', 1, [5, 5], 0, { perSide: true }), S('kb_deadlift', 1, [10, 10], 30)] },
+      { title: 'EMOM 10 min · 15 swings at the top of every minute', items: [S('kb_swing', 10, [15, 15], 35, F)] },
+      { title: 'Cooldown', items: [T('hip_flexor', 1, 40, 10)] }
+    ]
+  };
+  var KB_KEYS = ['KB1', 'KB2', 'KB3', 'KB4', 'KB5', 'KB6'];
+  // kettlebell as the main program: same weekly count, kettlebell rotation (EMOM day only from 6×/week)
+  var KB_ORDER = { 1: ['KB1'], 2: ['KB1', 'KB2'], 3: ['KB1', 'KB2', 'KB3'], 4: ['KB1', 'KB2', 'KB3', 'KB4'], 5: ['KB1', 'KB2', 'KB3', 'KB4', 'KB5'],
+    6: ['KB1', 'KB2', 'KB3', 'KB4', 'KB5', 'KB6'], 7: ['KB1', 'KB2', 'KB3', 'KB4', 'KB5', 'KB6'] };
+
   // adv = official hybrid race volumes; lower levels scale down (weights scale via progression)
   var HX_SCALE = { beg: 0.6, mid: 0.8, adv: 1 };
 
@@ -168,7 +235,8 @@
       gymDays = GYM_DAYS[c.gym].slice();
       trailDays = TRAIL_PREF.filter(function (d) { return gymDays.indexOf(d) < 0; }).slice(0, c.trail);
     }
-    return { order: GYM_ORDER[c.gym], days: gymDays, trail: trailDays, gym: c.gym, trailN: c.trail, total: c.total };
+    var kbOwned = !s.equipment || s.equipment.indexOf('kb') >= 0;
+    return { order: (s.style === 'kb' && kbOwned ? KB_ORDER : GYM_ORDER)[c.gym], kb: s.style === 'kb' && kbOwned, days: gymDays, trail: trailDays, gym: c.gym, trailN: c.trail, total: c.total };
   }
 
   var WEEK_INFO = {
@@ -249,13 +317,13 @@
   var LIMITS = {
     knee: ['box_jump', 'burpee_bj', 'db_bulgarian', 'kb_lunge', 'sandbag_lunge', 'bw_lunge', 'jump_rope', 'high_knees', 'treadmill_run', 'bb_squat', 'wall_ball', 'db_thruster', 'mountain_climber',
       'jump_squat', 'burpee', 'wall_sit'],
-    back: ['bb_deadlift', 'bb_squat', 'kb_swing', 'back_ext', 'situp', 'hang_leg_raise', 'burpee_bj', 'sled_pull', 'k_sled_pull',
+    back: ['bb_deadlift', 'bb_squat', 'kb_swing', 'kb_swing1', 'kb_clean', 'kb_snatch', 'back_ext', 'situp', 'hang_leg_raise', 'burpee_bj', 'sled_pull', 'k_sled_pull',
       'abwheel_rollout', 'susp_fallout', 'ball_slam', 'ball_rot_slam', 'landmine_row', 'superman', 'burpee', 'hollow_hold'],
     // landmine_press is deliberately NOT here: its arc is the shoulder-friendly vertical press
-    shoulder: ['db_shoulder_press', 'kb_press', 'bb_bench', 'pullup', 'dead_hang', 'hang_leg_raise', 'hang_knee_raise', 'wall_ball', 'db_thruster', 'pushup', 'skierg', 'k_ski',
+    shoulder: ['db_shoulder_press', 'kb_press', 'kb_snatch', 'kb_tgu', 'kb_halo', 'bb_bench', 'pullup', 'dead_hang', 'hang_leg_raise', 'hang_knee_raise', 'wall_ball', 'db_thruster', 'pushup', 'skierg', 'k_ski',
       'dips', 'susp_fallout', 'ball_slam', 'pike_pushup', 'burpee'],
     // knee_pushup is deliberately NOT under shoulder: it is the gentler push-up
-    wrist: ['pushup', 'plank', 'mountain_climber', 'burpee_bj', 'bb_bench', 'dips', 'lsit', 'abwheel_rollout', 'knee_pushup', 'pike_pushup', 'burpee']
+    wrist: ['pushup', 'plank', 'kb_tgu', 'mountain_climber', 'burpee_bj', 'bb_bench', 'dips', 'lsit', 'abwheel_rollout', 'knee_pushup', 'pike_pushup', 'burpee']
   };
   function avoided(state) {
     var out = {};
@@ -352,11 +420,11 @@
           // the profile's goal shapes the prescription (race simulations stay at race standard)
           if (!src.race) {
             var main = /Glavni|Main|Superset A|Moč|Strength/.test(b.title);
-            if (o.reps && goal === 'strength' && main && Exercises.COMPOUND.indexOf(o.id) >= 0) {
+            if (o.reps && !o.fixed && goal === 'strength' && main && Exercises.COMPOUND.indexOf(o.id) >= 0) {
               o.reps = [Math.max(3, o.reps[0] - 3), Math.max(5, o.reps[1] - 3)];
               if (o.rest) o.rest += 30;
             }
-            if (o.reps && goal === 'endurance' && !main) o.reps = [o.reps[0] + 3, o.reps[1] + 5];
+            if (o.reps && !o.fixed && goal === 'endurance' && !main) o.reps = [o.reps[0] + 3, o.reps[1] + 5];
             if (o.rest && conditioning) o.rest = Math.max(30, Math.round(o.rest * 0.75 / 15) * 15);
             if (o.cardio && o.cardio.rounds && conditioning) o.cardio.rounds += 2;
             if (o.cardio && o.cardio.min && goal === 'endurance') o.cardio.min = Math.round(o.cardio.min * 1.25);
@@ -733,7 +801,7 @@
 
   global.Program = {
     SESSIONS: SESSIONS, PLANS: PLANS, plan: plan_, counts: counts, WEEK_INFO: WEEK_INFO,
-    HX_KEYS: ['HX1', 'HX2', 'HX3'],
+    HX_KEYS: ['HX1', 'HX2', 'HX3'], KB_KEYS: KB_KEYS,
     MACHINES: MACHINES, cardioMachines: cardioMachines, owned: owned,
     get: get, build: build, steps: steps, generate: generate, alternatives: alternatives,
     replaceItem: replaceItem, removeItem: removeItem, addItem: addItem, bonusFor: bonusFor, isCool: isCool, single: single, nextSessionKey: nextSessionKey, blockWeek: blockWeek,
